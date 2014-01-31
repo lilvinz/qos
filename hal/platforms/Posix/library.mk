@@ -6,6 +6,6 @@ EXTRAINCDIRS += $(QHAL_POSIX_DIR)
 
 # ChibiOS
 include $(ROOT_DIR)/src/lib/ChibiOS/os/hal/platforms/Posix/platform.mk
-include $(ROOT_DIR)/src/lib/ChibiOS/os/ports/GCC/SIMIA32/port.mk
+include $(QHAL_POSIX_DIR)/../../../ports/GCC/SIMIA32/port.mk
 
 include $(QHAL_POSIX_DIR)/../../library.mk
