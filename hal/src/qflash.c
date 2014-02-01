@@ -100,16 +100,17 @@ void flashObjectInit(FLASHDriver* flashp)
 void flashStart(FLASHDriver* flashp, const FLASHConfig* config)
 {
     chDbgCheck((flashp != NULL) && (config != NULL), "flashStart");
-
-    chSysLock();
     /* Verify device status. */
     chDbgAssert((flashp->state == NVM_STOP) || (flashp->state == NVM_READY),
             "flashStart(), #1", "invalid state");
 
     flashp->config = config;
+
+    chSysLock();
     flash_lld_start(flashp);
-    flashp->state = NVM_READY;
     chSysUnlock();
+
+    flashp->state = NVM_READY;
 }
 
 /**
@@ -122,15 +123,15 @@ void flashStart(FLASHDriver* flashp, const FLASHConfig* config)
 void flashStop(FLASHDriver* flashp)
 {
     chDbgCheck(flashp != NULL, "flashStop");
-
-    chSysLock();
     /* Verify device status. */
     chDbgAssert((flashp->state == NVM_STOP) || (flashp->state == NVM_READY),
             "flashStop(), #1", "invalid state");
 
+    chSysLock();
     flash_lld_stop(flashp);
-    flashp->state = NVM_STOP;
     chSysUnlock();
+
+    flashp->state = NVM_STOP;
 }
 
 /**
@@ -151,13 +152,9 @@ bool_t flashRead(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
         uint8_t* buffer)
 {
     chDbgCheck(flashp != NULL, "flashRead");
-
-    chSysLock();
-
     /* Verify device status. */
     chDbgAssert(flashp->state >= NVM_READY, "flashRead(), #1",
             "invalid state");
-
     /* Verify range is within chip size. */
     chDbgAssert(
             flash_lld_addr_to_sector(startaddr, NULL) == CH_SUCCESS
@@ -167,14 +164,13 @@ bool_t flashRead(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
     /* Read operation in progress. */
     flashp->state = NVM_READING;
 
+    chSysLock();
     flash_lld_sync(flashp);
-
     flash_lld_read(flashp, startaddr, n, buffer);
+    chSysUnlock();
 
     /* Read operation finished. */
     flashp->state = NVM_READY;
-
-    chSysUnlock();
 
     return CH_SUCCESS;
 }
@@ -197,13 +193,9 @@ bool_t flashWrite(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
         const uint8_t* buffer)
 {
     chDbgCheck(flashp != NULL, "flashWrite");
-
-    chSysLock();
-
     /* Verify device status. */
     chDbgAssert(flashp->state >= NVM_READY, "flashWrite(), #1",
             "invalid state");
-
     /* Verify range is within chip size. */
     chDbgAssert(
             flash_lld_addr_to_sector(startaddr, NULL) == CH_SUCCESS
@@ -213,10 +205,9 @@ bool_t flashWrite(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
     /* Write operation in progress. */
     flashp->state = NVM_WRITING;
 
+    chSysLock();
     flash_lld_sync(flashp);
-
     flash_lld_write(flashp, startaddr, n, buffer);
-
     chSysUnlock();
 
     return CH_SUCCESS;
@@ -238,12 +229,9 @@ bool_t flashWrite(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
 bool_t flashErase(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(flashp != NULL, "flashErase");
-
-    chSysLock();
     /* Verify device status. */
     chDbgAssert(flashp->state >= NVM_READY, "flashErase(), #1",
             "invalid state");
-
     /* Verify range is within chip size. */
     chDbgAssert(
             flash_lld_addr_to_sector(startaddr, NULL) == CH_SUCCESS
@@ -260,17 +248,13 @@ bool_t flashErase(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
             sector.origin += sector.size)
     {
         if (flash_lld_addr_to_sector(sector.origin, &sector) != CH_SUCCESS)
-        {
-            chSysUnlock();
             return CH_FAILED;
-        }
 
+        chSysLock();
         flash_lld_sync(flashp);
-
         flash_lld_erase_sector(flashp, sector.origin);
+        chSysUnlock();
     }
-
-    chSysUnlock();
 
     return CH_SUCCESS;
 }
@@ -289,8 +273,6 @@ bool_t flashErase(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
 bool_t flashMassErase(FLASHDriver* flashp)
 {
     chDbgCheck(flashp != NULL, "flashMassErase");
-
-    chSysLock();
     /* Verify device status. */
     chDbgAssert(flashp->state >= NVM_READY, "flashMassErase(), #1",
             "invalid state");
@@ -298,10 +280,9 @@ bool_t flashMassErase(FLASHDriver* flashp)
     /* Erase operation in progress. */
     flashp->state = NVM_ERASING;
 
+    chSysLock();
     flash_lld_sync(flashp);
-
     flash_lld_erase_mass(flashp);
-
     chSysUnlock();
 
     return CH_SUCCESS;
@@ -321,17 +302,19 @@ bool_t flashMassErase(FLASHDriver* flashp)
 bool_t flashSync(FLASHDriver* flashp)
 {
     chDbgCheck(flashp != NULL, "flashSync");
-
-    chSysLock();
     /* Verify device status. */
     chDbgAssert(flashp->state >= NVM_READY, "flashSync(), #1",
             "invalid state");
 
+    if (flashp->state == NVM_READY)
+        return CH_SUCCESS;
+
+    chSysLock();
     flash_lld_sync(flashp);
+    chSysUnlock();
 
     flashp->state = NVM_READY;
 
-    chSysUnlock();
     return CH_SUCCESS;
 }
 
@@ -350,15 +333,14 @@ bool_t flashSync(FLASHDriver* flashp)
 bool_t flashGetInfo(FLASHDriver* flashp, NVMDeviceInfo* nvmdip)
 {
     chDbgCheck(flashp != NULL, "flashGetInfo");
-
-    chSysLock();
     /* Verify device status. */
     chDbgAssert(flashp->state >= NVM_READY, "flashGetInfo(), #1",
             "invalid state");
 
+    chSysLock();
     flash_lld_get_info(flashp, nvmdip);
-
     chSysUnlock();
+
     return CH_SUCCESS;
 }
 
@@ -425,12 +407,9 @@ void flashReleaseBus(FLASHDriver* flashp)
 bool_t flashWriteProtect(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(flashp != NULL, "flashWriteProtect");
-
-    chSysLock();
     /* Verify device status. */
     chDbgAssert(flashp->state >= NVM_READY, "flashWriteProtect(), #1",
             "invalid state");
-
     /* Verify range is within chip size. */
     chDbgAssert(
             flash_lld_addr_to_sector(startaddr, NULL) == CH_SUCCESS
@@ -444,17 +423,13 @@ bool_t flashWriteProtect(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
             sector.origin += sector.size)
     {
         if (flash_lld_addr_to_sector(sector.origin, &sector) != CH_SUCCESS)
-        {
-            chSysUnlock();
             return CH_FAILED;
-        }
 
+        chSysLock();
         flash_lld_sync(flashp);
-
         flash_lld_writeprotect_sector(flashp, sector.origin);
+        chSysUnlock();
     }
-
-    chSysUnlock();
 
     return CH_SUCCESS;
 }
@@ -473,17 +448,15 @@ bool_t flashWriteProtect(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
 bool_t flashMassWriteProtect(FLASHDriver* flashp)
 {
     chDbgCheck(flashp != NULL, "flashMassWriteProtect");
-
-    chSysLock();
     /* Verify device status. */
     chDbgAssert(flashp->state >= NVM_READY, "flashMassWriteProtect(), #1",
             "invalid state");
 
+    chSysLock();
     flash_lld_sync(flashp);
-
     flash_lld_writeprotect_mass(flashp);
-
     chSysUnlock();
+
     return CH_SUCCESS;
 }
 
@@ -503,12 +476,9 @@ bool_t flashMassWriteProtect(FLASHDriver* flashp)
 bool_t flashWriteUnprotect(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(flashp != NULL, "flashWriteUnprotect");
-
-    chSysLock();
     /* Verify device status. */
     chDbgAssert(flashp->state >= NVM_READY, "flashWriteUnprotect(), #1",
             "invalid state");
-
     /* Verify range is within chip size. */
     chDbgAssert(
             flash_lld_addr_to_sector(startaddr, NULL) == CH_SUCCESS
@@ -522,17 +492,13 @@ bool_t flashWriteUnprotect(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
             sector.origin += sector.size)
     {
         if (flash_lld_addr_to_sector(sector.origin, &sector) != CH_SUCCESS)
-        {
-            chSysUnlock();
             return CH_FAILED;
-        }
 
+        chSysLock();
         flash_lld_sync(flashp);
-
         flash_lld_writeunprotect_sector(flashp, sector.origin);
+        chSysUnlock();
     }
-
-    chSysUnlock();
 
     return CH_SUCCESS;
 }
@@ -551,17 +517,15 @@ bool_t flashWriteUnprotect(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
 bool_t flashMassWriteUnprotect(FLASHDriver* flashp)
 {
     chDbgCheck(flashp != NULL, "flashMassWriteUnprotect");
-
-    chSysLock();
     /* Verify device status. */
     chDbgAssert(flashp->state >= NVM_READY, "flashMassWriteUnprotect(), #1",
             "invalid state");
 
+    chSysLock();
     flash_lld_sync(flashp);
-
     flash_lld_writeunprotect_mass(flashp);
-
     chSysUnlock();
+
     return CH_SUCCESS;
 }
 
