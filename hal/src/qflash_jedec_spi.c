@@ -650,7 +650,7 @@ bool_t fjsMassErase(FlashJedecSPIDriver* fjsp)
     }
     else
     {
-        /* No, so we will le the sector erase command fake it. */
+        /* No, so we will let the sector erase command fake it. */
         return fjsErase(fjsp, 0,
                 fjsp->config->sector_size * fjsp->config->sector_num);
     }
