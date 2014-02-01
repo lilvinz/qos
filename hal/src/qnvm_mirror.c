@@ -44,11 +44,7 @@
  *              - state synced:
  *                  Execute sync of lower level driver.
  *              - state dirty a:
- *                  State is changed to dirty b.
- *                  Execute sync of lower level driver.
- *                  Copy mirror a to mirror b erasing pages as required.
- *                  State is changed to synced.
- *                  Execute sync of lower level driver.
+ *                  Invalid state!
  *              - state dirty b:
  *                  Invalid state!
  *          Read:
@@ -62,8 +58,13 @@
  *                  State is being set to dirty a.
  *                  Execute sync of lower level driver.
  *                  Write(s) and / or erase(s) are being executed on mirror a.
+ *                  State is changed to dirty b.
+ *                  Execute sync of lower level driver.
+ *                  Write(s) and / or erase(s) are being executed on mirror b.
+ *                  State is changed to synced.
+ *                  Execute sync of lower level driver.
  *              - state dirty a:
- *                  Write(s) and / or erase(s) are being executed on mirror a.
+ *                  Invalid state!
  *              - state dirty b:
  *                  Invalid state!
  *
@@ -136,8 +137,7 @@ static bool_t nvm_mirror_state_init(NVMMirrorDriver* nvmmirrorp)
     chDbgCheck((nvmmirrorp != NULL), "nvm_mirror_state_init");
 
     const uint32_t header_orig = 0;
-    const uint32_t header_size =
-            nvmmirrorp->config->sector_header_num * nvmmirrorp->llnvmdi.sector_size;
+    const uint32_t header_size = nvmmirrorp->mirror_a_org;
 
     NVMMirrorState new_state = STATE_INVALID;
     uint32_t new_state_addr = 0;
@@ -198,8 +198,7 @@ static bool_t nvm_mirror_state_update(NVMMirrorDriver* nvmmirrorp,
         return CH_SUCCESS;
 
     const uint32_t header_orig = 0;
-    const uint32_t header_size =
-            nvmmirrorp->config->sector_header_num * nvmmirrorp->llnvmdi.sector_size;
+    const uint32_t header_size = nvmmirrorp->mirror_a_org;
 
     uint32_t new_state_addr = nvmmirrorp->mirror_state_addr;
     uint64_t new_state_mark = nvm_mirror_state_mark_table[new_state];
@@ -334,24 +333,26 @@ void nvmmirrorStart(NVMMirrorDriver* nvmmirrorp, const NVMMirrorConfig* config)
             "nvmmirrorStart(), #1", "invalid state");
 
     nvmmirrorp->config = config;
+
+    /* Calculate and cache often reused values. */
     nvmGetInfo(nvmmirrorp->config->nvmp, &nvmmirrorp->llnvmdi);
+    nvmmirrorp->mirror_size =
+            (nvmmirrorp->llnvmdi.sector_num - nvmmirrorp->config->sector_header_num) /
+            2 * nvmmirrorp->llnvmdi.sector_size;
+    nvmmirrorp->mirror_a_org =
+            nvmmirrorp->llnvmdi.sector_size * nvmmirrorp->config->sector_header_num;
+    nvmmirrorp->mirror_b_org =
+            nvmmirrorp->mirror_a_org + nvmmirrorp->mirror_size;
 
     nvm_mirror_state_init(nvmmirrorp);
 
     {
-        const uint32_t mirror_size =
-                (nvmmirrorp->llnvmdi.sector_num - nvmmirrorp->config->sector_header_num) /
-                2 * nvmmirrorp->llnvmdi.sector_size;
-        const uint32_t mirror_a_org =
-                nvmmirrorp->llnvmdi.sector_size * nvmmirrorp->config->sector_header_num;
-        const uint32_t mirror_b_org =
-                mirror_a_org + mirror_size;
-
         switch (nvmmirrorp->mirror_state)
         {
         case STATE_DIRTY_A:
             /* Copy mirror b to mirror a erasing pages as required. */
-            if (nvm_mirror_copy(nvmmirrorp, mirror_b_org, mirror_a_org, mirror_size) != CH_SUCCESS)
+            if (nvm_mirror_copy(nvmmirrorp, nvmmirrorp->mirror_b_org,
+                    nvmmirrorp->mirror_a_org, nvmmirrorp->mirror_size) != CH_SUCCESS)
                 return;
             /* Set state to synced. */
             if (nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED) != CH_SUCCESS)
@@ -364,7 +365,8 @@ void nvmmirrorStart(NVMMirrorDriver* nvmmirrorp, const NVMMirrorConfig* config)
             /* Invalid state (all header invalid) assumes mirror b to be dirty. */
         case STATE_DIRTY_B:
             /* Copy mirror a to mirror b erasing pages as required. */
-            if (nvm_mirror_copy(nvmmirrorp, mirror_a_org, mirror_b_org, mirror_size) != CH_SUCCESS)
+            if (nvm_mirror_copy(nvmmirrorp, nvmmirrorp->mirror_a_org,
+                    nvmmirrorp->mirror_b_org, nvmmirrorp->mirror_size) != CH_SUCCESS)
                 return;
             /* Set state to synced. */
             if (nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED) != CH_SUCCESS)
@@ -426,21 +428,18 @@ bool_t nvmmirrorRead(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
             "invalid state");
 
     /* Verify range is within mirror size. */
-    chDbgAssert(
-            (startaddr + n <=
-                (nvmmirrorp->llnvmdi.sector_num - nvmmirrorp->config->sector_header_num) /
-                2 * nvmmirrorp->llnvmdi.sector_size),
+    chDbgAssert(startaddr + n <= nvmmirrorp->mirror_size,
             "nvmmirrorRead(), #2", "invalid parameters");
 
     /* Verify mirror is in valid sync state. */
-    chDbgAssert(nvmmirrorp->mirror_state != STATE_DIRTY_B, "nvmmirrorRead(), #3",
+    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorRead(), #3",
             "invalid mirror state");
 
     /* Read operation in progress. */
     nvmmirrorp->state = NVM_READING;
 
     bool_t result = nvmRead(nvmmirrorp->config->nvmp,
-            nvmmirrorp->llnvmdi.sector_size * nvmmirrorp->config->sector_header_num + startaddr,
+            nvmmirrorp->mirror_a_org + startaddr,
             n, buffer);
 
     /* Read operation finished. */
@@ -472,30 +471,45 @@ bool_t nvmmirrorWrite(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
             "invalid state");
 
     /* Verify range is within mirror size. */
-    chDbgAssert(
-            (startaddr + n <=
-                (nvmmirrorp->llnvmdi.sector_num - nvmmirrorp->config->sector_header_num) /
-                2 * nvmmirrorp->llnvmdi.sector_size),
+    chDbgAssert(startaddr + n <= nvmmirrorp->mirror_size,
             "nvmmirrorWrite(), #2", "invalid parameters");
 
     /* Verify mirror is in valid sync state. */
-    chDbgAssert(nvmmirrorp->mirror_state != STATE_DIRTY_B, "nvmmirrorWrite(), #3",
+    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorWrite(), #3",
             "invalid mirror state");
-
-    /* Set mirror state to dirty if necessary. */
-    if (nvmmirrorp->mirror_state == STATE_SYNCED)
-    {
-        bool_t result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_A);
-        if (result != CH_SUCCESS)
-            return result;
-    }
 
     /* Write operation in progress. */
     nvmmirrorp->state = NVM_WRITING;
 
-    return nvmWrite(nvmmirrorp->config->nvmp,
-            nvmmirrorp->llnvmdi.sector_size * nvmmirrorp->config->sector_header_num + startaddr,
-            n, buffer);
+    bool_t result;
+    /* Set state to mirror a dirty before changing contents. */
+    result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_A);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Apply write to mirror a. */
+    result = nvmWrite(nvmmirrorp->config->nvmp,
+            nvmmirrorp->mirror_a_org + startaddr, n, buffer);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Advance state to mirror b dirty. */
+    result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_B);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Apply write to mirror b. */
+    result = nvmWrite(nvmmirrorp->config->nvmp,
+            nvmmirrorp->mirror_b_org + startaddr, n, buffer);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Advance state to synced. */
+    result = nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED);
+    if (result != CH_SUCCESS)
+        return result;
+
+    return CH_SUCCESS;
 }
 
 /**
@@ -519,30 +533,45 @@ bool_t nvmmirrorErase(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr, uint32_t 
             "invalid state");
 
     /* Verify range is within mirror size. */
-    chDbgAssert(
-            (startaddr + n <=
-                (nvmmirrorp->llnvmdi.sector_num - nvmmirrorp->config->sector_header_num) /
-                2 * nvmmirrorp->llnvmdi.sector_size),
+    chDbgAssert(startaddr + n <= nvmmirrorp->mirror_size,
             "nvmmirrorErase(), #2", "invalid parameters");
 
     /* Verify mirror is in valid sync state. */
-    chDbgAssert(nvmmirrorp->mirror_state != STATE_DIRTY_B, "nvmmirrorErase(), #3",
+    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorErase(), #3",
             "invalid mirror state");
-
-    /* Set mirror state to dirty if necessary. */
-    if (nvmmirrorp->mirror_state == STATE_SYNCED)
-    {
-        bool_t result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_A);
-        if (result != CH_SUCCESS)
-            return result;
-    }
 
     /* Erase operation in progress. */
     nvmmirrorp->state = NVM_ERASING;
 
-    return nvmErase(nvmmirrorp->config->nvmp,
-            nvmmirrorp->llnvmdi.sector_size * nvmmirrorp->config->sector_header_num + startaddr,
-            n);
+    bool_t result;
+    /* Set state to mirror a dirty before changing contents. */
+    result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_A);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Apply erase to mirror a. */
+    result = nvmErase(nvmmirrorp->config->nvmp,
+            nvmmirrorp->mirror_a_org + startaddr, n);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Advance state to mirror b dirty. */
+    result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_B);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Apply erase to mirror b. */
+    result = nvmErase(nvmmirrorp->config->nvmp,
+            nvmmirrorp->mirror_b_org + startaddr, n);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Advance state to synced. */
+    result = nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED);
+    if (result != CH_SUCCESS)
+        return result;
+
+    return CH_SUCCESS;
 }
 
 /**
@@ -578,10 +607,35 @@ bool_t nvmmirrorMassErase(NVMMirrorDriver* nvmmirrorp)
     /* Erase operation in progress. */
     nvmmirrorp->state = NVM_ERASING;
 
-    return nvmErase(nvmmirrorp->config->nvmp,
-            nvmmirrorp->llnvmdi.sector_size * nvmmirrorp->config->sector_header_num,
-            nvmmirrorp->llnvmdi.sector_size *
-            (nvmmirrorp->llnvmdi.sector_num - nvmmirrorp->config->sector_header_num));
+    bool_t result;
+    /* Set state to mirror a dirty before changing contents. */
+    result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_A);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Apply erase to mirror a. */
+    result = nvmErase(nvmmirrorp->config->nvmp,
+            nvmmirrorp->mirror_a_org, nvmmirrorp->mirror_size);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Advance state to mirror b dirty. */
+    result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_B);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Apply erase to mirror b. */
+    result = nvmErase(nvmmirrorp->config->nvmp,
+            nvmmirrorp->mirror_b_org, nvmmirrorp->mirror_size);
+    if (result != CH_SUCCESS)
+        return result;
+
+    /* Advance state to synced. */
+    result = nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED);
+    if (result != CH_SUCCESS)
+        return result;
+
+    return CH_SUCCESS;
 }
 
 /**
@@ -603,46 +657,15 @@ bool_t nvmmirrorSync(NVMMirrorDriver* nvmmirrorp)
             "invalid state");
 
     /* Verify mirror is in valid sync state. */
-    chDbgAssert(nvmmirrorp->mirror_state != STATE_DIRTY_B, "nvmmirrorSync(), #2",
+    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorSync(), #2",
             "invalid mirror state");
 
-    if (nvmmirrorp->mirror_state == STATE_SYNCED)
-        return nvmSync(nvmmirrorp->config->nvmp);
-
-    /* Update mirror state to dirty_b to inidicate sync in progress. */
-    {
-        bool_t result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_B);
-        if (result != CH_SUCCESS)
-            return result;
-    }
-
-    /* Copy mirror a contents to mirror b. */
-    {
-        const uint32_t mirror_size =
-                (nvmmirrorp->llnvmdi.sector_num - nvmmirrorp->config->sector_header_num) /
-                2 * nvmmirrorp->llnvmdi.sector_size;
-        const uint32_t mirror_a_org =
-                nvmmirrorp->llnvmdi.sector_size * nvmmirrorp->config->sector_header_num;
-        const uint32_t mirror_b_org =
-                mirror_a_org + mirror_size;
-
-        /* Copy mirror a to mirror b erasing pages as required. */
-        bool_t result = nvm_mirror_copy(nvmmirrorp, mirror_a_org, mirror_b_org, mirror_size);
-        if (result != CH_SUCCESS)
-            return result;
-    }
-
-    /* Update mirror state to synced. */
-    {
-        bool_t result = nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED);
-        if (result != CH_SUCCESS)
-            return result;
-    }
+    bool_t result = nvmSync(nvmmirrorp->config->nvmp);
 
     /* No more operation in progress. */
     nvmmirrorp->state = NVM_READY;
 
-    return CH_SUCCESS;
+    return result;
 }
 
 /**

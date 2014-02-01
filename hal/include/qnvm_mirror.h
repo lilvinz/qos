@@ -108,6 +108,26 @@ typedef struct
     * @brief Device info of underlying nvm device.
     */
     NVMDeviceInfo llnvmdi;
+    /**
+    * @brief Current state of the mirror.
+    */
+    NVMMirrorState mirror_state;
+    /**
+    * @brief Address of the current used state mark.
+    */
+    uint32_t mirror_state_addr;
+    /**
+    * @brief Mirror size cached for performance.
+    */
+    uint32_t mirror_size;
+    /**
+    * @brief Origin address of mirror a cached for performance.
+    */
+    uint32_t mirror_a_org;
+    /**
+    * @brief Origin address of mirror b cached for performance.
+    */
+    uint32_t mirror_b_org;
 #if NVM_MIRROR_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_USE_MUTEXES || defined(__DOXYGEN__)
     /**
@@ -118,8 +138,6 @@ typedef struct
     Semaphore semaphore;
 #endif
 #endif /* NVM_MIRROR_USE_MUTUAL_EXCLUSION */
-    NVMMirrorState mirror_state;
-    uint32_t mirror_state_addr;
 } NVMMirrorDriver;
 
 /*===========================================================================*/
