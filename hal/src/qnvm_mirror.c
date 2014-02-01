@@ -397,7 +397,6 @@ void nvmmirrorStop(NVMMirrorDriver* nvmmirrorp)
     /* Verify device status. */
     chDbgAssert((nvmmirrorp->state == NVM_STOP) || (nvmmirrorp->state == NVM_READY),
             "nvmmirrorStop(), #1", "invalid state");
-
     /* Verify mirror is in valid sync state. */
     chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorStop(), #2",
             "invalid mirror state");
@@ -426,11 +425,9 @@ bool_t nvmmirrorRead(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
     /* Verify device status. */
     chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorRead(), #1",
             "invalid state");
-
     /* Verify range is within mirror size. */
     chDbgAssert(startaddr + n <= nvmmirrorp->mirror_size,
             "nvmmirrorRead(), #2", "invalid parameters");
-
     /* Verify mirror is in valid sync state. */
     chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorRead(), #3",
             "invalid mirror state");
@@ -441,11 +438,13 @@ bool_t nvmmirrorRead(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
     bool_t result = nvmRead(nvmmirrorp->config->nvmp,
             nvmmirrorp->mirror_a_org + startaddr,
             n, buffer);
+    if (result != CH_SUCCESS)
+        return result;
 
     /* Read operation finished. */
     nvmmirrorp->state = NVM_READY;
 
-    return result;
+    return CH_SUCCESS;
 }
 
 /**
@@ -469,11 +468,9 @@ bool_t nvmmirrorWrite(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
     /* Verify device status. */
     chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorWrite(), #1",
             "invalid state");
-
     /* Verify range is within mirror size. */
     chDbgAssert(startaddr + n <= nvmmirrorp->mirror_size,
             "nvmmirrorWrite(), #2", "invalid parameters");
-
     /* Verify mirror is in valid sync state. */
     chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorWrite(), #3",
             "invalid mirror state");
@@ -531,11 +528,9 @@ bool_t nvmmirrorErase(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr, uint32_t 
     /* Verify device status. */
     chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorErase(), #1",
             "invalid state");
-
     /* Verify range is within mirror size. */
     chDbgAssert(startaddr + n <= nvmmirrorp->mirror_size,
             "nvmmirrorErase(), #2", "invalid parameters");
-
     /* Verify mirror is in valid sync state. */
     chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorErase(), #3",
             "invalid mirror state");
@@ -591,11 +586,9 @@ bool_t nvmmirrorMassErase(NVMMirrorDriver* nvmmirrorp)
     /* Verify device status. */
     chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorMassErase(), #1",
             "invalid state");
-
     /* Verify mirror is in valid sync state. */
     chDbgAssert(nvmmirrorp->mirror_state != STATE_DIRTY_B, "nvmmirrorMassErase(), #3",
             "invalid mirror state");
-
     /* Set mirror state to dirty if necessary. */
     if (nvmmirrorp->mirror_state == STATE_SYNCED)
     {
@@ -655,17 +648,21 @@ bool_t nvmmirrorSync(NVMMirrorDriver* nvmmirrorp)
     /* Verify device status. */
     chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorSync(), #1",
             "invalid state");
-
     /* Verify mirror is in valid sync state. */
     chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorSync(), #2",
             "invalid mirror state");
 
+    if (nvmmirrorp->state == NVM_READY)
+        return CH_SUCCESS;
+
     bool_t result = nvmSync(nvmmirrorp->config->nvmp);
+    if (result != CH_SUCCESS)
+        return result;
 
     /* No more operation in progress. */
     nvmmirrorp->state = NVM_READY;
 
-    return result;
+    return CH_SUCCESS;
 }
 
 /**
