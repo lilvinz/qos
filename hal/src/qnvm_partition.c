@@ -104,7 +104,12 @@ void nvmpartStart(NVMPartitionDriver* nvmpartp,
             "nvmpartStart(), #1", "invalid state");
 
     nvmpartp->config = config;
+
+    /* Calculate and cache often reused values. */
     nvmGetInfo(nvmpartp->config->nvmp, &nvmpartp->llnvmdi);
+    nvmpartp->part_org = nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_offset;
+    nvmpartp->part_size = nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_num;
+
     nvmpartp->state = NVM_READY;
 }
 
@@ -148,20 +153,22 @@ bool_t nvmpartRead(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
             "invalid state");
     /* Verify range is within partition size. */
     chDbgAssert(
-            (startaddr + n <= nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_num),
+            (startaddr + n <= nvmpartp->part_size),
             "nvmpartRead(), #2", "invalid parameters");
 
     /* Read operation in progress. */
     nvmpartp->state = NVM_READING;
 
     bool_t result = nvmRead(nvmpartp->config->nvmp,
-            nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_offset + startaddr,
+            nvmpartp->part_org + startaddr,
             n, buffer);
+    if (result != CH_SUCCESS)
+        return result;
 
     /* Read operation finished. */
     nvmpartp->state = NVM_READY;
 
-    return result;
+    return CH_SUCCESS;
 }
 
 /**
@@ -187,14 +194,14 @@ bool_t nvmpartWrite(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
             "invalid state");
     /* Verify range is within partition size. */
     chDbgAssert(
-            (startaddr + n <= nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_num),
+            (startaddr + n <= nvmpartp->part_size),
             "nvmpartWrite(), #2", "invalid parameters");
 
     /* Write operation in progress. */
     nvmpartp->state = NVM_WRITING;
 
     return nvmWrite(nvmpartp->config->nvmp,
-            nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_offset + startaddr,
+            nvmpartp->part_org + startaddr,
             n, buffer);
 }
 
@@ -219,14 +226,14 @@ bool_t nvmpartErase(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
     chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartErase(), #1",
             "invalid state");
     /* Verify range is within partition size. */
-    chDbgAssert((startaddr + n <= nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_num),
+    chDbgAssert((startaddr + n <= nvmpartp->part_size),
             "nvmpartRead(), #2", "invalid parameters");
 
     /* Erase operation in progress. */
     nvmpartp->state = NVM_ERASING;
 
     return nvmErase(nvmpartp->config->nvmp,
-            nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_offset + startaddr,
+            nvmpartp->part_org + startaddr,
             n);
 }
 
@@ -252,8 +259,8 @@ bool_t nvmpartMassErase(NVMPartitionDriver* nvmpartp)
     nvmpartp->state = NVM_ERASING;
 
     return nvmErase(nvmpartp->config->nvmp,
-            nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_offset,
-            nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_num);
+            nvmpartp->part_org,
+            nvmpartp->part_size);
 }
 
 /**
@@ -274,12 +281,17 @@ bool_t nvmpartSync(NVMPartitionDriver* nvmpartp)
     chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartSync(), #1",
             "invalid state");
 
+    if (nvmpartp->state == NVM_READY)
+        return CH_SUCCESS;
+
     bool_t result = nvmSync(nvmpartp->config->nvmp);
+    if (result != CH_SUCCESS)
+        return result;
 
     /* No more operation in progress. */
     nvmpartp->state = NVM_READY;
 
-    return result;
+    return CH_SUCCESS;
 }
 
 /**
@@ -383,11 +395,11 @@ bool_t nvmpartWriteProtect(NVMPartitionDriver* nvmpartp,
     chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartWriteProtect(), #1",
             "invalid state");
     /* Verify range is within partition size. */
-    chDbgAssert((startaddr + n <= nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_num),
+    chDbgAssert((startaddr + n <= nvmpartp->part_size),
             "nvmpartWriteProtect(), #2", "invalid parameters");
 
     return nvmWriteProtect(nvmpartp->config->nvmp,
-            nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_offset + startaddr,
+            nvmpartp->part_org + startaddr,
             n);
 }
 
@@ -410,8 +422,8 @@ bool_t nvmpartMassWriteProtect(NVMPartitionDriver* nvmpartp)
             "invalid state");
 
     return nvmWriteProtect(nvmpartp->config->nvmp,
-            nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_offset,
-            nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_num);
+            nvmpartp->part_org,
+            nvmpartp->part_size);
 }
 
 /**
@@ -435,11 +447,11 @@ bool_t nvmpartWriteUnprotect(NVMPartitionDriver* nvmpartp,
     chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartWriteUnprotect(), #1",
             "invalid state");
     /* Verify range is within partition size. */
-    chDbgAssert((startaddr + n <= nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_num),
+    chDbgAssert((startaddr + n <= nvmpartp->part_size),
             "nvmpartWriteUnprotect(), #2", "invalid parameters");
 
     return nvmWriteUnprotect(nvmpartp->config->nvmp,
-            nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_offset + startaddr,
+            nvmpartp->part_org + startaddr,
             n);
 }
 
@@ -462,8 +474,8 @@ bool_t nvmpartMassWriteUnprotect(NVMPartitionDriver* nvmpartp)
             "invalid state");
 
     return nvmWriteUnprotect(nvmpartp->config->nvmp,
-            nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_offset,
-            nvmpartp->llnvmdi.sector_size * nvmpartp->config->sector_num);
+            nvmpartp->part_org,
+            nvmpartp->part_size);
 }
 
 #endif /* HAL_USE_NVM_PARTITION */

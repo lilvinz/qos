@@ -100,6 +100,14 @@ typedef struct
     * @brief Device info of underlying nvm device.
     */
     NVMDeviceInfo llnvmdi;
+    /**
+    * @brief Partition origin relative to llnvm.
+    */
+    uint32_t part_org;
+    /**
+    * @brief Partition size in bytes.
+    */
+    uint32_t part_size;
 #if NVM_PARTITION_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_USE_MUTEXES || defined(__DOXYGEN__)
     /**
