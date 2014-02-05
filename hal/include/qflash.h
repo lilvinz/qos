@@ -39,7 +39,7 @@
  * @note    Disabling this option saves both code and data space.
  */
 #if !defined(FLASH_USE_MUTUAL_EXCLUSION) || defined(__DOXYGEN__)
-#define FLASH_USE_MUTUAL_EXCLUSION     TRUE
+#define FLASH_USE_MUTUAL_EXCLUSION              TRUE
 #endif
 /** @} */
 
