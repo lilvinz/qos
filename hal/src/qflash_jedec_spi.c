@@ -162,10 +162,10 @@ static void flash_jedec_spi_wait_busy(FlashJedecSPIDriver* fjsp)
     /* Looks like it is a long wait. */
     while ((in & 0x01) != 0x00)
     {
-    #ifdef FLASH_JEDEC_SPI_NICE_WAITING
+#if FLASH_JEDEC_SPI_NICE_WAITING
         /* Trying to be nice with the other threads. */
         chThdSleep(1);
-    #endif
+#endif
         spiReceive(fjsp->config->spip, sizeof(in), &in);
     }
 
