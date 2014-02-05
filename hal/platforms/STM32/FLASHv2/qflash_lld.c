@@ -812,7 +812,7 @@ void flash_lld_sync(FLASHDriver* flashp)
 {
     while (flashp->flash->SR & FLASH_SR_BSY)
     {
-#ifdef FLASH_NICE_WAITING
+#if FLASH_NICE_WAITING
         /* Trying to be nice with the other threads. */
         chSysUnlock();
         chThdSleep(1);
