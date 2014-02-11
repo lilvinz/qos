@@ -477,7 +477,7 @@ static void flash_lld_ob_wrp_clear(FLASHDriver* flashp, uint16_t wrp)
  *
  * @notapi
  */
-static void flash_lld1_ob_set_wrp(FLASHDriver* flashp, uint16_t wrp)
+static void flash_lld_ob1_wrp_set(FLASHDriver* flashp, uint16_t wrp)
 {
     uint16_t state_current = ~(*(__IO uint16_t*)OPTCR1_BYTE2_ADDRESS);
     /* Check current state first. */
@@ -501,7 +501,7 @@ static void flash_lld1_ob_set_wrp(FLASHDriver* flashp, uint16_t wrp)
  *
  * @notapi
  */
-static void flash_lld1_ob_wrp_clear(FLASHDriver* flashp, uint16_t wrp)
+static void flash_lld_ob1_wrp_clear(FLASHDriver* flashp, uint16_t wrp)
 {
     uint16_t state_current = ~(*(__IO uint16_t*)OPTCR1_BYTE2_ADDRESS);
     /* Check current state first. */
@@ -1030,7 +1030,7 @@ void flash_lld1_writeunprotect_mass(FLASHDriver* flashp)
 void flash_lld1_ob_rdp(FLASHDriver* flashp, ob_rdp_level_e level)
 {
     /* Check current state first. */
-    if ((*(__IO uint8_t*)OPTCR1_BYTE1_ADDRESS != level)
+    if ((*(__IO uint8_t*)OPTCR1_BYTE1_ADDRESS != level))
     {
         flash_lld_optcr_unlock(flashp);
         /* Set read protection level. */
