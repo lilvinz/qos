@@ -12,6 +12,7 @@
 #if HAL_USE_NVM_MIRROR || defined(__DOXYGEN__)
 
 #include "static_assert.h"
+#include "nelems.h"
 
 #include <string.h>
 

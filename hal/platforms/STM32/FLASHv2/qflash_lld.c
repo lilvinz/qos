@@ -11,7 +11,7 @@
 
 #if HAL_USE_FLASH || defined(__DOXYGEN__)
 
-#include "static_assert.h"
+#include "nelems.h"
 
 #include <string.h>
 
