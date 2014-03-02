@@ -16,9 +16,9 @@
 
 /**
  * @file    STM32F4xx/qhal_lld.c
- * @brief   STM32F4xx/STM32F2xx HAL subsystem low level driver source.
+ * @brief   STM32F4xx HAL subsystem low level driver source.
  *
- * @addtogroup QHAL
+ * @addtogroup HAL
  * @{
  */
 

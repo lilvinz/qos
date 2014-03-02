@@ -18,7 +18,7 @@
  * @file    AT91SAM7/qhal_lld.c
  * @brief   AT91SAM7 QHAL subsystem low level driver source.
  *
- * @addtogroup QHAL
+ * @addtogroup HAL
  * @{
  */
 

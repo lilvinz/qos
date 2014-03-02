@@ -4,9 +4,9 @@
  * @details This header defines an abstract interface useful to access generic
  *          I/O with non volatile memory devices in a standardized way.
  *
- * @addtogroup QIO_NVM
+ * @addtogroup IO_NVM
  * @details This module defines an abstract interface for accessing generic
- *          non volatile memory devices.<br>
+ *          non volatile memory devices.
  *          Note that no code is present, just abstract interfaces-like
  *          structures, you should look at the system as to a set of
  *          abstract C++ classes (even if written in C). This system

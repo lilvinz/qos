@@ -2,7 +2,7 @@
  * @file    Posix/qhal_lld.h
  * @brief   Posix HAL subsystem low level driver header.
  *
- * @addtogroup QHAL
+ * @addtogroup HAL
  * @{
  */
 

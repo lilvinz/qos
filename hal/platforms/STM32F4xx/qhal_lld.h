@@ -16,7 +16,7 @@
  *          - STM32F429_439xx for High-performance STM32 F-4 devices.
  *          .
  *
- * @addtogroup QHAL
+ * @addtogroup HAL
  * @{
  */
 

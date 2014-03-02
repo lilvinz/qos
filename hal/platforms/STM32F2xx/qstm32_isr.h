@@ -2,7 +2,7 @@
  * @file    STM32F2xx/qstm32_isr.h
  * @brief   ISR remapper driver header.
  *
- * @addtogroup STM32F4xx_ISR
+ * @addtogroup STM32F2xx_ISR
  * @{
  */
 
