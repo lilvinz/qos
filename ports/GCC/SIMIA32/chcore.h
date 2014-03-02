@@ -36,6 +36,7 @@
 #include <ucontext.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 /*===========================================================================*/
 /* Port constants.                                                           */
@@ -63,7 +64,7 @@
  *          the idle thread should take no more space than those reserved
  *          by @p PORT_INT_REQUIRED_STACK.
  */
-#ifndef PORT_IDLE_THREAD_STACK_SIZE
+#if !defined(PORT_IDLE_THREAD_STACK_SIZE) || defined(__DOXYGEN__)
 #define PORT_IDLE_THREAD_STACK_SIZE     256
 #endif
 
@@ -75,33 +76,43 @@
  *          separate interrupt stack and the stack space between @p intctx and
  *          @p extctx is known to be zero.
  */
-#ifndef PORT_INT_REQUIRED_STACK
+#if !defined(PORT_INT_REQUIRED_STACK) || defined(__DOXYGEN__)
 #define PORT_INT_REQUIRED_STACK         16384
 #endif
 
 /**
- * @brief   NVIC PRIGROUP initialization expression.
- * @details The default assigns all available priority bits as preemption
- *          priority with no sub-priority.
+ * @brief   Typer time to be used to generate systick interrupt.
+ * @details ITIMER_REAL
+ *            Decrements in real time, and delivers SIGALRM upon expiration.
+ *            This timer will fail when using debug breakpoints.
+ *          ITIMER_VIRTUAL
+ *            Decrements only when the process is executing, and delivers
+ *            SIGVTALRM upon expiration.
+ *          ITIMER_PROF
+ *            Decrements both when the process executes and when the system
+ *            is executing on behalf of the process. Delivers SIGPROF
+ *            upon expiration.
  */
-#if !defined(TIMER_TYPE) || defined(__DOXYGEN__)
-#define TIMER_TYPE                      ITIMER_REAL
+#if !defined(PORT_TIMER_TYPE) || defined(__DOXYGEN__)
+#define PORT_TIMER_TYPE                 ITIMER_REAL
+#endif
+
+/**
+ * @brief   Typer signal to be used to generate systick interrupt.
+ * @details SIGALRM
+ *            Will be delivered on expiration of ITIMER_REAL
+ *          SIGVTALRM
+ *            Will be delivered on expiration of ITIMER_VIRTUAL
+ *          SIGPROF
+ *            Will be delivered on expiration of ITIMER_PROF
+ */
+#if !defined(PORT_TIMER_SIGNAL) || defined(__DOXYGEN__)
+#define PORT_TIMER_SIGNAL               SIGALRM
 #endif
 
 /*===========================================================================*/
 /* Port derived parameters.                                                  */
 /*===========================================================================*/
-
-#if (TIMER_TYPE == ITIMER_REAL)
-#define TIMER_SIGNAL                    SIGALRM
-#elif (TIMER_TYPE == ITIMER_VIRTUAL)
-#define TIMER_SIGNAL                    SIGVTALRM
-#elif (TIMER_TYPE == ITIMER_PROF)
-#define TIMER_SIGNAL                    SIGPROF
-#else
-#error "invalid TIMER_TYPE specified"
-#endif
-
 /*===========================================================================*/
 /* Port exported info.                                                       */
 /*===========================================================================*/

@@ -65,14 +65,14 @@ void qhal_lld_init(void) {
   if (sigfillset(&sigtick.sa_mask) < 0)
     port_halt();
 
-  if (sigaction(TIMER_SIGNAL, &sigtick, NULL) < 0)
+  if (sigaction(PORT_TIMER_SIGNAL, &sigtick, NULL) < 0)
     port_halt();
 
   const suseconds_t usecs = 1000000 / CH_FREQUENCY;
   struct itimerval itimer, oitimer;
 
   /* Initialize the structure with the current timer information. */
-  if (getitimer(TIMER_TYPE, &itimer) < 0)
+  if (getitimer(PORT_TIMER_TYPE, &itimer) < 0)
     port_halt();
 
   /* Set the interval between timer events. */
@@ -84,7 +84,7 @@ void qhal_lld_init(void) {
   itimer.it_value.tv_usec = usecs % 1000000;
 
   /* Set-up the timer interrupt. */
-  if (setitimer(TIMER_TYPE, &itimer, &oitimer) < 0)
+  if (setitimer(PORT_TIMER_TYPE, &itimer, &oitimer) < 0)
     port_halt();
 }
 
