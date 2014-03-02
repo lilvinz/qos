@@ -9,7 +9,7 @@
  * @file    qhal.c
  * @brief   Quantec HAL subsystem code.
  *
- * @addtogroup QHAL
+ * @addtogroup HAL
  * @{
  */
 
@@ -72,6 +72,9 @@ void qhalInit(void)
 #endif
 #if HAL_USE_WDG || defined(__DOXYGEN__)
     wdgInit();
+#endif
+#if HAL_USE_GRAPHICS_DISPLAY_SIM || defined(__DOXYGEN__)
+    gdsimInit();
 #endif
 }
 

@@ -19,6 +19,7 @@
 
 /* Abstract interfaces.*/
 #include "qio_nvm.h"
+#include "qgd.h"
 
 /* Shared headers.*/
 
@@ -26,6 +27,7 @@
 #include "qflash.h"
 #include "qwdg.h"
 #include "qserial_485.h"
+#include "qgd_sim.h"
 
 /* Complex drivers.*/
 #include "qflash_jedec_spi.h"
