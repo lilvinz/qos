@@ -60,9 +60,6 @@ CH_IRQ_HANDLER(port_tick_signal_handler) {
 
 static void _setcontext(void *arg) {
   Thread *ntp = (Thread*)arg;
-  /* Enable systick for switching in thread. */
-  if (sigdelset(&ntp->p_ctx.uc.uc_sigmask, SIGALRM) < 0)
-    port_halt();
   if (setcontext(&ntp->p_ctx.uc) < 0)
     port_halt();
 }
@@ -85,9 +82,7 @@ void port_init(void) {
  */
 void port_lock(void) {
   sigset_t set;
-  if (sigemptyset(&set) < 0)
-    port_halt();
-  if (sigaddset(&set, SIGALRM) < 0)
+  if (sigfillset(&set) < 0)
     port_halt();
   if (sigprocmask(SIG_BLOCK, &set, NULL) > 0)
     port_halt();
@@ -100,9 +95,7 @@ void port_lock(void) {
  */
 void port_unlock(void) {
   sigset_t set;
-  if (sigemptyset(&set) < 0)
-    port_halt();
-  if (sigaddset(&set, SIGALRM) < 0)
+  if (sigfillset(&set) < 0)
     port_halt();
   if (sigprocmask(SIG_UNBLOCK, &set, NULL) > 0)
     port_halt();
@@ -115,7 +108,14 @@ void port_unlock(void) {
  *          in its simplest form it is void.
  */
 void port_lock_from_isr(void) {
-  port_lock();
+    sigset_t set;
+    if (sigfillset(&set) < 0)
+      port_halt();
+    /* The timer signal is masked on entry of systick automatically. */
+    if (sigdelset(&set, PORT_TIMER_SIGNAL))
+      port_halt();
+    if (sigprocmask(SIG_BLOCK, &set, NULL) > 0)
+      port_halt();
 }
 
 /**
@@ -125,7 +125,14 @@ void port_lock_from_isr(void) {
  *          simplest form it is void.
  */
 void port_unlock_from_isr(void) {
-  port_unlock();
+    sigset_t set;
+    if (sigfillset(&set) < 0)
+      port_halt();
+    /* The timer signal is unmasked on exit of systick automatically. */
+    if (sigdelset(&set, PORT_TIMER_SIGNAL))
+      port_halt();
+    if (sigprocmask(SIG_UNBLOCK, &set, NULL) > 0)
+      port_halt();
 }
 
 /**
