@@ -41,6 +41,14 @@
 /* External declarations.                                                    */
 /*===========================================================================*/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+  void qhal_lld_init(void);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* _QHAL_LLD_H_ */
 
 /** @} */

@@ -1,18 +1,28 @@
 /*
- * qhal.c
- *
- *  Created on: 22.12.2013
- *      Author: vke
- */
+    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
 
 /**
- * @file    qhal.c
- * @brief   Quantec HAL subsystem code.
+ * @file    STM32F2xx/qhal_lld.c
+ * @brief   STM32F2xx HAL subsystem low level driver source.
  *
- * @addtogroup QHAL
+ * @addtogroup HAL
  * @{
  */
 
+#include "ch.h"
 #include "qhal.h"
 
 /*===========================================================================*/
@@ -32,47 +42,20 @@
 /*===========================================================================*/
 
 /*===========================================================================*/
+/* Driver interrupt handlers.                                                */
+/*===========================================================================*/
+
+/*===========================================================================*/
 /* Driver exported functions.                                                */
 /*===========================================================================*/
 
 /**
- * @brief   Quantec HAL initialization.
- * @details This function invokes the low level initialization code for
- *          additional drivers. It has to be invoked from boardInit().
+ * @brief   Low level HAL driver initialization.
  *
- * @init
+ * @notapi
  */
-void qhalInit(void)
+void qhal_lld_init(void)
 {
-    qhal_lld_init();
-
-#if HAL_USE_SERIAL_485 || defined(__DOXYGEN__)
-    s485dInit();
-#endif
-#if HAL_USE_FLASH_JEDEC_SPI || defined(__DOXYGEN__)
-    fjsInit();
-#endif
-#if HAL_USE_NVM_PARTITION || defined(__DOXYGEN__)
-    nvmpartInit();
-#endif
-#if HAL_USE_NVM_FILE || defined(__DOXYGEN__)
-    nvmfileInit();
-#endif
-#if HAL_USE_NVM_MEMORY || defined(__DOXYGEN__)
-    nvmmemoryInit();
-#endif
-#if HAL_USE_NVM_MIRROR || defined(__DOXYGEN__)
-    nvmmirrorInit();
-#endif
-#if HAL_USE_FLASH || defined(__DOXYGEN__)
-    flashInit();
-#endif
-#if HAL_USE_LED || defined(__DOXYGEN__)
-    ledInit();
-#endif
-#if HAL_USE_WDG || defined(__DOXYGEN__)
-    wdgInit();
-#endif
 }
 
 /** @} */
