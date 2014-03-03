@@ -62,7 +62,12 @@ void qhal_lld_init(void) {
     .sa_handler = port_tick_signal_handler,
   };
 
-  if (sigfillset(&sigtick.sa_mask) < 0)
+  /* Set timer signal to be auto masked when entering handler.
+   * On exit it will be automatically unmasked as well. */
+  if (sigemptyset(&sigtick.sa_mask) < 0)
+    port_halt();
+
+  if (sigaddset(&sigtick.sa_mask, PORT_TIMER_SIGNAL) < 0)
     port_halt();
 
   if (sigaction(PORT_TIMER_SIGNAL, &sigtick, NULL) < 0)
