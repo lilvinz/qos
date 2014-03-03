@@ -76,20 +76,30 @@ typedef enum
 
 /**
  * @brief   User option bits
- *          OB_USER_BFB2
- *            0: Dual-bank boot disabled. Boot can be performed either from
- *               Flash memory bank 1 or from system memory depending on boot
- *               pin state (default)
- *            1: Dual-bank boot enabled. Boot is always performed from system memory.
- *          OB_USER_no_WDG_HW
- *            0: Hardware IWDG selected (watchdog start automatically)
- *            1: Software IWDG selected (user has to start watchdog)
- *          OB_USER_no_RST_STOP
- *            0: Reset generated when entering STOP
- *            1: No reset generated when entering in STOP
- *          OB_USER_no_RST_STDBY
- *            0: Reset generated when entering in STANDBY
- *            1: No reset generated when entering in STANDBY
+ *          OB_USER_no_WDG_HW:
+ *            Software IWDG selected (user has to start watchdog)
+ *          OB_USER_WDG_HW:
+ *            Hardware IWDG selected (watchdog start automatically)
+ *          OB_USER_no_RST_STOP:
+ *            No reset generated when entering in STOP
+ *          OB_USER_RST_STOP:
+ *            Reset generated when entering STOP
+ *          OB_USER_no_RST_STDBY:
+ *            No reset generated when entering in STANDBY
+ *          OB_USER_RST_STDBY:
+ *            Reset generated when entering in STANDBY
+ *          OB_USER_no_BFB2:
+ *            The device boots from Flash memory bank 1 or bank 2, depending on
+ *            the activation of the bank. The active banks are checked in the
+ *            following order: bank 2, followed by bank 1. The active bank is
+ *            identified by the value programmed at the base address of the bank
+ *            ( corresponding to the initial stack pointer value in the
+ *            interrupt vector table). Refer to application note AN2606 for
+ *            further details. In this case, the boot pins can only select user
+ *            Flash or RAM boot.
+ *          OB_USER_BFB2:
+ *            The device will boot from Flash memory bank 1 when boot pins are
+ *            set in "boot from user Flash" position (default).
  * @note    When OB_USER_no_WDG_HW is not selected, JTAG / SWD programming will
  *          not be possible anymore due to the watchdog interrupting the programming
  *          process.
@@ -97,15 +107,16 @@ typedef enum
  */
 enum
 {
-#if defined(STM32F427_437xx) || defined(STM32F429_439xx) || defined(__DOXYGEN)
-    OB_USER_BFB2 = (uint32_t)0x00000020, /* Definition is missing in st header. */
-#endif /* defined(STM32F427_437xx) || defined(STM32F429_439xx) */
     OB_USER_no_WDG_HW = FLASH_OPTCR_WDG_SW,
     OB_USER_WDG_HW = 0,
     OB_USER_no_RST_STOP = FLASH_OPTCR_nRST_STOP,
     OB_USER_RST_STOP = 0,
     OB_USER_no_RST_STDBY = FLASH_OPTCR_nRST_STDBY,
     OB_USER_RST_STDBY = 0,
+#if defined(STM32F427_437xx) || defined(STM32F429_439xx) || defined(__DOXYGEN)
+    OB_USER_no_BFB2 = 0,
+    OB_USER_BFB2 = (uint32_t)0x00000020, /* Definition is missing in st header. */
+#endif /* defined(STM32F427_437xx) || defined(STM32F429_439xx) */
 };
 /** @} */
 

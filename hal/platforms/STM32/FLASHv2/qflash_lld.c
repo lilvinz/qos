@@ -18,6 +18,7 @@
 /**
  * @todo    - add error propagation
  *          - replace sync polling by synchronization with isr
+ *          - add support for OTP area
  */
 
 /*===========================================================================*/
@@ -646,7 +647,9 @@ bool_t flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo)
         .size = 0,
     };
 
-    for (uint8_t i = 0; i < NELEMS(flash_sector_infos); ++i)
+    for (uint8_t i = 0;
+            i < NELEMS(flash_sector_infos);
+            ++i)
     {
         info.size = flash_sector_infos[i].size;
         if (addr >= info.origin
@@ -664,7 +667,7 @@ bool_t flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo)
 
         /* Test against total flash size. */
         if (info.origin >=
-                (uint32_t)(*((__I uint16_t*)FLASH_SIZE_REGISTER_ADDRESS)) * 1024)
+                (uint32_t)(*((__I uint32_t*)FLASH_SIZE_REGISTER_ADDRESS)) * 1024)
             return CH_FAILED;
     }
     return CH_FAILED;
@@ -683,7 +686,7 @@ bool_t flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo)
 void flash_lld_read(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
         uint8_t* buffer)
 {
-    memcpy(buffer, (uint8_t*)(0x08000000 + startaddr), n);
+    memcpy(buffer, (uint8_t*)(FLASH_BASE + startaddr), n);
 }
 
 /**
@@ -699,7 +702,7 @@ void flash_lld_read(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
 void flash_lld_write(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
         const uint8_t* buffer)
 {
-    uint32_t addr = 0x08000000 + startaddr;
+    uint32_t addr = FLASH_BASE + startaddr;
     uint32_t offset = 0;
     while (offset < n)
     {
@@ -835,7 +838,7 @@ void flash_lld_get_info(FLASHDriver* flashp, NVMDeviceInfo* nvmdip)
 {
     nvmdip->sector_size = 16 * 1024;
     nvmdip->sector_num =
-            (uint32_t)(*(__I uint16_t*)(FLASH_SIZE_REGISTER_ADDRESS)) *
+            (uint32_t)(*(__I uint32_t*)(FLASH_SIZE_REGISTER_ADDRESS)) *
             1024 / nvmdip->sector_size;
     nvmdip->identification[0] = 'F';
     nvmdip->identification[1] = 'v';
@@ -843,7 +846,7 @@ void flash_lld_get_info(FLASHDriver* flashp, NVMDeviceInfo* nvmdip)
 }
 
 /**
- * @brief   Write protects once sector.
+ * @brief   Write protects one sector.
  *
  * @param[in] flashp    pointer to the @p FLASHDriver object
  * @param[in] startaddr relative address to start of flash
