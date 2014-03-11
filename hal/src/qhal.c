@@ -73,8 +73,11 @@ void qhalInit(void)
 #if HAL_USE_WDG || defined(__DOXYGEN__)
     wdgInit();
 #endif
-#if HAL_USE_GRAPHICS_DISPLAY_SIM || defined(__DOXYGEN__)
+#if HAL_USE_GD_SIM || defined(__DOXYGEN__)
     gdsimInit();
+#endif
+#if HAL_USE_GD_ILI9341 || defined(__DOXYGEN__)
+    gdili9341Init();
 #endif
 }
 
