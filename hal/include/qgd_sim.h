@@ -68,6 +68,12 @@ extern "C" {
     void gdsimStart(GDSimDriver* gdsimp, const GDSimConfig* config);
     void gdsimStop(GDSimDriver* gdsimp);
     void gdsimPixelSet(GDSimDriver* gdsimp, coord_t x, coord_t y, color_t color);
+    void gdsimStreamStart(GDSimDriver* gdsimp, coord_t left, coord_t top,
+            coord_t width, coord_t height);
+    void gdsimStreamWrite(GDSimDriver* gdsimp, const color_t data[], size_t n);
+    void gdsimStreamEnd(GDSimDriver* gdsimp);
+    void gdsimRectFill(GDSimDriver* gdsimp, coord_t left, coord_t top,
+            coord_t width, coord_t height, color_t color);
     bool_t gdsimGetInfo(GDSimDriver* gdsimp, GDDeviceInfo* gddip);
     void gdsimAcquireBus(GDSimDriver* gdsimp);
     void gdsimReleaseBus(GDSimDriver* gdsimp);

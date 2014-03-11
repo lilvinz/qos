@@ -23,10 +23,11 @@
  */
 typedef enum
 {
-    GD_UNINIT = 0,                 /**< Not initialized.                   */
-    GD_STOP = 1,                   /**< Stopped.                           */
-    GD_READY = 2,                  /**< Device ready.                      */
-    GD_POWERSAVE = 3,              /**< Device in power saving mode.       */
+    GD_UNINIT = 0,                  /**< Not initialized.                   */
+    GD_STOP = 1,                    /**< Stopped.                           */
+    GD_SLEEP = 2,                   /**< Device in power saving mode.       */
+    GD_READY = 3,                   /**< Device ready.                      */
+    GD_ACTIVE= 4,                   /**< Device transferring data.          */
 } gdstate_t;
 
 /**
@@ -46,6 +47,7 @@ typedef struct
 {
     coord_t size_x;
     coord_t size_y;
+    uint8_t id[3];
 } GDDeviceInfo;
 
 /**
@@ -53,6 +55,12 @@ typedef struct
  */
 #define _base_gd_device_methods                                               \
     void (*pixel_set)(void *instance, coord_t x, coord_t y, color_t color);   \
+    void (*stream_start)(void *instance, coord_t left, coord_t top,           \
+            coord_t width, coord_t height);                                   \
+    void (*stream_write)(void *instance, const color_t data[], size_t n);     \
+    void (*stream_end)(void *instance);                                       \
+    void (*rect_fill)(void *instance, coord_t left, coord_t top,              \
+            coord_t width, coord_t height, color_t color);                    \
     bool_t (*get_info)(void *instance, GDDeviceInfo *gddip);                  \
     /* End of mandatory functions. */                                         \
     /* Acquire device if supported by underlying driver.*/                    \
@@ -113,6 +121,55 @@ typedef struct
  * @api
  */
 #define gdPixelSet(ip, x, y, color) ((ip)->vmt->pixel_set(ip, x, y, color))
+
+/**
+ * @brief   Starts streamed writing into a window.
+ *
+ * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ * @param[in] left      left window border coordinate
+ * @param[in] top       top window border coordinate
+ * @param[in] width     height of the window
+ * @param[in] height    width of the window
+ *
+ * @api
+ */
+#define gdStreamStart(ip, left, top, width, height) \
+    ((ip)->vmt->stream_start(ip, left, top, width, height))
+
+/**
+ * @brief   Write a chunk of data in stream mode.
+ *
+ * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ * @param[in] data[]    array of color_t data
+ * @param[in] n         number of array elements
+ *
+ * @api
+ */
+#define gdStreamWrite(ip, data, n) ((ip)->vmt->stream_write(ip, data, n))
+
+/**
+ * @brief   End stream mode writing.
+ *
+ * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ *
+ * @api
+ */
+#define gdStreamEnd(ip) ((ip)->vmt->stream_end(ip))
+
+
+/**
+ * @brief   Fills a rectangle with a color.
+ *
+ * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ * @param[in] left      left rectangle border coordinate
+ * @param[in] top       top rectangle border coordinate
+ * @param[in] width     height of the rectangle
+ * @param[in] height    width of the rectangle
+ *
+ * @api
+ */
+#define gdRectFill(ip, left, top, width, height, color) \
+    ((ip)->vmt->rect_fill(ip, left, top, width, height, color))
 
 /**
  * @brief   Returns a media information structure.

@@ -34,6 +34,13 @@
 static const struct GDSimDriverVMT gd_sim_vmt =
 {
     .pixel_set = (void (*)(void*, coord_t, coord_t, color_t))gdsimPixelSet,
+    .stream_start = (void (*)(void*, coord_t, coord_t, coord_t, coord_t))
+            gdsimStreamStart,
+    .stream_write =
+            (void (*)(void*, const color_t[], size_t))gdsimStreamWrite,
+    .stream_end = (void (*)(void*))gdsimStreamEnd,
+    .rect_fill = (void (*)(void*, coord_t, coord_t, coord_t, coord_t, color_t))
+            gdsimRectFill,
     .get_info = (bool_t (*)(void*, GDDeviceInfo*))gdsimGetInfo,
     .acquire = (void (*)(void*))gdsimAcquireBus,
     .release = (void (*)(void*))gdsimReleaseBus,
@@ -144,6 +151,118 @@ void gdsimPixelSet(GDSimDriver* gdsimp, coord_t x, coord_t y, color_t color)
             "invalid state");
 
     gdsim_lld_pixel_set(gdsimp, x, y, color);
+}
+
+/**
+ * @brief   Starts streamed writing into a window.
+ *
+ * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ * @param[in] left      left window border coordinate
+ * @param[in] top       top window border coordinate
+ * @param[in] width     height of the window
+ * @param[in] height    width of the window
+ *
+ * @api
+ */
+void gdsimStreamStart(GDSimDriver* gdsimp, coord_t left, coord_t top,
+        coord_t width, coord_t height)
+{
+    chDbgCheck(gdsimp != NULL, "gdsimStreamStart");
+    /* Verify device status. */
+    chDbgAssert(gdsimp->state >= GD_READY, "gdsimStreamStart(), #1",
+            "invalid state");
+
+    gdsimp->state = GD_ACTIVE;
+
+    gdsimp->stream_left = left;
+    gdsimp->stream_top = top;
+    gdsimp->stream_width = width;
+    gdsimp->stream_height = height;
+    gdsimp->stream_pos = 0;
+}
+
+/**
+ * @brief   Write a chunk of data in stream mode.
+ *
+ * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ * @param[in] data[]    array of color_t data
+ * @param[in] n         number of array elements
+ *
+ * @api
+ */
+void gdsimStreamWrite(GDSimDriver* gdsimp, const color_t data[], size_t n)
+{
+    chDbgCheck(gdsimp != NULL, "gdsimStreamWrite");
+    /* Verify device status. */
+    chDbgAssert(gdsimp->state >= GD_ACTIVE, "gdsimStreamWrite(), #1",
+            "invalid state");
+
+    for (size_t i = 0; i < n; ++i)
+    {
+        gdsim_lld_pixel_set(gdsimp,
+                gdsimp->stream_left + gdsimp->stream_pos % gdsimp->stream_width,
+                gdsimp->stream_top + gdsimp->stream_pos / gdsimp->stream_width,
+                data[i]);
+
+        ++gdsimp->stream_pos;
+    }
+}
+
+/**
+ * @brief   End stream mode writing.
+ *
+ * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ *
+ * @api
+ */
+void gdsimStreamEnd(GDSimDriver* gdsimp)
+{
+    chDbgCheck(gdsimp != NULL, "gdsimStreamEnd");
+    /* Verify device status. */
+    chDbgAssert(gdsimp->state >= GD_ACTIVE, "gdsimStreamEnd(), #1",
+            "invalid state");
+
+    gdsimp->state = GD_READY;
+}
+
+/**
+ * @brief   Fills a rectangle with a color.
+ *
+ * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ * @param[in] left      left rectangle border coordinate
+ * @param[in] top       top rectangle border coordinate
+ * @param[in] width     height of the rectangle
+ * @param[in] height    width of the rectangle
+ *
+ * @api
+ */
+void gdsimRectFill(GDSimDriver* gdsimp, coord_t left, coord_t top,
+        coord_t width, coord_t height, color_t color)
+{
+    chDbgCheck(gdsimp != NULL, "gdsimRectFill");
+    /* Verify device status. */
+    chDbgAssert(gdsimp->state >= GD_READY, "gdsimRectFill(), #1",
+            "invalid state");
+
+    gdsimp->state = GD_ACTIVE;
+
+    gdsimp->stream_left = left;
+    gdsimp->stream_top = top;
+    gdsimp->stream_width = width;
+    gdsimp->stream_height = height;
+    gdsimp->stream_pos = 0;
+
+    for (size_t i = 0; i < (size_t)width * height; ++i)
+    {
+        gdsim_lld_pixel_set(gdsimp,
+                gdsimp->stream_left + gdsimp->stream_pos % gdsimp->stream_width,
+                gdsimp->stream_top + gdsimp->stream_pos / gdsimp->stream_width,
+                color);
+
+        ++gdsimp->stream_pos;
+    }
+
+    gdsimp->state = GD_READY;
 }
 
 /**

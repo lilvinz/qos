@@ -123,6 +123,14 @@ typedef struct
     xcb_screen_t* xcb_screen;
     xcb_window_t xcb_window;
     xcb_gcontext_t xcb_gcontext;
+    /**
+     * @brief   Stream write state.
+     */
+    coord_t stream_left;
+    coord_t stream_top;
+    coord_t stream_width;
+    coord_t stream_height;
+    size_t stream_pos;
 } GDSimDriver;
 
 /*===========================================================================*/
