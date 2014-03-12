@@ -79,6 +79,9 @@ void qhalInit(void)
 #if HAL_USE_GD_ILI9341 || defined(__DOXYGEN__)
     gdili9341Init();
 #endif
+#if HAL_USE_MS5541 || defined(__DOXYGEN__)
+    ms5541Init();
+#endif
 }
 
 /** @} */

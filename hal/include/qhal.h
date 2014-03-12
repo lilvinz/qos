@@ -37,6 +37,7 @@
 #include "qnvm_mirror.h"
 #include "qled.h"
 #include "qgd_ili9341.h"
+#include "qms5541.h"
 
 /*===========================================================================*/
 /* External declarations.                                                    */
