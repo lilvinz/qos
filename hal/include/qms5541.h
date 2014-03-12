@@ -69,7 +69,7 @@ typedef enum
     MS5541_UNINIT = 0,              /**< Not initialized.                   */
     MS5541_STOP = 1,                /**< Stopped.                           */
     MS5541_READY = 3,               /**< Device ready.                      */
-    MS5541_ACTIVE= 4,               /**< Device transferring data.          */
+    MS5541_ACTIVE= 4,               /**< Device converting.                 */
 } ms5541state_t;
 
 /**

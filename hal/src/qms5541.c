@@ -12,7 +12,8 @@
 #if HAL_USE_MS5541 || defined(__DOXYGEN__)
 
 /*
- * @todo    -
+ * @todo    - add sanity check for calibration values
+ *          - add conversion error detection and recovery
  */
 
 /*===========================================================================*/
@@ -30,7 +31,7 @@ static const uint8_t* command_table[] =
     (uint8_t*)"\x1d\xa0",
 };
 
-typedef enum
+enum command_e
 {
     MS5541_COMMAND_RESET = 0,
     MS5451_COMMAND_ACQUIRE_D1,
@@ -39,9 +40,9 @@ typedef enum
     MS5451_COMMAND_READ_CALIB_2,
     MS5451_COMMAND_READ_CALIB_3,
     MS5451_COMMAND_READ_CALIB_4,
-} MS5541_COMMAND_E;
+};
 
-typedef enum
+enum
 {
     MS5541_CAL_1 = 0,
     MS5541_CAL_SENST1 = 0,
@@ -55,7 +56,7 @@ typedef enum
     MS5541_CAL_Tref = 4,
     MS5541_CAL_6 = 5,
     MS5541_CAL_TEMPSENS = 5,
-} MS5541_CALIBRATION_E;
+};
 
 /*===========================================================================*/
 /* Driver exported variables.                                                */
@@ -69,10 +70,8 @@ typedef enum
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-static void ms5541_write(MS5541Driver* ms5541p, MS5541_COMMAND_E command)
+static void ms5541_write(MS5541Driver* ms5541p, enum command_e command)
 {
-    //spi_master_set_clockphase(MS5541_SPI_BUS, SPI_CPHA_1Edge);
-
     const uint8_t *data = command_table[command];
 
     if (command == MS5541_COMMAND_RESET)
@@ -85,8 +84,6 @@ static uint16_t ms5541_read(MS5541Driver* ms5541p)
 {
     uint8_t temp[2];
 
-    //spi_master_set_clockphase(MS5541_SPI_BUS, SPI_CPHA_2Edge);
-
     spiReceive(ms5541p->config->spip, 2, temp);
 
     return (temp[0] << 8) | (temp[1] << 0);
@@ -97,7 +94,7 @@ static uint16_t ms5541_read(MS5541Driver* ms5541p)
 /*===========================================================================*/
 
 /**
- * @brief   FLASH JEDEC over SPI driver initialization.
+ * @brief   MS5541 driver initialization.
  * @note    This function is implicitly invoked by @p halInit(), there is
  *          no need to explicitly initialize the driver.
  *
@@ -110,7 +107,7 @@ void ms5541Init(void)
 /**
  * @brief   Initializes an instance.
  *
- * @param[out] ms5541p     pointer to the @p MS5541Driver object
+ * @param[out] ms5541p  pointer to the @p MS5541Driver object
  *
  * @init
  */
@@ -130,7 +127,7 @@ void ms5541ObjectInit(MS5541Driver* ms5541p)
 /**
  * @brief   Configures and activates the FLASH peripheral.
  *
- * @param[in] ms5541p      pointer to the @p MS5541Driver object
+ * @param[in] ms5541p   pointer to the @p MS5541Driver object
  * @param[in] config    pointer to the @p MS5541Config object.
  *
  * @api
@@ -168,22 +165,6 @@ void ms5541Start(MS5541Driver* ms5541p, const MS5541Config* config)
     ms5541p->calibration[MS5541_CAL_6] = (temp >> 0) & 0x007f;
 
     ms5541p->state = MS5541_READY;
-
-#if 0
-    while (1)
-    {
-
-    pwmEnableChannel(ms5541p->config->pwmp, ms5541p->config->pwm_channel,
-            PWM_PERCENTAGE_TO_WIDTH(ms5541p->config->pwmp, 5000));
-
-    chThdSleepMilliseconds(1000);
-
-    pwmEnableChannel(ms5541p->config->pwmp, ms5541p->config->pwm_channel,
-            PWM_PERCENTAGE_TO_WIDTH(ms5541p->config->pwmp, 0));
-
-    chThdSleepMilliseconds(1000);
-    }
-#endif
 }
 
 /**
@@ -237,7 +218,7 @@ void ms5541AcquireBus(MS5541Driver* ms5541p)
  * @pre     In order to use this function the option
  *          @p MS5541_USE_MUTUAL_EXCLUSION must be enabled.
  *
- * @param[in] ms5541p      pointer to the @p MS5541Driver object
+ * @param[in] ms5541p   pointer to the @p MS5541Driver object
  *
  * @api
  */
@@ -263,7 +244,7 @@ void ms5541ReleaseBus(MS5541Driver* ms5541p)
 /**
  * @brief   Starts a temperature conversion.
  *
- * @param[in] ms5541p      pointer to the @p MS5541Driver object
+ * @param[in] ms5541p   pointer to the @p MS5541Driver object
  *
  * @api
  */
@@ -329,7 +310,7 @@ uint16_t ms5541TemperatureResult(MS5541Driver* ms5541p)
 /**
  * @brief   Starts a pressure conversion.
  *
- * @param[in] ms5541p      pointer to the @p MS5541Driver object
+ * @param[in] ms5541p   pointer to the @p MS5541Driver object
  *
  * @api
  */
@@ -372,7 +353,7 @@ uint16_t ms5541PressureResult(MS5541Driver* ms5541p)
                 PWM_PERCENTAGE_TO_WIDTH(ms5541p->config->pwmp, 0));
 
     /* Read result from chip. */
-    ms5541p->last_d1 = ms5541_read(ms5541p);
+    ms5541p->last_d2 = ms5541_read(ms5541p);
 
     /* Reset driver state. */
     ms5541p->state = MS5541_READY;
