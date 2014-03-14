@@ -263,7 +263,7 @@ void ms5541TemperatureStart(MS5541Driver* ms5541p)
                 PWM_PERCENTAGE_TO_WIDTH(ms5541p->config->pwmp, 5000));
 
     /* Initiate temperature conversion. */
-    ms5541_write(ms5541p, MS5451_COMMAND_ACQUIRE_D1);
+    ms5541_write(ms5541p, MS5451_COMMAND_ACQUIRE_D2);
 }
 
 /**
@@ -274,7 +274,7 @@ void ms5541TemperatureStart(MS5541Driver* ms5541p)
  *
  * @api
  */
-uint16_t ms5541TemperatureResult(MS5541Driver* ms5541p)
+int16_t ms5541TemperatureResult(MS5541Driver* ms5541p)
 {
     chDbgCheck(ms5541p != NULL, "ms5541TemperatureResult");
     /* Verify device status. */
@@ -283,11 +283,10 @@ uint16_t ms5541TemperatureResult(MS5541Driver* ms5541p)
 
     /* Disable clock output if configured. */
     if (ms5541p->config->pwmp != NULL)
-        pwmEnableChannel(ms5541p->config->pwmp, ms5541p->config->pwm_channel,
-                PWM_PERCENTAGE_TO_WIDTH(ms5541p->config->pwmp, 0));
+        pwmDisableChannel(ms5541p->config->pwmp, ms5541p->config->pwm_channel);
 
     /* Read result from chip. */
-    ms5541p->last_d1 = ms5541_read(ms5541p);
+    ms5541p->last_d2 = ms5541_read(ms5541p);
 
     /* Reset driver state. */
     ms5541p->state = MS5541_READY;
@@ -329,7 +328,7 @@ void ms5541PressureStart(MS5541Driver* ms5541p)
                 PWM_PERCENTAGE_TO_WIDTH(ms5541p->config->pwmp, 5000));
 
     /* Initiate temperature conversion. */
-    ms5541_write(ms5541p, MS5451_COMMAND_ACQUIRE_D2);
+    ms5541_write(ms5541p, MS5451_COMMAND_ACQUIRE_D1);
 }
 
 /**
@@ -349,11 +348,10 @@ uint16_t ms5541PressureResult(MS5541Driver* ms5541p)
 
     /* Disable clock output if configured. */
     if (ms5541p->config->pwmp != NULL)
-        pwmEnableChannel(ms5541p->config->pwmp, ms5541p->config->pwm_channel,
-                PWM_PERCENTAGE_TO_WIDTH(ms5541p->config->pwmp, 0));
+        pwmDisableChannel(ms5541p->config->pwmp, ms5541p->config->pwm_channel);
 
     /* Read result from chip. */
-    ms5541p->last_d2 = ms5541_read(ms5541p);
+    ms5541p->last_d1 = ms5541_read(ms5541p);
 
     /* Reset driver state. */
     ms5541p->state = MS5541_READY;

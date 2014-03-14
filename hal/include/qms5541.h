@@ -150,7 +150,7 @@ extern "C" {
     void ms5541AcquireBus(MS5541Driver* ms5541p);
     void ms5541ReleaseBus(MS5541Driver* ms5541p);
     void ms5541TemperatureStart(MS5541Driver* ms5541p);
-    uint16_t ms5541TemperatureResult(MS5541Driver* ms5541p);
+    int16_t ms5541TemperatureResult(MS5541Driver* ms5541p);
     void ms5541PressureStart(MS5541Driver* ms5541p);
     uint16_t ms5541PressureResult(MS5541Driver* ms5541p);
 #ifdef __cplusplus
