@@ -28,6 +28,7 @@
 #include "qwdg.h"
 #include "qserial_485.h"
 #include "qgd_sim.h"
+#include "qrtc_lld.h"
 
 /* Complex drivers.*/
 #include "qflash_jedec_spi.h"
