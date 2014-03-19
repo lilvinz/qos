@@ -243,6 +243,13 @@ void gdili9341Stop(GDIL9341Driver* gdili9341p)
     chDbgAssert((gdili9341p->state == GD_STOP) || (gdili9341p->state == GD_READY),
             "gdili9341Stop(), #1", "invalid state");
 
+    gdili9341AcquireBus(gdili9341p);
+    gdili9341Select(gdili9341p);
+    gdili9341WriteCommand(gdili9341p, GD_ILI9341_CMD_DISPLAY_OFF);
+    gdili9341WriteCommand(gdili9341p, GD_ILI9341_CMD_SLEEP_ON);
+    gdili9341Unselect(gdili9341p);
+    gdili9341ReleaseBus(gdili9341p);
+
     gdili9341p->state = GD_STOP;
 }
 
