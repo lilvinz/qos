@@ -127,18 +127,29 @@ void gdili9341Start(GDIL9341Driver* gdili9341p, const GDIL9341Config* config)
     gdili9341p->config = config;
     gdili9341p->state = GD_READY;
 
+    gdili9341AcquireBus(gdili9341p);
+
+    /* Exit deep standby mode sequence according to datasheet. */
+    for (uint8_t i = 0; i < 6; ++i)
+    {
+        gdili9341Select(gdili9341p);
+        gdili9341Unselect(gdili9341p);
+        chThdSleepMilliseconds(1);
+    }
+
+    /* Wait for reset delay according to datasheet. */
+    chThdSleepMilliseconds(5);
+
     /* Cache device info. */
     gdili9341p->gddi.size_x = gdili9341p->config->size_x;
     gdili9341p->gddi.size_y = gdili9341p->config->size_y;
 
     uint8_t temp[4];
 
-    gdili9341AcquireBus(gdili9341p);
     gdili9341Select(gdili9341p);
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_GET_ID_INFO);
     gdili9341ReadChunk(gdili9341p, temp, sizeof(temp));
     gdili9341Unselect(gdili9341p);
-    gdili9341ReleaseBus(gdili9341p);
 
     memset(gdili9341p->gddi.id, 0, sizeof(gdili9341p->gddi.id));
     memcpy(gdili9341p->gddi.id, temp + 1, 3);
@@ -155,10 +166,11 @@ void gdili9341Start(GDIL9341Driver* gdili9341p, const GDIL9341Config* config)
         0x42, 0x05, 0x0C, 0x0A, 0x28, 0x2F, 0x0F
     };
 
-    gdili9341AcquireBus(gdili9341p);
-
     gdili9341Select(gdili9341p);
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_CMD_RESET);
+
+    /* Wait for reset delay according to datasheet. */
+    chThdSleepMilliseconds(5);
 
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_MEM_ACS_CTL);
     gdili9341WriteByte(gdili9341p, 0xbc); /* MY MV ML BGR MH */
@@ -220,12 +232,19 @@ void gdili9341Start(GDIL9341Driver* gdili9341p, const GDIL9341Config* config)
     gdili9341WriteChunk(gdili9341p, ngamma, 15);
 
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_CMD_SLEEP_OFF);
-    chThdSleepMilliseconds(10);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_CMD_DISPLAY_ON);
-    chThdSleepMilliseconds(10);
+    /* We get memory corruption if we wait less than 21 ms here. */
+    chThdSleepMilliseconds(30);
 
     gdili9341Unselect(gdili9341p);
+
+    /* Clear memory. */
+    gdili9341RectFill(gdili9341p, 0, 0, gdili9341p->config->size_x,
+            gdili9341p->config->size_y, 0);
+
+    gdili9341Select(gdili9341p);
+    gdili9341WriteCommand(gdili9341p, GD_ILI9341_CMD_DISPLAY_ON);
+    gdili9341Unselect(gdili9341p);
+
     gdili9341ReleaseBus(gdili9341p);
 }
 
@@ -246,7 +265,11 @@ void gdili9341Stop(GDIL9341Driver* gdili9341p)
     gdili9341AcquireBus(gdili9341p);
     gdili9341Select(gdili9341p);
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_CMD_DISPLAY_OFF);
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_CMD_SLEEP_ON);
+
+    /* Enter deep standby mode. */
+    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_ENTRY_MODE);
+    gdili9341WriteByte(gdili9341p, 0x08);
+
     gdili9341Unselect(gdili9341p);
     gdili9341ReleaseBus(gdili9341p);
 
@@ -402,8 +425,17 @@ void gdili9341RectFill(GDIL9341Driver* gdili9341p, coord_t left, coord_t top,
             (((color & 0x00ff00) >> 8 >> 2) << 5) |
             (((color & 0x0000ff) >> 0 >> 3) << 0);
 
-    for (size_t i = 0; i < (size_t)width * height; ++i)
-        gdili9341WriteChunk(gdili9341p, temp, sizeof(temp));
+    uint8_t buffer[2 * 16];
+    for (size_t i = 0; i < sizeof(buffer); i += 2)
+    {
+        buffer[i + 0] = temp[0];
+        buffer[i + 1] = temp[1];
+    }
+
+    size_t n = (size_t)width * height;
+
+    for (size_t i = 0; i < n; i += sizeof(buffer) / 2)
+        gdili9341WriteChunk(gdili9341p, buffer, sizeof(buffer));
 
     gdili9341Unselect(gdili9341p);
 }
