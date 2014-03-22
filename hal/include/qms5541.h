@@ -23,24 +23,13 @@
  * @name    MS5541 configuration options
  * @{
  */
-/**
- * @brief   Delays insertions.
- * @details If enabled this options inserts delays into the flash waiting
- *          routines releasing some extra CPU time for the threads with
- *          lower priority, this may slow down the driver a bit however.
- *          This option is recommended also if the SPI driver does not
- *          use a DMA channel and heavily loads the CPU.
- */
-#if !defined(MS5541_NICE_WAITING) || defined(__DOXYGEN__)
-#define MS5541_NICE_WAITING             TRUE
-#endif
 
 /**
  * @brief   Enables the @p ms5541AcquireBus() and @p ms5541ReleaseBus() APIs.
  * @note    Disabling this option saves both code and data space.
  */
 #if !defined(MS5541_USE_MUTUAL_EXCLUSION) || defined(__DOXYGEN__)
-#define MS5541_USE_MUTUAL_EXCLUSION     TRUE
+#define MS5541_USE_MUTUAL_EXCLUSION     FALSE
 #endif
 /** @} */
 
