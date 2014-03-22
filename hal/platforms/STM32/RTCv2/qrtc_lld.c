@@ -116,6 +116,39 @@ void rtcTM2RTCTime(const struct tm *result, const RTCTime *timespec)
     (void)timespec;
 }
 
+/**
+ * @brief     Gets status of the periodic wake-up flag.
+ *
+ * @param[in] rtcp          pointer to RTC driver structure
+ * @return                  TRUE if flag is set
+ *
+ * @api
+ */
+#if RTC_HAS_PERIODIC_WAKEUPS
+bool_t rtcGetPeriodicWakeupFlag_v2(RTCDriver *rtcp)
+{
+    if ((rtcp->id_rtc->ISR & RTC_ISR_WUTF) != 0)
+        return TRUE;
+    else
+        return FALSE;
+}
+#endif /* RTC_HAS_PERIODIC_WAKEUPS */
+
+/**
+ * @brief     Clears periodic wake-up flag.
+ *
+ * @param[in] rtcp          pointer to RTC driver structure
+ *
+ * @api
+ */
+#if RTC_HAS_PERIODIC_WAKEUPS
+void rtcClearPeriodicWakeupFlag_v2(RTCDriver *rtcp)
+{
+    /* Clear RTC wake-up flag. */
+    rtcp->id_rtc->ISR &= ~RTC_ISR_WUTF;
+}
+#endif /* RTC_HAS_PERIODIC_WAKEUPS */
+
 #endif /* HAL_USE_RTC */
 
 /** @} */
