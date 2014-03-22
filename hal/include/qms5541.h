@@ -62,24 +62,31 @@ typedef enum
 } ms5541state_t;
 
 /**
+ * @brief   Type of a structure representing an SPI driver.
+ */
+typedef struct MS5541Driver MS5541Driver;
+
+/**
+ * @brief   MS5541 mclk configuration callback
+ *
+ * @param[in] ms5541p   pointer to the @p MS5541Driver object triggering the
+ *                      callback
+ */
+typedef void (*ms5541callback_t)(MS5541Driver* ms5541p, bool_t enable);
+
+/**
  * @brief   MS5541 over SPI driver configuration structure.
  */
 typedef struct
 {
     /**
-    * @brief SPI driver associated to this MS5541 driver.
-    */
+     * @brief SPI driver associated to this MS5541 driver.
+     */
     SPIDriver* spip;
-#if HAL_USE_PWM
     /**
-    * @brief PWM driver used to provide conversion clock.
-    */
-    PWMDriver* pwmp;
-    /**
-    * @brief PWM driver channel used to provide conversion clock.
-    */
-    pwmchannel_t pwm_channel;
-#endif /* HAL_USE_PWM */
+     * @brief Callback to enable or disable conversion clock @p NULL.
+     */
+    ms5541callback_t mclk_cb;
 } MS5541Config;
 
 /**
@@ -87,7 +94,7 @@ typedef struct
  *
  * @brief   Structure representing a MS5541 driver.
  */
-typedef struct
+struct MS5541Driver
 {
     /**
     * @brief Driver state.
@@ -116,7 +123,7 @@ typedef struct
     */
     uint16_t last_d1;
     uint16_t last_d2;
-} MS5541Driver;
+};
 
 /*===========================================================================*/
 /* Driver macros.                                                            */

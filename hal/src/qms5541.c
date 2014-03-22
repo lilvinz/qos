@@ -253,14 +253,13 @@ void ms5541TemperatureStart(MS5541Driver* ms5541p)
     chDbgCheck(ms5541p != NULL, "ms5541TemperatureStart");
     /* Verify device status. */
     chDbgAssert(ms5541p->state == MS5541_READY,
-            "ms5541TemperatureStart(), #1", "invalid state");
+            "ms5541TemperatureStart(), #1", "invalid stateMS5541Driver");
 
     ms5541p->state = MS5541_ACTIVE;
 
     /* Enable clock output if configured. */
-    if (ms5541p->config->pwmp != NULL)
-        pwmEnableChannel(ms5541p->config->pwmp, ms5541p->config->pwm_channel,
-                PWM_PERCENTAGE_TO_WIDTH(ms5541p->config->pwmp, 5000));
+    if (ms5541p->config->mclk_cb != NULL)
+        ms5541p->config->mclk_cb(ms5541p, TRUE);
 
     /* Initiate temperature conversion. */
     ms5541_write(ms5541p, MS5451_COMMAND_ACQUIRE_D2);
@@ -282,8 +281,8 @@ int16_t ms5541TemperatureResult(MS5541Driver* ms5541p)
             "ms5541TemperatureResult(), #1", "invalid state");
 
     /* Disable clock output if configured. */
-    if (ms5541p->config->pwmp != NULL)
-        pwmDisableChannel(ms5541p->config->pwmp, ms5541p->config->pwm_channel);
+    if (ms5541p->config->mclk_cb != NULL)
+        ms5541p->config->mclk_cb(ms5541p, FALSE);
 
     /* Read result from chip. */
     ms5541p->last_d2 = ms5541_read(ms5541p);
@@ -323,9 +322,8 @@ void ms5541PressureStart(MS5541Driver* ms5541p)
     ms5541p->state = MS5541_ACTIVE;
 
     /* Enable clock output if configured. */
-    if (ms5541p->config->pwmp != NULL)
-        pwmEnableChannel(ms5541p->config->pwmp, ms5541p->config->pwm_channel,
-                PWM_PERCENTAGE_TO_WIDTH(ms5541p->config->pwmp, 5000));
+    if (ms5541p->config->mclk_cb != NULL)
+        ms5541p->config->mclk_cb(ms5541p, TRUE);
 
     /* Initiate temperature conversion. */
     ms5541_write(ms5541p, MS5451_COMMAND_ACQUIRE_D1);
@@ -347,8 +345,8 @@ uint16_t ms5541PressureResult(MS5541Driver* ms5541p)
             "ms5541PressureResult(), #1", "invalid state");
 
     /* Disable clock output if configured. */
-    if (ms5541p->config->pwmp != NULL)
-        pwmDisableChannel(ms5541p->config->pwmp, ms5541p->config->pwm_channel);
+    if (ms5541p->config->mclk_cb != NULL)
+        ms5541p->config->mclk_cb(ms5541p, FALSE);
 
     /* Read result from chip. */
     ms5541p->last_d1 = ms5541_read(ms5541p);
