@@ -268,6 +268,7 @@ void ms5541TemperatureStart(MS5541Driver* ms5541p)
         ms5541p->config->mclk_cb(ms5541p, TRUE);
 
     /* Initiate temperature conversion. */
+    ms5541_write(ms5541p, MS5541_COMMAND_RESET);
     ms5541_write(ms5541p, MS5451_COMMAND_ACQUIRE_D2);
 }
 
@@ -332,6 +333,7 @@ void ms5541PressureStart(MS5541Driver* ms5541p)
         ms5541p->config->mclk_cb(ms5541p, TRUE);
 
     /* Initiate temperature conversion. */
+    ms5541_write(ms5541p, MS5541_COMMAND_RESET);
     ms5541_write(ms5541p, MS5451_COMMAND_ACQUIRE_D1);
 }
 
