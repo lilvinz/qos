@@ -84,6 +84,11 @@ typedef struct
      */
     SPIDriver* spip;
     /**
+     * @brief Pointers to SPI configurations
+     */
+    const SPIConfig* spiconfig_readp;
+    const SPIConfig* spiconfig_writep;
+    /**
      * @brief Callback to enable or disable conversion clock @p NULL.
      */
     ms5541callback_t mclk_cb;

@@ -74,6 +74,9 @@ static void ms5541_write(MS5541Driver* ms5541p, enum command_e command)
 {
     const uint8_t *data = command_table[command];
 
+    /* Reconfigure spi driver. */
+    spiStart(ms5541p->config->spip, ms5541p->config->spiconfig_writep);
+
     if (command == MS5541_COMMAND_RESET)
         spiSend(ms5541p->config->spip, 3, data);
     else
@@ -83,6 +86,9 @@ static void ms5541_write(MS5541Driver* ms5541p, enum command_e command)
 static uint16_t ms5541_read(MS5541Driver* ms5541p)
 {
     uint8_t temp[2];
+
+    /* Reconfigure spi driver. */
+    spiStart(ms5541p->config->spip, ms5541p->config->spiconfig_readp);
 
     spiReceive(ms5541p->config->spip, 2, temp);
 
