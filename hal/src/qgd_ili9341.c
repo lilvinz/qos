@@ -75,7 +75,7 @@ static void page_address_set(GDIL9341Driver* gdili9341p, uint16_t y_start, uint1
 /*===========================================================================*/
 
 /**
- * @brief   Grahics display simulation via window.
+ * @brief   Graphics display ILI9341.
  * @note    This function is implicitly invoked by @p halInit(), there is
  *          no need to explicitly initialize the driver.
  *
@@ -88,7 +88,7 @@ void gdili9341Init(void)
 /**
  * @brief   Initializes an instance.
  *
- * @param[out] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[out] gdili9341p   pointer to the @p GDIL9341Driver object
  *
  * @init
  */
@@ -107,9 +107,9 @@ void gdili9341ObjectInit(GDIL9341Driver* gdili9341p)
 }
 
 /**
- * @brief   Configures and activates the graphics display simulation.
+ * @brief   Configures and activates the graphics display ILI9341.
  *
- * @param[in] gdili9341p     pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
  * @param[in] config        pointer to the @p GDIL9341Config object.
  *
  * @api
@@ -251,7 +251,7 @@ void gdili9341Start(GDIL9341Driver* gdili9341p, const GDIL9341Config* config)
 /**
  * @brief   Disables the graphics display peripheral.
  *
- * @param[in] gdili9341p     pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
  *
  * @api
  */
@@ -279,7 +279,7 @@ void gdili9341Stop(GDIL9341Driver* gdili9341p)
 /**
  * @brief   Sets pixel color.
  *
- * @param[in] gdili9341p     pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
  * @param[in] gddip         pointer to a @p GDDeviceInfo structure
  *
  * @api
@@ -316,11 +316,11 @@ void gdili9341PixelSet(GDIL9341Driver* gdili9341p, coord_t x, coord_t y, color_t
 /**
  * @brief   Starts streamed writing into a window.
  *
- * @param[in] ip        pointer to a @p BaseGDDevice or derived class
- * @param[in] left      left window border coordinate
- * @param[in] top       top window border coordinate
- * @param[in] width     height of the window
- * @param[in] height    width of the window
+ * @param[in] gdili9341p    pointer to a @p BaseGDDevice or derived class
+ * @param[in] left          left window border coordinate
+ * @param[in] top           top window border coordinate
+ * @param[in] width         height of the window
+ * @param[in] height        width of the window
  *
  * @api
  */
@@ -343,9 +343,9 @@ void gdili9341StreamStart(GDIL9341Driver* gdili9341p, coord_t left, coord_t top,
 /**
  * @brief   Write a chunk of data in stream mode.
  *
- * @param[in] ip        pointer to a @p BaseGDDevice or derived class
- * @param[in] data[]    array of color_t data
- * @param[in] n         number of array elements
+ * @param[in] gdili9341p    pointer to a @p BaseGDDevice or derived class
+ * @param[in] data[]        array of color_t data
+ * @param[in] n             number of array elements
  *
  * @api
  */
@@ -392,11 +392,11 @@ void gdili9341StreamEnd(GDIL9341Driver* gdili9341p)
 /**
  * @brief   Fills a rectangle with a color.
  *
- * @param[in] ip        pointer to a @p BaseGDDevice or derived class
- * @param[in] left      left rectangle border coordinate
- * @param[in] top       top rectangle border coordinate
- * @param[in] width     height of the rectangle
- * @param[in] height    width of the rectangle
+ * @param[in] gdili9341p    pointer to a @p BaseGDDevice or derived class
+ * @param[in] left          left rectangle border coordinate
+ * @param[in] top           top rectangle border coordinate
+ * @param[in] width         height of the rectangle
+ * @param[in] height        width of the rectangle
  *
  * @api
  */
@@ -443,7 +443,7 @@ void gdili9341RectFill(GDIL9341Driver* gdili9341p, coord_t left, coord_t top,
 /**
  * @brief   Returns device info.
  *
- * @param[in] gdili9341p     pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
  * @param[out] gddip        pointer to a @p GDDeviceInfo structure
  *
  * @return                  The operation status.
@@ -516,7 +516,7 @@ void gdili9341ReleaseBus(GDIL9341Driver* gdili9341p)
  * @brief   Asserts the slave select signal and prepares for transfers.
  * @pre     ILI9341 is ready.
  *
- * @param[in] gdili9341p   pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
  *
  * @api
  */
@@ -535,7 +535,7 @@ void gdili9341Select(GDIL9341Driver* gdili9341p)
  * @details The previously selected peripheral is unselected.
  * @pre     ILI9341 is active.
  *
- * @param[in] gdili9341p   pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
  *
  * @iclass
  */
@@ -553,8 +553,8 @@ void gdili9341Unselect(GDIL9341Driver* gdili9341p)
  * @brief   Write command byte.
  * @details Sends a command byte via SPI.
  *
- * @param[in] gdili9341p   pointer to the @p GDIL9341Driver object
- * @param[in] cmd       command byte
+ * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] cmd           command byte
  *
  * @api
  */
@@ -574,8 +574,8 @@ void gdili9341WriteCommand(GDIL9341Driver* gdili9341p, uint8_t cmd)
  * @brief   Write data byte.
  * @details Sends a data byte via SPI.
  *
- * @param[in] gdili9341p   pointer to the @p GDIL9341Driver object
- * @param[in] value     data byte
+ * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] value         data byte
  *
  * @api
  */
@@ -595,9 +595,9 @@ void gdili9341WriteByte(GDIL9341Driver* gdili9341p, uint8_t value)
  * @brief   Read data byte.
  * @details Receives a data byte via SPI.
  *
- * @param[in] gdili9341p   pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
  *
- * @return              data byte
+ * @return                  data byte
  *
  * @api
  */
@@ -620,9 +620,9 @@ uint8_t gdili9341ReadByte(GDIL9341Driver* gdili9341p)
  * @details Sends a data chunk via SPI.
  * @pre     The chunk must be accessed by DMA.
  *
- * @param[in] gdili9341p   pointer to the @p GDIL9341Driver object
- * @param[in] chunk     chunk bytes
- * @param[in] length    chunk length
+ * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] chunk         chunk bytes
+ * @param[in] length        chunk length
  *
  * @api
  */
@@ -644,9 +644,9 @@ void gdili9341WriteChunk(GDIL9341Driver* gdili9341p, const uint8_t chunk[],
  * @details Receives a data chunk via SPI.
  * @pre     The chunk must be accessed by DMA.
  *
- * @param[in] gdili9341p   pointer to the @p GDIL9341Driver object
- * @param[out] chunk    chunk bytes
- * @param[in] length    chunk length
+ * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[out] chunk        chunk bytes
+ * @param[in] length        chunk length
  *
  * @api
  */
