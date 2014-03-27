@@ -31,6 +31,8 @@
 
 #if HAL_USE_RTC || defined(__DOXYGEN__)
 
+#include <string.h>
+
 /*===========================================================================*/
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
@@ -65,6 +67,8 @@
  */
 void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result)
 {
+    memset(result, 0, sizeof(*result));
+
     uint32_t v;
 
     v = (timespec->tv_time & RTC_TR_SU) >> RTC_TR_SU_OFFSET;
@@ -112,38 +116,37 @@ void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result)
  */
 void rtcTM2RTCTime(const struct tm *timespec, RTCTime *result)
 {
-    result->tv_time = 0;
-    result->tv_date = 0;
+    memset(result, 0, sizeof(*result));
 
     result->tv_time |=
-            ((timespec->tm_sec / 10) << RTC_TR_SU_OFFSET) & RTC_TR_SU;
+            ((timespec->tm_sec / 10) << RTC_TR_ST_OFFSET) & RTC_TR_ST;
     result->tv_time |=
-            ((timespec->tm_sec % 10) << RTC_TR_ST_OFFSET) & RTC_TR_ST;
+            ((timespec->tm_sec % 10) << RTC_TR_SU_OFFSET) & RTC_TR_SU;
 
     result->tv_time |=
-            ((timespec->tm_min / 10) << RTC_TR_MNU_OFFSET) & RTC_TR_MNU;
+            ((timespec->tm_min / 10) << RTC_TR_MNT_OFFSET) & RTC_TR_MNT;
     result->tv_time |=
-            ((timespec->tm_min % 10) << RTC_TR_MNT_OFFSET) & RTC_TR_MNT;
+            ((timespec->tm_min % 10) << RTC_TR_MNU_OFFSET) & RTC_TR_MNU;
 
     result->tv_time |=
-            ((timespec->tm_hour / 10) << RTC_TR_HU_OFFSET) & RTC_TR_HU;
+            ((timespec->tm_hour / 10) << RTC_TR_HT_OFFSET) & RTC_TR_HT;
     result->tv_time |=
-            ((timespec->tm_hour % 10) << RTC_TR_HT_OFFSET) & RTC_TR_HT;
+            ((timespec->tm_hour % 10) << RTC_TR_HU_OFFSET) & RTC_TR_HU;
 
     result->tv_date |=
-            ((timespec->tm_mday / 10) << RTC_DR_DU_OFFSET) & RTC_DR_DU;
+            ((timespec->tm_mday / 10) << RTC_DR_DT_OFFSET) & RTC_DR_DT;
     result->tv_date |=
-            ((timespec->tm_mday % 10) << RTC_DR_DT_OFFSET) & RTC_DR_DT;
+            ((timespec->tm_mday % 10) << RTC_DR_DU_OFFSET) & RTC_DR_DU;
 
     result->tv_date |=
-            (((timespec->tm_mon + 1) / 10) << RTC_DR_MU_OFFSET) & RTC_DR_MU;
+            (((timespec->tm_mon + 1) / 10) << RTC_DR_MT_OFFSET) & RTC_DR_MT;
     result->tv_date |=
-            (((timespec->tm_mon + 1) % 10) << RTC_DR_MT_OFFSET) & RTC_DR_MT;
+            (((timespec->tm_mon + 1) % 10) << RTC_DR_MU_OFFSET) & RTC_DR_MU;
 
     result->tv_date |=
-            ((timespec->tm_year / 10) << RTC_DR_YU_OFFSET) & RTC_DR_YU;
+            ((timespec->tm_year / 10) << RTC_DR_YT_OFFSET) & RTC_DR_YT;
     result->tv_date |=
-            ((timespec->tm_year % 10) << RTC_DR_YT_OFFSET) & RTC_DR_YT;
+            ((timespec->tm_year % 10) << RTC_DR_YU_OFFSET) & RTC_DR_YU;
 
     result->tv_date |=
             ((timespec->tm_wday + 1) << RTC_DR_WDU_OFFSET) & RTC_DR_WDU;
