@@ -110,10 +110,43 @@ void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result)
  *
  * @api
  */
-void rtcTM2RTCTime(const struct tm *result, const RTCTime *timespec)
+void rtcTM2RTCTime(const struct tm *timespec, RTCTime *result)
 {
-    (void)result;
-    (void)timespec;
+    result->tv_time = 0;
+    result->tv_date = 0;
+
+    result->tv_time |=
+            ((timespec->tm_sec / 10) << RTC_TR_SU_OFFSET) & RTC_TR_SU;
+    result->tv_time |=
+            ((timespec->tm_sec % 10) << RTC_TR_ST_OFFSET) & RTC_TR_ST;
+
+    result->tv_time |=
+            ((timespec->tm_min / 10) << RTC_TR_MNU_OFFSET) & RTC_TR_MNU;
+    result->tv_time |=
+            ((timespec->tm_min % 10) << RTC_TR_MNT_OFFSET) & RTC_TR_MNT;
+
+    result->tv_time |=
+            ((timespec->tm_hour / 10) << RTC_TR_HU_OFFSET) & RTC_TR_HU;
+    result->tv_time |=
+            ((timespec->tm_hour % 10) << RTC_TR_HT_OFFSET) & RTC_TR_HT;
+
+    result->tv_date |=
+            ((timespec->tm_mday / 10) << RTC_DR_DU_OFFSET) & RTC_DR_DU;
+    result->tv_date |=
+            ((timespec->tm_mday % 10) << RTC_DR_DT_OFFSET) & RTC_DR_DT;
+
+    result->tv_date |=
+            (((timespec->tm_mon + 1) / 10) << RTC_DR_MU_OFFSET) & RTC_DR_MU;
+    result->tv_date |=
+            (((timespec->tm_mon + 1) % 10) << RTC_DR_MT_OFFSET) & RTC_DR_MT;
+
+    result->tv_date |=
+            ((timespec->tm_year / 10) << RTC_DR_YU_OFFSET) & RTC_DR_YU;
+    result->tv_date |=
+            ((timespec->tm_year % 10) << RTC_DR_YT_OFFSET) & RTC_DR_YT;
+
+    result->tv_date |=
+            ((timespec->tm_wday + 1) << RTC_DR_WDU_OFFSET) & RTC_DR_WDU;
 }
 
 /**
