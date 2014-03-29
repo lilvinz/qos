@@ -233,6 +233,7 @@ void gdsimStreamEnd(GDSimDriver* gdsimp)
  * @param[in] top       top rectangle border coordinate
  * @param[in] width     height of the rectangle
  * @param[in] height    width of the rectangle
+ * @param[in] color     color to fill rectangle with
  *
  * @api
  */
@@ -244,25 +245,7 @@ void gdsimRectFill(GDSimDriver* gdsimp, coord_t left, coord_t top,
     chDbgAssert(gdsimp->state >= GD_READY, "gdsimRectFill(), #1",
             "invalid state");
 
-    gdsimp->state = GD_ACTIVE;
-
-    gdsimp->stream_left = left;
-    gdsimp->stream_top = top;
-    gdsimp->stream_width = width;
-    gdsimp->stream_height = height;
-    gdsimp->stream_pos = 0;
-
-    for (size_t i = 0; i < (size_t)width * height; ++i)
-    {
-        gdsim_lld_pixel_set(gdsimp,
-                gdsimp->stream_left + gdsimp->stream_pos % gdsimp->stream_width,
-                gdsimp->stream_top + gdsimp->stream_pos / gdsimp->stream_width,
-                color);
-
-        ++gdsimp->stream_pos;
-    }
-
-    gdsimp->state = GD_READY;
+    gdsim_lld_rect_fill(gdsimp, left, top, width, height, color);
 }
 
 /**

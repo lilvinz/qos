@@ -150,6 +150,8 @@ extern "C" {
     void gdsim_lld_stop(GDSimDriver* gdsimp);
     void gdsim_lld_pixel_set(GDSimDriver* gdsimp, coord_t x, coord_t y,
             color_t color);
+    void gdsim_lld_rect_fill(GDSimDriver* gdsimp, coord_t left, coord_t top,
+            coord_t width, coord_t height, color_t color);
     bool_t gdsim_lld_get_info(GDSimDriver* gdsimp, GDDeviceInfo* gddip);
 
 #ifdef __cplusplus

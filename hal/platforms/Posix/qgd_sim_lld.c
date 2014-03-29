@@ -223,6 +223,41 @@ void gdsim_lld_pixel_set(GDSimDriver* gdsimp, coord_t x, coord_t y,
 }
 
 /**
+ * @brief   Fills a rectangle with a color.
+ *
+ * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ * @param[in] left      left rectangle border coordinate
+ * @param[in] top       top rectangle border coordinate
+ * @param[in] width     height of the rectangle
+ * @param[in] height    width of the rectangle
+ * @param[in] color     color to fill rectangle with
+ *
+ * @notapi
+ */
+void gdsim_lld_rect_fill(GDSimDriver* gdsimp, coord_t left, coord_t top,
+        coord_t width, coord_t height, color_t color)
+{
+    xcb_change_gc(gdsimp->xcb_connection, gdsimp->xcb_gcontext,
+            XCB_GC_FOREGROUND, (uint32_t[]){ color });
+
+    const xcb_rectangle_t rect =
+    {
+        .x = left,
+        .y = top,
+        .width = width,
+        .height = height,
+    };
+
+    xcb_poly_fill_rectangle(gdsimp->xcb_connection,
+            gdsimp->xcb_window,
+            gdsimp->xcb_gcontext,
+            1,
+            &rect);
+
+    xcb_flush(gdsimp->xcb_connection);
+}
+
+/**
  * @brief   Returns device info.
  *
  * @param[in] gdsimp        pointer to the @p GDSimDriver object
