@@ -31,6 +31,8 @@
 
 #if HAL_USE_RTC || defined(__DOXYGEN__)
 
+#include <string.h>
+
 /*===========================================================================*/
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
@@ -65,22 +67,20 @@
  */
 void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result)
 {
-    (void)result;
-    (void)timespec;
+    memcpy(result, &timespec->tm, sizeof(*result));
 }
 
 /**
  * @brief   Convert from struct tm to RTCTime.
  *
- * @param[in] result        pointer to tm structure
- * @param[out] timespec     pointer to RTCTime structure
+ * @param[in] timespec      pointer to tm structure
+ * @param[out] result       pointer to RTCTime structure
  *
  * @api
  */
-void rtcTM2RTCTime(const struct tm *result, const RTCTime *timespec)
+void rtcTM2RTCTime(const struct tm *timespec, RTCTime *result)
 {
-    (void)result;
-    (void)timespec;
+    memcpy(&result->tm, timespec, sizeof(result->tm));
 }
 
 #endif /* HAL_USE_RTC */

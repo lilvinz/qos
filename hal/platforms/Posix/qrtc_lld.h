@@ -61,7 +61,7 @@
 extern "C" {
 #endif
   void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result);
-  void rtcTM2RTCTime(const struct tm *result, const RTCTime *timespec);
+  void rtcTM2RTCTime(const struct tm *timespec, RTCTime *result);
 #ifdef __cplusplus
 }
 #endif
