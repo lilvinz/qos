@@ -145,15 +145,6 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
                 gdsimp->xcb_window,
                 XCB_ATOM_STRING, 8, strlen("gdsim"), "gdsim");
 
-        /* Set size hints on window. */
-        xcb_size_hints_t hints;
-        xcb_icccm_size_hints_set_max_size(&hints, gdsimp->config->size_x,
-                gdsimp->config->size_y);
-        xcb_icccm_size_hints_set_min_size(&hints, gdsimp->config->size_x,
-                gdsimp->config->size_y);
-        xcb_icccm_set_wm_size_hints(gdsimp->xcb_connection, gdsimp->xcb_window,
-                XCB_ATOM_WM_NORMAL_HINTS, &hints);
-
         /* Ask for our graphical context id. */
         gdsimp->xcb_gcontext = xcb_generate_id(gdsimp->xcb_connection);
 
