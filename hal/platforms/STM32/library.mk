@@ -1,6 +1,6 @@
 
-
 QHAL_STM32_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+
 CSRC += $(wildcard $(QHAL_STM32_DIR)/*.c)
 EXTRAINCDIRS += $(QHAL_STM32_DIR)
 

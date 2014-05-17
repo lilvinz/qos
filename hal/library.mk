@@ -1,11 +1,8 @@
 
-
 QHAL_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+
 CSRC += $(wildcard $(QHAL_DIR)/src/*.c)
 EXTRAINCDIRS += $(QHAL_DIR)/include
-
-# ChibiOS
-CHIBIOS := $(ROOT_DIR)/src/lib/ChibiOS/
 
 CSRC += $(PLATFORMSRC)
 CSRC += $(HALSRC)
@@ -17,10 +14,10 @@ EXTRAINCDIRS += $(HALINC)
 EXTRAINCDIRS += $(PORTINC)
 EXTRAINCDIRS += $(KERNINC)
 
-include $(CHIBIOS)/os/hal/hal.mk
-include $(CHIBIOS)/os/kernel/kernel.mk
+include $(CHIBIOS_DIR)/os/hal/hal.mk
+include $(CHIBIOS_DIR)/os/kernel/kernel.mk
 
-CHIBIOS_VARIOUS_DIR := $(CHIBIOS)/os/various
+CHIBIOS_VARIOUS_DIR := $(CHIBIOS_DIR)/os/various
 CSRC += $(wildcard $(CHIBIOS_VARIOUS_DIR)/*.c)
 EXTRAINCDIRS += $(CHIBIOS_VARIOUS_DIR)
 

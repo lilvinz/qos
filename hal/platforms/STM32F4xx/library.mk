@@ -1,4 +1,8 @@
 
+# ChibiOS default path if not specified
+CHIBIOS_DIR ?= $(ROOT_DIR)/submodules/chibios
+CHIBIOS := $(CHIBIOS_DIR)
+
 QHAL_STM32F4XX_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
 CSRC += $(wildcard $(QHAL_STM32F4XX_DIR)/*.c)
@@ -16,8 +20,8 @@ EXTRAINCDIRS += $(QHAL_STM32F4XX_DIR)/../STM32/RTCv2
 LDFLAGS += -T$(QHAL_STM32F4XX_DIR)/ld/sections.ld
 
 # ChibiOS hal
-include $(ROOT_DIR)/src/lib/ChibiOS/os/hal/platforms/STM32F4xx/platform.mk
+include $(CHIBIOS_DIR)/os/hal/platforms/STM32F4xx/platform.mk
 # Chibios port
-include $(ROOT_DIR)/src/lib/ChibiOS/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
+include $(CHIBIOS_DIR)/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
 
 include $(QHAL_STM32F4XX_DIR)/../STM32/library.mk
