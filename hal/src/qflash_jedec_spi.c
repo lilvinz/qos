@@ -12,6 +12,7 @@
 #if HAL_USE_FLASH_JEDEC_SPI || defined(__DOXYGEN__)
 
 #include "static_assert.h"
+#include "nelems.h"
 
 /*
  * @todo    - add efficient use of AAI writing for chips which support it
