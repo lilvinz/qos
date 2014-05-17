@@ -21,3 +21,4 @@ CHIBIOS_VARIOUS_DIR := $(CHIBIOS_DIR)/os/various
 CSRC += $(wildcard $(CHIBIOS_VARIOUS_DIR)/*.c)
 EXTRAINCDIRS += $(CHIBIOS_VARIOUS_DIR)
 
+include $(QHAL_DIR)/../library.mk
