@@ -85,7 +85,7 @@ typedef enum
     STATE_DIRTY_A,
     STATE_DIRTY_B,
     STATE_SYNCED,
-    STATE_DIRTY_COUNT,
+    STATE_COUNT,
 } NVMMirrorState;
 
 /**

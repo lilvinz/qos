@@ -98,7 +98,7 @@ static const uint64_t nvm_mirror_state_mark_table[] =
     0xffffffff00000000,
     0xffff000000000000,
 };
-STATIC_ASSERT(NELEMS(nvm_mirror_state_mark_table) == STATE_DIRTY_COUNT);
+STATIC_ASSERT(NELEMS(nvm_mirror_state_mark_table) == STATE_COUNT);
 STATIC_ASSERT(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__);
 
 /*===========================================================================*/
