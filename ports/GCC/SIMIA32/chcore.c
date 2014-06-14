@@ -30,10 +30,10 @@
  * @{
  */
 
-#include <stdlib.h>
-
 #include "ch.h"
 #include "hal.h"
+
+#include <ucontext.h>
 
 /*===========================================================================*/
 /* Port interrupt handlers.                                                  */
@@ -196,7 +196,7 @@ void port_switch(Thread *ntp, Thread *otp) {
   tempctx.uc_stack.ss_sp = tempstack;
   tempctx.uc_stack.ss_size = sizeof(tempstack);
   tempctx.uc_stack.ss_flags = 0;
-  makecontext(&tempctx, (void(*)())_setcontext, 1, ntp);
+  makecontext(&tempctx, (void(*)(void))_setcontext, 1, ntp);
 
   /* Save running thread, jump to temporary context. */
   if (swapcontext(&otp->p_ctx.uc, &tempctx) < 0)

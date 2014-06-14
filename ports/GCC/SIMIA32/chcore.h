@@ -198,7 +198,7 @@ struct context {
   tp->p_ctx.uc.uc_stack.ss_flags = 0;                                   \
   tp->p_ctx.uc.uc_mcontext.gregs[REG_ECX] = (uint32_t)pf;               \
   tp->p_ctx.uc.uc_mcontext.gregs[REG_EDX] = (uint32_t)arg;              \
-  makecontext(&tp->p_ctx.uc, (void(*)())_port_thread_start, 0);         \
+  makecontext(&tp->p_ctx.uc, (void(*)(void))_port_thread_start, 0);     \
 }
 
 /**
