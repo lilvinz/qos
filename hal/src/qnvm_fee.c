@@ -1296,6 +1296,8 @@ bool_t nvmfeeGetInfo(NVMFeeDriver* nvmfeep, NVMDeviceInfo* nvmdip)
     nvmdip->sector_num = nvmfeep->arena_num_slots;
     memcpy(nvmdip->identification, nvmfeep->llnvmdi.identification,
            sizeof(nvmdip->identification));
+    /* Note: The virtual address room can be written byte wise */
+    nvmdip->write_alignment = 0;
 
     return CH_SUCCESS;
 }

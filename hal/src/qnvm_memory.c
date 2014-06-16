@@ -326,6 +326,8 @@ bool_t nvmmemoryGetInfo(NVMMemoryDriver* nvmmemoryp, NVMDeviceInfo* nvmdip)
     nvmdip->identification[0] = 'M';
     nvmdip->identification[1] = 'E';
     nvmdip->identification[2] = 'M';
+    /* Note: The virtual address room can be written byte wise */
+    nvmdip->write_alignment = 0;
 
     return CH_SUCCESS;
 }

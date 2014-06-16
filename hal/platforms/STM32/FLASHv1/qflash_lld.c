@@ -563,6 +563,10 @@ void flash_lld_get_info(FLASHDriver* flashp, NVMDeviceInfo* nvmdip)
     nvmdip->identification[0] = 'F';
     nvmdip->identification[1] = 'v';
     nvmdip->identification[2] = '1';
+    /* Note: This chip must be written word by word.
+     * Also the chip can not write a word which is not 0xffff so
+     * we have no way to hide this drawback from the user.*/
+    nvmdip->write_alignment = 2;
 }
 
 /**

@@ -691,6 +691,8 @@ bool_t nvmmirrorGetInfo(NVMMirrorDriver* nvmmirrorp, NVMDeviceInfo* nvmdip)
             nvmmirrorp->llnvmdi.sector_size;
     memcpy(nvmdip->identification, nvmmirrorp->llnvmdi.identification,
            sizeof(nvmdip->identification));
+    nvmdip->write_alignment =
+            nvmmirrorp->llnvmdi.write_alignment;
 
     return CH_SUCCESS;
 }

@@ -843,6 +843,8 @@ void flash_lld_get_info(FLASHDriver* flashp, NVMDeviceInfo* nvmdip)
     nvmdip->identification[0] = 'F';
     nvmdip->identification[1] = 'v';
     nvmdip->identification[2] = '2';
+    /* Note: This chip can be written byte by byte. */
+    nvmdip->write_alignment = 0;
 }
 
 /**

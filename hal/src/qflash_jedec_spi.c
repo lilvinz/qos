@@ -709,6 +709,10 @@ bool_t fjsGetInfo(FlashJedecSPIDriver* fjsp, NVMDeviceInfo* nvmdip)
 
     nvmdip->sector_num = fjsp->config->sector_num;
     nvmdip->sector_size = fjsp->config->sector_size;
+    /* Note: The lower level driver part pads unaligned writes.
+     * This makes sense here as you actually CAN write the chip
+     * on a byte by byte basis by padding with 0xff. */
+    nvmdip->write_alignment = 0;
 
     spiSelect(fjsp->config->spip);
 
