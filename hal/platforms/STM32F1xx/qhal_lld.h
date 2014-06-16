@@ -33,7 +33,7 @@
  *          - STM32F10X_CL for Connectivity Line devices.
  *          .
  *
- * @addtogroup QHAL
+ * @addtogroup HAL
  * @{
  */
 
@@ -57,7 +57,6 @@
 
 /* FLASH attributes.*/
 #define STM32_HAS_FLASH         TRUE
-
 /** @} */
 
 /*===========================================================================*/
@@ -82,6 +81,14 @@
 
 /* STM32 ISR, DMA and RCC helpers.*/
 #include "qstm32_isr.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  void qhal_lld_init(void);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _QHAL_LLD_H_ */
 

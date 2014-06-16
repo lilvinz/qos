@@ -54,7 +54,7 @@
  *
  * @notapi
  */
-void hal_lld_init(void)
+void qhal_lld_init(void)
 {
 }
 
