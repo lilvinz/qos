@@ -78,8 +78,6 @@ bool nvmcpy(BaseNVMDevice* dstp, BaseNVMDevice* srcp, uint32_t n)
  */
 bool nvmset(BaseNVMDevice* dstp, uint8_t pattern, uint32_t n)
 {
-    if (nvmErase(dstp, 0, n) != CH_SUCCESS)
-        return false;
     for (uint32_t i = 0; i < n; ++i)
     {
         if (nvmWrite(dstp, i, 1, &pattern) != CH_SUCCESS)
