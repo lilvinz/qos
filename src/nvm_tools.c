@@ -52,8 +52,6 @@ int nvmcmp(BaseNVMDevice* devap, BaseNVMDevice* devbp, uint32_t n)
  */
 bool nvmcpy(BaseNVMDevice* dstp, BaseNVMDevice* srcp, uint32_t n)
 {
-    if (nvmErase(dstp, 0, n) != CH_SUCCESS)
-        return false;
     for (uint32_t i = 0; i < n; ++i)
     {
         uint8_t byte;
