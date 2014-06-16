@@ -39,6 +39,7 @@ typedef struct
     uint32_t      sector_size;        /**< @brief Sector size in bytes.       */
     uint32_t      sector_num;         /**< @brief Total number of sectors.    */
     uint8_t       identification[3];  /**< @brief Jedec device identification.*/
+    uint8_t       write_alignment;    /**< @brief Alignment for writes.       */
 } NVMDeviceInfo;
 
 /**

@@ -317,6 +317,8 @@ bool_t nvmpartGetInfo(NVMPartitionDriver* nvmpartp, NVMDeviceInfo* nvmdip)
     nvmdip->sector_size = nvmpartp->llnvmdi.sector_size;
     memcpy(nvmdip->identification, nvmpartp->llnvmdi.identification,
             sizeof(nvmdip->identification));
+    nvmdip->write_alignment =
+            nvmpartp->llnvmdi.write_alignment;
 
     return CH_SUCCESS;
 }
