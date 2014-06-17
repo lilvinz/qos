@@ -339,7 +339,7 @@ static bool_t nvm_fee_arena_load(NVMFeeDriver* nvmfeep, uint32_t arena)
         if (nvm_fee_mark_2_slot_state(temp_slot.state_mark) !=
                 SLOT_STATE_UNUSED)
         {
-            nvmfeep->arena_slots[arena] = slot;
+            nvmfeep->arena_slots[arena] = slot + 1;
         }
     }
 
