@@ -495,9 +495,12 @@ static bool_t nvm_fee_read(NVMFeeDriver* nvmfeep, uint32_t arena,
         if (temp_slot.address == first_slot_addr)
         {
             /* First (partial) slot */
+            uint32_t n_slot = NVM_FEE_SLOT_PAYLOAD_SIZE - pre_pad;
+            if (n_slot > n)
+                n_slot = n;
             memcpy(buffer,
                     temp_slot.payload + pre_pad,
-                    NVM_FEE_SLOT_PAYLOAD_SIZE - pre_pad);
+                    n_slot);
         }
         else if (temp_slot.address == last_slot_addr)
         {
