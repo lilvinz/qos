@@ -115,7 +115,7 @@ STATIC_ASSERT(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__);
 /**
  * @brief   Header structure at the beginning of each arena.
  */
-struct arena_header
+struct __attribute__((__packed__)) arena_header
 {
     uint32_t magic;
     uint32_t state_mark;
@@ -125,7 +125,7 @@ struct arena_header
 /**
  * @brief   Structure defining a single slot.
  */
-struct slot
+struct __attribute__((__packed__)) slot
 {
     uint32_t state_mark;
     uint32_t address;
@@ -339,7 +339,7 @@ static bool_t nvm_fee_arena_load(NVMFeeDriver* nvmfeep, uint32_t arena)
         if (nvm_fee_mark_2_slot_state(temp_slot.state_mark) !=
                 SLOT_STATE_UNUSED)
         {
-            nvmfeep->arena_slots[arena] = slot;
+            nvmfeep->arena_slots[arena] = slot + 1;
         }
     }
 
@@ -495,9 +495,12 @@ static bool_t nvm_fee_read(NVMFeeDriver* nvmfeep, uint32_t arena,
         if (temp_slot.address == first_slot_addr)
         {
             /* First (partial) slot */
+            uint32_t n_slot = NVM_FEE_SLOT_PAYLOAD_SIZE - pre_pad;
+            if (n_slot > n)
+                n_slot = n;
             memcpy(buffer,
                     temp_slot.payload + pre_pad,
-                    NVM_FEE_SLOT_PAYLOAD_SIZE - pre_pad);
+                    n_slot);
         }
         else if (temp_slot.address == last_slot_addr)
         {
