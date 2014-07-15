@@ -14,9 +14,19 @@
 #include "static_assert.h"
 #include "nelems.h"
 
-/*
+/**
  * @todo    - add efficient use of AAI writing for chips which support it
  *          - add error detection and handling
+ */
+
+/**
+ * @note
+ *      - Busy Flag handling:
+ *        According to M25P64 and SST26VF032 datasheets it is necessary
+ *        to check WIP/BUSY-Bit prior to any new command.
+ *      - Write enable latch:
+ *        According to M25P64 and SST26VF032 datasheets, the write enable
+ *        latch bit is automatically reset on completion of write operation.
  */
 
 /*===========================================================================*/
@@ -81,68 +91,9 @@ static void flash_jedec_spi_write_enable(FlashJedecSPIDriver* fjsp)
     spiUnselect(fjsp->config->spip);
 }
 
-static void flash_jedec_spi_write_disable(FlashJedecSPIDriver* fjsp)
-{
-    chDbgCheck((fjsp != NULL), "flash_jedec_spi_write_disable");
-
-    spiSelect(fjsp->config->spip);
-
-    /* Send JEDEC WRDI command. */
-    static const uint8_t out[] =
-    {
-        FLASH_JEDEC_WRDI,
-    };
-
-    spiSend(fjsp->config->spip, NELEMS(out), out);
-
-    spiUnselect(fjsp->config->spip);
-}
-
-static uint8_t flash_jedec_spi_sr_read(FlashJedecSPIDriver* fjsp)
-{
-    chDbgCheck((fjsp != NULL), "flash_jedec_spi_sr_read");
-    spiSelect(fjsp->config->spip);
-
-    static const uint8_t out[] =
-    {
-        FLASH_JEDEC_RDSR,
-    };
-
-    /* command bytes */
-    spiSend(fjsp->config->spip, NELEMS(out), out);
-
-    uint8_t in;
-    spiReceive(fjsp->config->spip, sizeof(in), &in);
-
-    spiUnselect(fjsp->config->spip);
-
-    return in;
-}
-
-static void flash_jedec_spi_sr_write(FlashJedecSPIDriver* fjsp, uint8_t sr)
-{
-    chDbgCheck((fjsp != NULL), "flash_jedec_spi_sr_write");
-    flash_jedec_spi_write_enable(fjsp);
-
-    spiSelect(fjsp->config->spip);
-
-    uint8_t out[] =
-    {
-        FLASH_JEDEC_WRSR,
-        sr,
-    };
-
-    /* command bytes */
-    spiSend(fjsp->config->spip, NELEMS(out), out);
-
-    spiUnselect(fjsp->config->spip);
-
-    flash_jedec_spi_write_disable(fjsp);
-}
-
 static void flash_jedec_spi_wait_busy(FlashJedecSPIDriver* fjsp)
 {
-    chDbgCheck((fjsp != NULL), "flash_jedec_spi_write_disable");
+    chDbgCheck((fjsp != NULL), "flash_jedec_spi_wait_busy");
     spiSelect(fjsp->config->spip);
 
     static const uint8_t out[] =
@@ -169,6 +120,50 @@ static void flash_jedec_spi_wait_busy(FlashJedecSPIDriver* fjsp)
 #endif
         spiReceive(fjsp->config->spip, sizeof(in), &in);
     }
+
+    spiUnselect(fjsp->config->spip);
+}
+
+static uint8_t flash_jedec_spi_sr_read(FlashJedecSPIDriver* fjsp)
+{
+    chDbgCheck((fjsp != NULL), "flash_jedec_spi_sr_read");
+
+    spiSelect(fjsp->config->spip);
+
+    static const uint8_t out[] =
+    {
+        FLASH_JEDEC_RDSR,
+    };
+
+    /* command bytes */
+    spiSend(fjsp->config->spip, NELEMS(out), out);
+
+    uint8_t in;
+    spiReceive(fjsp->config->spip, sizeof(in), &in);
+
+    spiUnselect(fjsp->config->spip);
+
+    return in;
+}
+
+static void flash_jedec_spi_sr_write(FlashJedecSPIDriver* fjsp, uint8_t sr)
+{
+    chDbgCheck((fjsp != NULL), "flash_jedec_spi_sr_write");
+
+    flash_jedec_spi_wait_busy(fjsp);
+
+    flash_jedec_spi_write_enable(fjsp);
+
+    spiSelect(fjsp->config->spip);
+
+    uint8_t out[] =
+    {
+        FLASH_JEDEC_WRSR,
+        sr,
+    };
+
+    /* command bytes */
+    spiSend(fjsp->config->spip, NELEMS(out), out);
 
     spiUnselect(fjsp->config->spip);
 }
@@ -226,13 +221,6 @@ static void flash_jedec_spi_page_program(FlashJedecSPIDriver* fjsp,
     }
 
     spiUnselect(fjsp->config->spip);
-
-    /* note: This is required to terminate AAI programming on some chips. */
-    if (fjsp->config->cmd_page_program == 0xad)
-    {
-        flash_jedec_spi_wait_busy(fjsp);
-        flash_jedec_spi_write_disable(fjsp);
-    }
 }
 
 static void flash_jedec_spi_sector_erase(FlashJedecSPIDriver* fjsp,
@@ -298,13 +286,6 @@ static void flash_jedec_spi_page_program_ff(FlashJedecSPIDriver* fjsp,
         spiSend(fjsp->config->spip, sizeof(erased), &erased);
 
     spiUnselect(fjsp->config->spip);
-
-    /* note: This is required to terminate AAI programming on some chips. */
-    if (fjsp->config->cmd_page_program == 0xad)
-    {
-        flash_jedec_spi_wait_busy(fjsp);
-        flash_jedec_spi_write_disable(fjsp);
-    }
 }
 
 static void flash_jedec_spi_mass_erase(FlashJedecSPIDriver* fjsp)
@@ -432,13 +413,6 @@ void fjsStart(FlashJedecSPIDriver* fjsp, const FlashJedecSPIConfig* config)
 
     fjsp->config = config;
     fjsp->state = NVM_READY;
-
-    /* note: This is required to terminate AAI programming on some chips. */
-    if (fjsp->config->cmd_page_program == 0xad)
-    {
-        fjsSync(fjsp);
-        flash_jedec_spi_write_disable(fjsp);
-    }
 }
 
 /**
@@ -823,6 +797,8 @@ bool_t fjsWriteProtect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
     /* Protect as little of our address space as possible to
      satisfy request. */
 
+    flash_jedec_spi_wait_busy(fjsp);
+
     uint8_t bp_mask = (1 << fjsp->config->bpbits_num) - 1;
     uint8_t bp = (flash_jedec_spi_sr_read(fjsp) >> 2) & bp_mask;
 
@@ -908,6 +884,8 @@ bool_t fjsWriteUnprotect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
 
     /* Unprotect as little of our address space as possible to
      satisfy request. */
+
+    flash_jedec_spi_wait_busy(fjsp);
 
     uint8_t bp_mask = (1 << fjsp->config->bpbits_num) - 1;
     uint8_t bp = (flash_jedec_spi_sr_read(fjsp) >> 2) & bp_mask;
