@@ -33,8 +33,8 @@
 #define GD_ILI9341_CMD_SLEEP_OFF           0x11    /**< Exit sleep mode.*/
 #define GD_ILI9341_CMD_PARTIAL_ON          0x12    /**< Enter partial mode.*/
 #define GD_ILI9341_CMD_PARTIAL_OFF         0x13    /**< Exit partial mode.*/
-#define GD_ILI9341_CMD_INVERT_ON           0x20    /**< Enter inverted mode.*/
-#define GD_ILI9341_CMD_INVERT_OFF          0x21    /**< Exit inverted mode.*/
+#define GD_ILI9341_CMD_INVERT_OFF          0x20    /**< Exit inverted mode.*/
+#define GD_ILI9341_CMD_INVERT_ON           0x21    /**< Enter inverted mode.*/
 #define GD_ILI9341_SET_GAMMA               0x26    /**< Set gamma params.*/
 #define GD_ILI9341_CMD_DISPLAY_OFF         0x28    /**< Disable display.*/
 #define GD_ILI9341_CMD_DISPLAY_ON          0x29    /**< Enable display.*/
@@ -91,7 +91,9 @@
 #define GD_ILI9341_SET_POWER_CTL_1         0xC0    /**< Set power ctl 1.*/
 #define GD_ILI9341_SET_POWER_CTL_2         0xC1    /**< Set power ctl 2.*/
 #define GD_ILI9341_SET_VCOM_CTL_1          0xC5    /**< Set VCOM ctl 1.*/
-#define GD_ILI9341_SET_VCOM_CTL_2          0xC6    /**< Set VCOM ctl 2.*/
+#define GD_ILI9341_SET_VCOM_CTL_2          0xC7    /**< Set VCOM ctl 2.*/
+#define GD_ILI9341_SET_POWER_CTL_A         0xCB    /**< Set power ctl A.*/
+#define GD_ILI9341_SET_POWER_CTL_B         0xCF    /**< Set power ctl B.*/
 #define GD_ILI9341_SET_NVMEM               0xD0    /**< Set NVMEM data.*/
 #define GD_ILI9341_GET_NVMEM_KEY           0xD1    /**< Get NVMEM protect key.*/
 #define GD_ILI9341_GET_NVMEM_STATUS        0xD2    /**< Get NVMEM status.*/
@@ -100,7 +102,12 @@
 #define GD_ILI9341_SET_NGAMMA              0xE1    /**< Set negative gamma.*/
 #define GD_ILI9341_SET_DGAMMA_CTL_1        0xE2    /**< Set digital gamma ctl 1.*/
 #define GD_ILI9341_SET_DGAMMA_CTL_2        0xE3    /**< Set digital gamma ctl 2.*/
+#define GD_ILI9341_SET_TIMING_CTL_A        0xE8    /**< Set driver timing control A.*/
+#define GD_ILI9341_SET_TIMING_CTL_B        0xEA    /**< Set driver timing control B.*/
+#define GD_ILI9341_SET_POWER_ON_SEQ_CTL    0xED    /**< Set power on sequence control.*/
+#define GD_ILI9341_SET_3G                  0xF2    /**< Enable 3 gamma control.*/
 #define GD_ILI9341_SET_IF_CTL              0xF6    /**< Set interface control.*/
+#define GD_ILI9341_SET_PUMP_RATIO_CTL      0xF7    /**< Set pump ratio control.*/
 /** @} */
 
 /**
@@ -111,6 +118,8 @@
 #define GD_ILI9341_IM_3LSI_2               0xD     /**< 3-line serial, mode 2.*/
 #define GD_ILI9341_IM_4LSI_1               0x6     /**< 4-line serial, mode 1.*/
 #define GD_ILI9341_IM_4LSI_2               0xE     /**< 4-line serial, mode 2.*/
+#define GD_ILI9341_IM_8LPI_2               0x9     /**< 8-line parallel, mode 2.*/
+#define GD_ILI9341_IM_16LPI_2              0x8     /**< 16-line parallel, mode 2.*/
 /** @} */
 
 /*===========================================================================*/
@@ -150,8 +159,10 @@
 #endif
 
 #if GD_ILI9341_IM != GD_ILI9341_IM_4LSI_1 && \
-    GD_ILI9341_IM != GD_ILI9341_IM_4LSI_2
-#error "Only GD_ILI9341_IM_4LSI interface modes are supported currently"
+    GD_ILI9341_IM != GD_ILI9341_IM_4LSI_2 && \
+    GD_ILI9341_IM != GD_ILI9341_IM_8LPI_2 && \
+    GD_ILI9341_IM != GD_ILI9341_IM_16LPI_2
+#error "Unsupported interface mode selected"
 #endif
 
 /*===========================================================================*/
@@ -172,12 +183,6 @@ typedef struct
      */
     coord_t size_y;
     /**
-     * @brief SPI driver used by ILI9341
-     */
-    SPIDriver *spip;
-#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
-    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
-    /**
      * @brief <tt>D/!C</tt> signal port
      */
     ioportid_t dcx_port;
@@ -185,7 +190,46 @@ typedef struct
      * @brief <tt>D/!C</tt> signal pad
      */
     uint16_t dcx_pad;
+#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
+    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
+    /**
+     * @brief SPI driver used by ILI9341
+     */
+    SPIDriver *spip;
+#else
+    /**
+     * @brief <tt>!CS</tt> signal port
+     */
+    ioportid_t csx_port;
+    /**
+     * @brief <tt>!CS</tt> signal pad
+     */
+    uint16_t csx_pad;
+    /**
+     * @brief <tt>!RD</tt> signal port
+     */
+    ioportid_t rdx_port;
+    /**
+     * @brief <tt>!RD</tt> signal pad
+     */
+    uint16_t rdx_pad;
+    /**
+     * @brief <tt>!WR</tt> signal port
+     */
+    ioportid_t wrx_port;
+    /**
+     * @brief <tt>!WR</tt> signal pad
+     */
+    uint16_t wrx_pad;
+    /**
+     * @brief <tt>DATA</tt> bus
+     */
+    IOBus* db_bus;
 #endif /* GD_ILI9341_IM */
+    /**
+     * @brief Configuration callback
+     */
+    void (*config_cb)(BaseGDDevice* gdp);
 } GDIL9341Config;
 
 /**

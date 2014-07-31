@@ -140,102 +140,49 @@ void gdili9341Start(GDIL9341Driver* gdili9341p, const GDIL9341Config* config)
     /* Wait for reset delay according to datasheet. */
     chThdSleepMilliseconds(5);
 
-    /* Cache device info. */
-    gdili9341p->gddi.size_x = gdili9341p->config->size_x;
-    gdili9341p->gddi.size_y = gdili9341p->config->size_y;
-
-    uint8_t temp[4];
-
-    gdili9341Select(gdili9341p);
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_GET_ID_INFO);
-    gdili9341ReadChunk(gdili9341p, temp, sizeof(temp));
-    gdili9341Unselect(gdili9341p);
-
-    memset(gdili9341p->gddi.id, 0, sizeof(gdili9341p->gddi.id));
-    memcpy(gdili9341p->gddi.id, temp + 1, 3);
-
-    /* Init sequence */
-    static const uint8_t pgamma[15] =
-    {
-        0x0F, 0x29, 0x24, 0x0C, 0x0E, 0x09, 0x4E, 0x78,
-        0x3C, 0x09, 0x13, 0x05, 0x17, 0x11, 0x00
-    };
-    static const uint8_t ngamma[15] =
-    {
-        0x00, 0x16, 0x1B, 0x04, 0x11, 0x07, 0x31, 0x33,
-        0x42, 0x05, 0x0C, 0x0A, 0x28, 0x2F, 0x0F
-    };
-
+    /* Soft reset */
     gdili9341Select(gdili9341p);
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_CMD_RESET);
+    gdili9341Unselect(gdili9341p);
 
     /* Wait for reset delay according to datasheet. */
     chThdSleepMilliseconds(5);
 
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_MEM_ACS_CTL);
-    gdili9341WriteByte(gdili9341p, 0xbc); /* MY MV ML BGR MH */
+    /* Cache device info. */
+    gdili9341p->gddi.size_x = gdili9341p->config->size_x;
+    gdili9341p->gddi.size_y = gdili9341p->config->size_y;
 
+    {
+        /* Read device id. */
+        uint8_t temp[4];
+        gdili9341Select(gdili9341p);
+        gdili9341WriteCommand(gdili9341p, GD_ILI9341_GET_ID_INFO);
+        gdili9341ReadChunk(gdili9341p, temp, sizeof(temp));
+        gdili9341Unselect(gdili9341p);
+        memcpy(gdili9341p->gddi.id, temp + 1, sizeof(temp) - 1);
+    }
+
+    gdili9341Select(gdili9341p);
+
+    /* Execute user supplied configuration. */
+    if (config->config_cb != NULL)
+        config->config_cb((BaseGDDevice*)gdili9341p);
+
+    /* Execute mandatory configuration. */
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_PIX_FMT);
     gdili9341WriteByte(gdili9341p, 0x05); /* 16 bits / pixel, mcu interface */
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_FRAME_CTL_NORMAL);
-    gdili9341WriteByte(gdili9341p, 0x00);
-    gdili9341WriteByte(gdili9341p, 0x1B);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_FUNCTION_CTL);
-    gdili9341WriteByte(gdili9341p, 0x0A);
-    gdili9341WriteByte(gdili9341p, 0xA2);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_POWER_CTL_1);
-    gdili9341WriteByte(gdili9341p, 0x10);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_POWER_CTL_2);
-    gdili9341WriteByte(gdili9341p, 0x10);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_VCOM_CTL_1);
-    gdili9341WriteByte(gdili9341p, 0x45);
-    gdili9341WriteByte(gdili9341p, 0x15);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_VCOM_CTL_2);
-    gdili9341WriteByte(gdili9341p, 0x90);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_FUNCTION_CTL);
-    gdili9341WriteByte(gdili9341p, 0x0A);
-    gdili9341WriteByte(gdili9341p, 0xA7);
-    gdili9341WriteByte(gdili9341p, 0x27);
-    gdili9341WriteByte(gdili9341p, 0x04);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_COL_ADDR);
-    gdili9341WriteByte(gdili9341p, 0x00);
-    gdili9341WriteByte(gdili9341p, 0x00);
-    gdili9341WriteByte(gdili9341p, 0x00);
-    gdili9341WriteByte(gdili9341p, 0xEF);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_PAGE_ADDR);
-    gdili9341WriteByte(gdili9341p, 0x00);
-    gdili9341WriteByte(gdili9341p, 0x00);
-    gdili9341WriteByte(gdili9341p, 0x01);
-    gdili9341WriteByte(gdili9341p, 0x3F);
 
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_IF_CTL);
     gdili9341WriteByte(gdili9341p, 0x01); /* WEMODE */
     gdili9341WriteByte(gdili9341p, 0x00);
     gdili9341WriteByte(gdili9341p, 0x00);
 
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_GAMMA);
-    gdili9341WriteByte(gdili9341p, 0x01);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_PGAMMA);
-    gdili9341WriteChunk(gdili9341p, pgamma, 15);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_NGAMMA);
-    gdili9341WriteChunk(gdili9341p, ngamma, 15);
-
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_CMD_SLEEP_OFF);
-    /* We get memory corruption if we wait less than 21 ms here. */
-    chThdSleepMilliseconds(30);
 
     gdili9341Unselect(gdili9341p);
+
+    /* We get memory corruption if we wait less than 21 ms here. */
+    chThdSleepMilliseconds(30);
 
     /* Clear memory. */
     gdili9341RectFill(gdili9341p, 0, 0, gdili9341p->config->size_x,
@@ -527,7 +474,12 @@ void gdili9341Select(GDIL9341Driver* gdili9341p)
             "gdili9341SelectI(), #1", "invalid state");
 
     gdili9341p->state = GD_ACTIVE;
+#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
+    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
     spiSelect(gdili9341p->config->spip);
+#else
+    palClearPad(gdili9341p->config->csx_port, gdili9341p->config->csx_pad);
+#endif /* GD_ILI9341_IM */
 }
 
 /**
@@ -545,7 +497,12 @@ void gdili9341Unselect(GDIL9341Driver* gdili9341p)
     chDbgAssert(gdili9341p->state == GD_ACTIVE,
             "gdili9341UnselectI(), #1", "invalid state");
 
+#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
+    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
     spiUnselect(gdili9341p->config->spip);
+#else
+    palSetPad(gdili9341p->config->csx_port, gdili9341p->config->csx_pad);
+#endif /* GD_ILI9341_IM */
     gdili9341p->state = GD_READY;
 }
 
@@ -567,12 +524,21 @@ void gdili9341WriteCommand(GDIL9341Driver* gdili9341p, uint8_t cmd)
     gdili9341p->value = cmd;
     /* Cmd */
     palClearPad(gdili9341p->config->dcx_port, gdili9341p->config->dcx_pad);
+#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
+    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
     spiSend(gdili9341p->config->spip, 1, &gdili9341p->value);
+#else
+    palSetBusMode(gdili9341p->config->db_bus,
+            PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST);
+    palClearPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
+    palWriteBus(gdili9341p->config->db_bus, cmd);
+    palSetPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
+#endif /* GD_ILI9341_IM */
 }
 
 /**
  * @brief   Write data byte.
- * @details Sends a data byte via SPI.
+ * @details Sends a data byte via SPI or parallel bus.
  *
  * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
  * @param[in] value         data byte
@@ -588,12 +554,21 @@ void gdili9341WriteByte(GDIL9341Driver* gdili9341p, uint8_t value)
     gdili9341p->value = value;
     /* Data */
     palSetPad(gdili9341p->config->dcx_port, gdili9341p->config->dcx_pad);
+#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
+    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
     spiSend(gdili9341p->config->spip, 1, &gdili9341p->value);
+#else
+    palSetBusMode(gdili9341p->config->db_bus,
+            PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST);
+    palClearPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
+    palWriteBus(gdili9341p->config->db_bus, value);
+    palSetPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
+#endif /* GD_ILI9341_IM */
 }
 
 /**
  * @brief   Read data byte.
- * @details Receives a data byte via SPI.
+ * @details Receives a data byte via SPI or parallel bus.
  *
  * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
  *
@@ -611,14 +586,23 @@ uint8_t gdili9341ReadByte(GDIL9341Driver* gdili9341p)
 
     /* Data */
     palSetPad(gdili9341p->config->dcx_port, gdili9341p->config->dcx_pad);
+#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
+    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
     spiReceive(gdili9341p->config->spip, 1, &gdili9341p->value);
     return gdili9341p->value;
+#else
+    palSetBusMode(gdili9341p->config->db_bus, PAL_MODE_INPUT);
+    palClearPad(gdili9341p->config->rdx_port, gdili9341p->config->rdx_pad);
+    uint8_t value = palReadBus(gdili9341p->config->db_bus);
+    palSetPad(gdili9341p->config->rdx_port, gdili9341p->config->rdx_pad);
+    return value;
+#endif /* GD_ILI9341_IM */
 }
 
 /**
  * @brief   Write data chunk.
- * @details Sends a data chunk via SPI.
- * @pre     The chunk must be accessed by DMA.
+ * @details Sends a data chunk via SPI or parallel bus.
+ * @pre     The chunk must be accessed by DMA when using SPI.
  *
  * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
  * @param[in] chunk         chunk bytes
@@ -636,13 +620,25 @@ void gdili9341WriteChunk(GDIL9341Driver* gdili9341p, const uint8_t chunk[],
 
     /* Data */
     palSetPad(gdili9341p->config->dcx_port, gdili9341p->config->dcx_pad);
+#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
+    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
     spiSend(gdili9341p->config->spip, length, chunk);
+#else
+    palSetBusMode(gdili9341p->config->db_bus,
+            PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST);
+    for (size_t i = 0; i < length; ++i)
+    {
+        palClearPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
+        palWriteBus(gdili9341p->config->db_bus, chunk[i]);
+        palSetPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
+    }
+#endif /* GD_ILI9341_IM */
 }
 
 /**
  * @brief   Read data chunk.
- * @details Receives a data chunk via SPI.
- * @pre     The chunk must be accessed by DMA.
+ * @details Receives a data chunk via SPI or parallel bus.
+ * @pre     The chunk must be accessed by DMA when using SPI.
  *
  * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
  * @param[out] chunk        chunk bytes
@@ -660,7 +656,18 @@ void gdili9341ReadChunk(GDIL9341Driver* gdili9341p, uint8_t chunk[],
 
     /* Data */
     palSetPad(gdili9341p->config->dcx_port, gdili9341p->config->dcx_pad);
+#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
+    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
     spiReceive(gdili9341p->config->spip, length, chunk);
+#else
+    palSetBusMode(gdili9341p->config->db_bus, PAL_MODE_INPUT);
+    for (size_t i = 0; i < length; ++i)
+    {
+        palClearPad(gdili9341p->config->rdx_port, gdili9341p->config->rdx_pad);
+        chunk[i] = palReadBus(gdili9341p->config->db_bus);
+        palSetPad(gdili9341p->config->rdx_port, gdili9341p->config->rdx_pad);
+    }
+#endif /* GD_ILI9341_IM */
 }
 
 #endif /* HAL_USE_GD_ILI9341 */
