@@ -183,10 +183,11 @@ static void serve_interrupt(Serial485Driver *s485dp) {
     if (s485dp->config->ssport != NULL)
       palClearPad(s485dp->config->ssport, s485dp->config->sspad);
     chSysLockFromIsr();
-    chnAddFlagsI(s485dp, CHN_TRANSMISSION_END);
-    chSysUnlockFromIsr();
+    if (chOQIsEmptyI(&sdp->oqueue))
+        chnAddFlagsI(s485dp, CHN_TRANSMISSION_END);
     u->CR1 = (cr1 & ~(USART_CR1_TXEIE | USART_CR1_TCIE)) | USART_CR1_RE;
     u->SR = ~USART_SR_TC;
+    chSysUnlockFromIsr();
   }
 
   /* Transmission buffer empty.*/
