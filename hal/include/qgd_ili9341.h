@@ -230,10 +230,10 @@ typedef struct
      * @brief Configuration callback
      */
     void (*config_cb)(BaseGDDevice* gdp);
-} GDIL9341Config;
+} GDILI9341Config;
 
 /**
- * @brief   @p GDIL9341Driver specific methods.
+ * @brief   @p GDILI9341Driver specific methods.
  */
 #define _gd_ili9341_driver_methods                                            \
     _base_gd_device_methods
@@ -241,9 +241,9 @@ typedef struct
 /**
  * @extends BaseGDDeviceVMT
  *
- * @brief   @p GDIL9341Driver virtual methods table.
+ * @brief   @p GDILI9341Driver virtual methods table.
  */
-struct GDIL9341DriverVMT
+struct GDILI9341DriverVMT
 {
     _gd_ili9341_driver_methods
 };
@@ -258,12 +258,12 @@ typedef struct
     /**
     * @brief Virtual Methods Table.
     */
-    const struct GDIL9341DriverVMT* vmt;
+    const struct GDILI9341DriverVMT* vmt;
     _base_gd_device_data
     /**
     * @brief Current configuration data.
     */
-    const GDIL9341Config* config;
+    const GDILI9341Config* config;
 #if GD_ILI9341_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_USE_MUTEXES || defined(__DOXYGEN__)
     /**
@@ -282,7 +282,7 @@ typedef struct
      * @brief Non-stacked value, for SPI with CCM.
      */
     uint8_t value;
-} GDIL9341Driver;
+} GDILI9341Driver;
 
 /*===========================================================================*/
 /* Driver macros.                                                            */
@@ -298,29 +298,29 @@ typedef struct
 extern "C" {
 #endif
     void gdili9341Init(void);
-    void gdili9341ObjectInit(GDIL9341Driver* gdili9341p);
-    void gdili9341Start(GDIL9341Driver* gdili9341p,
-            const GDIL9341Config* config);
-    void gdili9341Stop(GDIL9341Driver* gdili9341p);
-    void gdili9341PixelSet(GDIL9341Driver* gdili9341p, coord_t x, coord_t y,
+    void gdili9341ObjectInit(GDILI9341Driver* gdili9341p);
+    void gdili9341Start(GDILI9341Driver* gdili9341p,
+            const GDILI9341Config* config);
+    void gdili9341Stop(GDILI9341Driver* gdili9341p);
+    void gdili9341PixelSet(GDILI9341Driver* gdili9341p, coord_t x, coord_t y,
             color_t color);
-    void gdili9341StreamStart(GDIL9341Driver* gdili9341p, coord_t left, coord_t top,
+    void gdili9341StreamStart(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
             coord_t width, coord_t height);
-    void gdili9341StreamWrite(GDIL9341Driver* gdili9341p, const color_t data[], size_t n);
-    void gdili9341StreamEnd(GDIL9341Driver* gdili9341p);
-    void gdili9341RectFill(GDIL9341Driver* gdili9341p, coord_t left, coord_t top,
+    void gdili9341StreamWrite(GDILI9341Driver* gdili9341p, const color_t data[], size_t n);
+    void gdili9341StreamEnd(GDILI9341Driver* gdili9341p);
+    void gdili9341RectFill(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
             coord_t width, coord_t height, color_t color);
-    bool_t gdili9341GetInfo(GDIL9341Driver* gdili9341p, GDDeviceInfo* gddip);
-    void gdili9341AcquireBus(GDIL9341Driver* gdili9341p);
-    void gdili9341ReleaseBus(GDIL9341Driver* gdili9341p);
-    void gdili9341Select(GDIL9341Driver* gdili9341p);
-    void gdili9341Unselect(GDIL9341Driver* gdili9341p);
-    void gdili9341WriteCommand(GDIL9341Driver* gdili9341p, uint8_t cmd);
-    void gdili9341WriteByte(GDIL9341Driver* gdili9341p, uint8_t value);
-    uint8_t gdili9341ReadByte(GDIL9341Driver* gdili9341p);
-    void gdili9341WriteChunk(GDIL9341Driver* gdili9341p,
+    bool_t gdili9341GetInfo(GDILI9341Driver* gdili9341p, GDDeviceInfo* gddip);
+    void gdili9341AcquireBus(GDILI9341Driver* gdili9341p);
+    void gdili9341ReleaseBus(GDILI9341Driver* gdili9341p);
+    void gdili9341Select(GDILI9341Driver* gdili9341p);
+    void gdili9341Unselect(GDILI9341Driver* gdili9341p);
+    void gdili9341WriteCommand(GDILI9341Driver* gdili9341p, uint8_t cmd);
+    void gdili9341WriteByte(GDILI9341Driver* gdili9341p, uint8_t value);
+    uint8_t gdili9341ReadByte(GDILI9341Driver* gdili9341p);
+    void gdili9341WriteChunk(GDILI9341Driver* gdili9341p,
             const uint8_t chunk[], size_t length);
-    void gdili9341ReadChunk(GDIL9341Driver* gdili9341p,
+    void gdili9341ReadChunk(GDILI9341Driver* gdili9341p,
             uint8_t chunk[], size_t length);
 #ifdef __cplusplus
 }

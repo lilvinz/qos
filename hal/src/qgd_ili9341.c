@@ -1,6 +1,6 @@
 /**
  * @file    qgd_ili9341.c
- * @brief   Graphics display IL9341 code.
+ * @brief   Graphics display ILI9341 code.
  *
  * @addtogroup GD_ILI9341
  * @{
@@ -33,7 +33,7 @@
 /**
  * @brief   Virtual methods table.
  */
-static const struct GDIL9341DriverVMT gd_sim_vmt =
+static const struct GDILI9341DriverVMT gd_sim_vmt =
 {
     .pixel_set = (void (*)(void*, coord_t, coord_t, color_t))gdili9341PixelSet,
     .stream_start = (void (*)(void*, coord_t, coord_t, coord_t, coord_t))
@@ -52,7 +52,7 @@ static const struct GDIL9341DriverVMT gd_sim_vmt =
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-static void column_address_set(GDIL9341Driver* gdili9341p, uint16_t x_start, uint16_t x_end)
+static void column_address_set(GDILI9341Driver* gdili9341p, uint16_t x_start, uint16_t x_end)
 {
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_COL_ADDR);
     gdili9341WriteByte(gdili9341p, x_start >> 8);
@@ -61,7 +61,7 @@ static void column_address_set(GDIL9341Driver* gdili9341p, uint16_t x_start, uin
     gdili9341WriteByte(gdili9341p, (uint8_t)x_end);
 }
 
-static void page_address_set(GDIL9341Driver* gdili9341p, uint16_t y_start, uint16_t y_end)
+static void page_address_set(GDILI9341Driver* gdili9341p, uint16_t y_start, uint16_t y_end)
 {
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_PAGE_ADDR);
     gdili9341WriteByte(gdili9341p, y_start >> 8);
@@ -88,11 +88,11 @@ void gdili9341Init(void)
 /**
  * @brief   Initializes an instance.
  *
- * @param[out] gdili9341p   pointer to the @p GDIL9341Driver object
+ * @param[out] gdili9341p   pointer to the @p GDILI9341Driver object
  *
  * @init
  */
-void gdili9341ObjectInit(GDIL9341Driver* gdili9341p)
+void gdili9341ObjectInit(GDILI9341Driver* gdili9341p)
 {
     gdili9341p->vmt = &gd_sim_vmt;
     gdili9341p->state = GD_STOP;
@@ -109,12 +109,12 @@ void gdili9341ObjectInit(GDIL9341Driver* gdili9341p)
 /**
  * @brief   Configures and activates the graphics display ILI9341.
  *
- * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
- * @param[in] config        pointer to the @p GDIL9341Config object.
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
+ * @param[in] config        pointer to the @p GDILI9341Config object.
  *
  * @api
  */
-void gdili9341Start(GDIL9341Driver* gdili9341p, const GDIL9341Config* config)
+void gdili9341Start(GDILI9341Driver* gdili9341p, const GDILI9341Config* config)
 {
     chDbgCheck((gdili9341p != NULL) && (config != NULL), "gdili9341Start");
     /* Verify device status. */
@@ -127,6 +127,11 @@ void gdili9341Start(GDIL9341Driver* gdili9341p, const GDIL9341Config* config)
     gdili9341p->config = config;
     gdili9341p->state = GD_READY;
 
+    /* Cache device info. */
+    gdili9341p->gddi.size_x = gdili9341p->config->size_x;
+    gdili9341p->gddi.size_y = gdili9341p->config->size_y;
+
+    /* Lock device. */
     gdili9341AcquireBus(gdili9341p);
 
     /* Exit deep standby mode sequence according to datasheet. */
@@ -147,10 +152,6 @@ void gdili9341Start(GDIL9341Driver* gdili9341p, const GDIL9341Config* config)
 
     /* Wait for reset delay according to datasheet. */
     chThdSleepMilliseconds(5);
-
-    /* Cache device info. */
-    gdili9341p->gddi.size_x = gdili9341p->config->size_x;
-    gdili9341p->gddi.size_y = gdili9341p->config->size_y;
 
     {
         /* Read device id. */
@@ -192,17 +193,18 @@ void gdili9341Start(GDIL9341Driver* gdili9341p, const GDIL9341Config* config)
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_CMD_DISPLAY_ON);
     gdili9341Unselect(gdili9341p);
 
+    /* Unlock device. */
     gdili9341ReleaseBus(gdili9341p);
 }
 
 /**
  * @brief   Disables the graphics display peripheral.
  *
- * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  *
  * @api
  */
-void gdili9341Stop(GDIL9341Driver* gdili9341p)
+void gdili9341Stop(GDILI9341Driver* gdili9341p)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341Stop");
     /* Verify device status. */
@@ -226,12 +228,12 @@ void gdili9341Stop(GDIL9341Driver* gdili9341p)
 /**
  * @brief   Sets pixel color.
  *
- * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  * @param[in] gddip         pointer to a @p GDDeviceInfo structure
  *
  * @api
  */
-void gdili9341PixelSet(GDIL9341Driver* gdili9341p, coord_t x, coord_t y, color_t color)
+void gdili9341PixelSet(GDILI9341Driver* gdili9341p, coord_t x, coord_t y, color_t color)
 {
     chDbgCheck(gdili9341p != NULL, "gdPixelSet");
     /* Verify device status. */
@@ -263,7 +265,7 @@ void gdili9341PixelSet(GDIL9341Driver* gdili9341p, coord_t x, coord_t y, color_t
 /**
  * @brief   Starts streamed writing into a window.
  *
- * @param[in] gdili9341p    pointer to a @p BaseGDDevice or derived class
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  * @param[in] left          left window border coordinate
  * @param[in] top           top window border coordinate
  * @param[in] width         height of the window
@@ -271,7 +273,7 @@ void gdili9341PixelSet(GDIL9341Driver* gdili9341p, coord_t x, coord_t y, color_t
  *
  * @api
  */
-void gdili9341StreamStart(GDIL9341Driver* gdili9341p, coord_t left, coord_t top,
+void gdili9341StreamStart(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
         coord_t width, coord_t height)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341StreamStart");
@@ -290,13 +292,13 @@ void gdili9341StreamStart(GDIL9341Driver* gdili9341p, coord_t left, coord_t top,
 /**
  * @brief   Write a chunk of data in stream mode.
  *
- * @param[in] gdili9341p    pointer to a @p BaseGDDevice or derived class
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  * @param[in] data[]        array of color_t data
  * @param[in] n             number of array elements
  *
  * @api
  */
-void gdili9341StreamWrite(GDIL9341Driver* gdili9341p, const color_t data[], size_t n)
+void gdili9341StreamWrite(GDILI9341Driver* gdili9341p, const color_t data[], size_t n)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341StreamWrite");
     /* Verify device status. */
@@ -322,11 +324,11 @@ void gdili9341StreamWrite(GDIL9341Driver* gdili9341p, const color_t data[], size
 /**
  * @brief   End stream mode writing.
  *
- * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  *
  * @api
  */
-void gdili9341StreamEnd(GDIL9341Driver* gdili9341p)
+void gdili9341StreamEnd(GDILI9341Driver* gdili9341p)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341StreamEnd");
     /* Verify device status. */
@@ -339,7 +341,7 @@ void gdili9341StreamEnd(GDIL9341Driver* gdili9341p)
 /**
  * @brief   Fills a rectangle with a color.
  *
- * @param[in] gdili9341p    pointer to a @p BaseGDDevice or derived class
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  * @param[in] left          left rectangle border coordinate
  * @param[in] top           top rectangle border coordinate
  * @param[in] width         height of the rectangle
@@ -347,7 +349,7 @@ void gdili9341StreamEnd(GDIL9341Driver* gdili9341p)
  *
  * @api
  */
-void gdili9341RectFill(GDIL9341Driver* gdili9341p, coord_t left, coord_t top,
+void gdili9341RectFill(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
         coord_t width, coord_t height, color_t color)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341RectFill");
@@ -390,7 +392,7 @@ void gdili9341RectFill(GDIL9341Driver* gdili9341p, coord_t left, coord_t top,
 /**
  * @brief   Returns device info.
  *
- * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  * @param[out] gddip        pointer to a @p GDDeviceInfo structure
  *
  * @return                  The operation status.
@@ -399,7 +401,7 @@ void gdili9341RectFill(GDIL9341Driver* gdili9341p, coord_t left, coord_t top,
  *
  * @api
  */
-bool_t gdili9341GetInfo(GDIL9341Driver* gdili9341p, GDDeviceInfo* gddip)
+bool_t gdili9341GetInfo(GDILI9341Driver* gdili9341p, GDDeviceInfo* gddip)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341GetInfo");
     /* Verify device status. */
@@ -419,11 +421,11 @@ bool_t gdili9341GetInfo(GDIL9341Driver* gdili9341p, GDDeviceInfo* gddip)
  * @pre     In order to use this function the option
  *          @p GD_ILI9341_USE_MUTUAL_EXCLUSION must be enabled.
  *
- * @param[in] gdili9341p     pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p     pointer to the @p GDILI9341Driver object
  *
  * @api
  */
-void gdili9341AcquireBus(GDIL9341Driver* gdili9341p)
+void gdili9341AcquireBus(GDILI9341Driver* gdili9341p)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341AcquireBus");
 
@@ -441,11 +443,11 @@ void gdili9341AcquireBus(GDIL9341Driver* gdili9341p)
  * @pre     In order to use this function the option
  *          @p GD_ILI9341_USE_MUTUAL_EXCLUSION must be enabled.
  *
- * @param[in] gdili9341p     pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p     pointer to the @p GDILI9341Driver object
  *
  * @api
  */
-void gdili9341ReleaseBus(GDIL9341Driver* gdili9341p)
+void gdili9341ReleaseBus(GDILI9341Driver* gdili9341p)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341ReleaseBus");
 
@@ -460,14 +462,14 @@ void gdili9341ReleaseBus(GDIL9341Driver* gdili9341p)
 }
 
 /**
- * @brief   Asserts the slave select signal and prepares for transfers.
+ * @brief   Asserts the chip select signal and prepares for transfers.
  * @pre     ILI9341 is ready.
  *
- * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  *
  * @api
  */
-void gdili9341Select(GDIL9341Driver* gdili9341p)
+void gdili9341Select(GDILI9341Driver* gdili9341p)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341SelectI");
     chDbgAssert(gdili9341p->state == GD_READY,
@@ -483,15 +485,15 @@ void gdili9341Select(GDIL9341Driver* gdili9341p)
 }
 
 /**
- * @brief   Deasserts the slave select signal.
+ * @brief   Deasserts the chuip select signal.
  * @details The previously selected peripheral is unselected.
  * @pre     ILI9341 is active.
  *
- * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  *
  * @iclass
  */
-void gdili9341Unselect(GDIL9341Driver* gdili9341p)
+void gdili9341Unselect(GDILI9341Driver* gdili9341p)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341Unselect");
     chDbgAssert(gdili9341p->state == GD_ACTIVE,
@@ -508,14 +510,14 @@ void gdili9341Unselect(GDIL9341Driver* gdili9341p)
 
 /**
  * @brief   Write command byte.
- * @details Sends a command byte via SPI.
+ * @details Sends a command byte via SPI or parallel bus.
  *
- * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  * @param[in] cmd           command byte
  *
  * @api
  */
-void gdili9341WriteCommand(GDIL9341Driver* gdili9341p, uint8_t cmd)
+void gdili9341WriteCommand(GDILI9341Driver* gdili9341p, uint8_t cmd)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341WriteCommand");
     chDbgAssert(gdili9341p->state == GD_ACTIVE,
@@ -540,12 +542,12 @@ void gdili9341WriteCommand(GDIL9341Driver* gdili9341p, uint8_t cmd)
  * @brief   Write data byte.
  * @details Sends a data byte via SPI or parallel bus.
  *
- * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  * @param[in] value         data byte
  *
  * @api
  */
-void gdili9341WriteByte(GDIL9341Driver* gdili9341p, uint8_t value)
+void gdili9341WriteByte(GDILI9341Driver* gdili9341p, uint8_t value)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341WriteByte");
     chDbgAssert(gdili9341p->state == GD_ACTIVE,
@@ -570,16 +572,14 @@ void gdili9341WriteByte(GDIL9341Driver* gdili9341p, uint8_t value)
  * @brief   Read data byte.
  * @details Receives a data byte via SPI or parallel bus.
  *
- * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  *
  * @return                  data byte
  *
  * @api
  */
-uint8_t gdili9341ReadByte(GDIL9341Driver* gdili9341p)
+uint8_t gdili9341ReadByte(GDILI9341Driver* gdili9341p)
 {
-    chDbgAssert(FALSE, "gdili9341ReadByte()", "should not be used");
-
     chDbgCheck(gdili9341p != NULL, "gdili9341ReadByte");
     chDbgAssert(gdili9341p->state == GD_ACTIVE,
             "gdili9341ReadByte(), #1", "invalid state");
@@ -604,13 +604,13 @@ uint8_t gdili9341ReadByte(GDIL9341Driver* gdili9341p)
  * @details Sends a data chunk via SPI or parallel bus.
  * @pre     The chunk must be accessed by DMA when using SPI.
  *
- * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  * @param[in] chunk         chunk bytes
  * @param[in] length        chunk length
  *
  * @api
  */
-void gdili9341WriteChunk(GDIL9341Driver* gdili9341p, const uint8_t chunk[],
+void gdili9341WriteChunk(GDILI9341Driver* gdili9341p, const uint8_t chunk[],
         size_t length)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341WriteChunk");
@@ -640,13 +640,13 @@ void gdili9341WriteChunk(GDIL9341Driver* gdili9341p, const uint8_t chunk[],
  * @details Receives a data chunk via SPI or parallel bus.
  * @pre     The chunk must be accessed by DMA when using SPI.
  *
- * @param[in] gdili9341p    pointer to the @p GDIL9341Driver object
+ * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
  * @param[out] chunk        chunk bytes
  * @param[in] length        chunk length
  *
  * @api
  */
-void gdili9341ReadChunk(GDIL9341Driver* gdili9341p, uint8_t chunk[],
+void gdili9341ReadChunk(GDILI9341Driver* gdili9341p, uint8_t chunk[],
         size_t length)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341ReadChunk");
