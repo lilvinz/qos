@@ -85,6 +85,9 @@ void qhalInit(void)
 #if HAL_USE_MS5541 || defined(__DOXYGEN__)
     ms5541Init();
 #endif
+#if HAL_USE_SERIAL_VIRTUAL || defined(__DOXYGEN__)
+    sdvirtualInit();
+#endif
 }
 
 /** @} */
