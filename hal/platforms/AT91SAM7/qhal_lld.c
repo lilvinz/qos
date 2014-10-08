@@ -25,6 +25,10 @@
 #include "ch.h"
 #include "qhal.h"
 
+#include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
+
 /*===========================================================================*/
 /* Driver exported variables.                                                */
 /*===========================================================================*/
@@ -50,8 +54,56 @@
  *
  * @notapi
  */
-void qhal_lld_init(void) {
 
+/*
+ * @brief: This is a simple trampoline put at the start of the image in flash.
+ *
+ */
+__attribute__((section(".reset_trampoline_1")))
+__attribute__((naked))
+__attribute__((used))
+static void reset_trampoline_1(void)
+{
+    asm("b       reset_trampoline_2\n");
+}
+
+__attribute__((section(".reset_trampoline_2")))
+__attribute__((naked))
+__attribute__((used))
+static void reset_trampoline_2(void)
+{
+    asm(".global reset_trampoline_2\n"
+        "reset_trampoline_2:\n"
+        "ldr     pc, _reset\n"
+        "_reset:\n"
+        ".word   ResetHandler");
+}
+
+void qhal_lld_init(void)
+{
+    /* Ensure that 0x00000000 is mapped to sram. */
+    {
+        /* Save remap value. */
+        volatile uint8_t* remap = (volatile uint8_t*)0x00000000;
+        volatile uint8_t* ram = (volatile uint8_t*)AT91C_ISRAM;
+
+        /* Probe remap. */
+        const bool probe_1 = *remap == *ram;
+
+        /* Modify sram content. */
+        *ram += 1;
+
+        const bool probe_2 = *remap == *ram;
+
+        /* Restore sram content. */
+        *ram -= 1;
+
+        if (!probe_1 || !probe_2)
+        {
+            /* 0x00000000 is mapped to flash, remap it to sram. */
+            AT91C_BASE_MC->MC_RCR = AT91C_MC_RCB;
+        }
+    }
 }
 
 /** @} */

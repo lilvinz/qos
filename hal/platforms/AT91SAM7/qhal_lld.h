@@ -1,6 +1,6 @@
 /**
- * @file    Posix/qhal_lld.h
- * @brief   Posix HAL subsystem low level driver header.
+ * @file    AT91SAM7/qhal_lld.h
+ * @brief   AT91SAM7 QHAL subsystem low level driver header.
  *
  * @addtogroup HAL
  * @{
@@ -44,7 +44,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void qhal_lld_init(void);
+    void qhal_lld_init(void);
 #ifdef __cplusplus
 }
 #endif
