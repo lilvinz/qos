@@ -15,8 +15,9 @@
  * @param[in] n         number of bytes to compare
  *
  * @return              The result of the comparison.
- * @retval true         The compared data is equal.
- * @retval false        The compared data is not equal or an error occurred.
+ * @retval 0            The compared data is equal.
+ * @retval 1            The compared data is not equal.
+ * @retval -1           An error occurred.
  *
  * @api
  */
