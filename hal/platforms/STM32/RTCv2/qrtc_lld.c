@@ -13,13 +13,9 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-/*
-   Concepts and parts of this file have been contributed by Uladzimir Pylinsky
-   aka barthess.
- */
 
 /**
- * @file    STM32/RTCv2/rtc_lld.c
+ * @file    STM32/RTCv2/qrtc_lld.c
  * @brief   STM32L1xx/STM32F2xx/STM32F4xx RTC low level driver.
  *
  * @addtogroup RTC
