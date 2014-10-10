@@ -292,6 +292,6 @@ extern "C" {
 
 #endif /* HAL_USE_SERIAL_485 */
 
-#endif /* _QSERIAL_H_ */
+#endif /* _QSERIAL_485_H_ */
 
 /** @} */

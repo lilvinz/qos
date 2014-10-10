@@ -1,6 +1,6 @@
 /**
  * @file    qserial_485.c
- * @brief   Serial driver code.
+ * @brief   Serial 485 driver code.
  *
  * @addtogroup SERIAL_485
  * @{
