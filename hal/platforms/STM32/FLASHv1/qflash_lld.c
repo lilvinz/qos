@@ -351,12 +351,14 @@ void flash_lld_start(FLASHDriver* flashp)
     {
         if (flashp == &FLASHD)
         {
+            /* Enable interrupt handler. */
             nvicEnableVector(STM32_FLASH_NUMBER,
                     CORTEX_PRIORITY_MASK(STM32_FLASH_IRQ_PRIORITY));
 
             /* Clear all possibly pending flags. */
             flashp->flash->SR = FLASH_SR_PGERR | FLASH_SR_WRPRTERR | FLASH_SR_EOP;
 
+            /* Enable interrupt sources. */
             flash_lld_cr_unlock(flashp);
             flashp->flash->CR = FLASH_CR_EOPIE | FLASH_CR_ERRIE;
             flash_lld_cr_lock(flashp);
@@ -378,6 +380,7 @@ void flash_lld_stop(FLASHDriver* flashp)
     {
         if (flashp == &FLASHD)
         {
+            /* Disable interrupt sources. */
             flash_lld_cr_unlock(flashp);
             flashp->flash->CR = 0;
             flash_lld_cr_lock(flashp);
@@ -385,6 +388,7 @@ void flash_lld_stop(FLASHDriver* flashp)
             /* Clear all possibly pending flags. */
             flashp->flash->SR = FLASH_SR_PGERR | FLASH_SR_WRPRTERR | FLASH_SR_EOP;
 
+            /* Disable interrupt handler. */
             nvicDisableVector(STM32_FLASH_NUMBER);
             return;
         }
