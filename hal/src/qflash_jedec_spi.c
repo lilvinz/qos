@@ -22,11 +22,13 @@
 /**
  * @note
  *      - Busy Flag handling:
- *        According to M25P64 and SST26VF032 datasheets it is necessary
+ *        According to M25P64 and SST25VF032B datasheets it is necessary
  *        to check WIP/BUSY-Bit prior to any new command.
  *      - Write enable latch:
- *        According to M25P64 and SST26VF032 datasheets, the write enable
- *        latch bit is automatically reset on completion of write operation.
+ *        - M25P64: the write enable latch bit is automatically reset on
+ *          completion of write operation.
+ *        - SST25VF032: the write enable latch bit must be manually reset on
+ *          completion of AAI write operation.
  */
 
 /*===========================================================================*/
@@ -84,6 +86,23 @@ static void flash_jedec_spi_write_enable(FlashJedecSPIDriver* fjsp)
     static const uint8_t out[] =
     {
         FLASH_JEDEC_WREN,
+    };
+
+    spiSend(fjsp->config->spip, NELEMS(out), out);
+
+    spiUnselect(fjsp->config->spip);
+}
+
+static void flash_jedec_spi_write_disable(FlashJedecSPIDriver* fjsp)
+{
+    chDbgCheck((fjsp != NULL), "flash_jedec_spi_write_disable");
+
+    spiSelect(fjsp->config->spip);
+
+    /* Send JEDEC WRDI command. */
+    static const uint8_t out[] =
+    {
+        FLASH_JEDEC_WRDI,
     };
 
     spiSend(fjsp->config->spip, NELEMS(out), out);
@@ -221,6 +240,13 @@ static void flash_jedec_spi_page_program(FlashJedecSPIDriver* fjsp,
     }
 
     spiUnselect(fjsp->config->spip);
+
+    /* note: This is required to terminate AAI programming on some chips. */
+    if (fjsp->config->cmd_page_program == 0xad)
+    {
+        flash_jedec_spi_wait_busy(fjsp);
+        flash_jedec_spi_write_disable(fjsp);
+    }
 }
 
 static void flash_jedec_spi_sector_erase(FlashJedecSPIDriver* fjsp,
@@ -286,6 +312,13 @@ static void flash_jedec_spi_page_program_ff(FlashJedecSPIDriver* fjsp,
         spiSend(fjsp->config->spip, sizeof(erased), &erased);
 
     spiUnselect(fjsp->config->spip);
+
+    /* note: This is required to terminate AAI programming on some chips. */
+    if (fjsp->config->cmd_page_program == 0xad)
+    {
+        flash_jedec_spi_wait_busy(fjsp);
+        flash_jedec_spi_write_disable(fjsp);
+    }
 }
 
 static void flash_jedec_spi_mass_erase(FlashJedecSPIDriver* fjsp)
@@ -680,6 +713,8 @@ bool_t fjsGetInfo(FlashJedecSPIDriver* fjsp, NVMDeviceInfo* nvmdip)
     /* Verify device status. */
     chDbgAssert(fjsp->state >= NVM_READY, "fjsGetInfo(), #1",
             "invalid state");
+
+    flash_jedec_spi_wait_busy(fjsp);
 
     nvmdip->sector_num = fjsp->config->sector_num;
     nvmdip->sector_size = fjsp->config->sector_size;
