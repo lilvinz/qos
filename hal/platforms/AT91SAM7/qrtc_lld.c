@@ -15,15 +15,21 @@
 */
 
 /**
- * @file    AT91SAM7/qhal_lld.c
- * @brief   AT91SAM7 QHAL subsystem low level driver source.
+ * @file    AT91SAM7/qrtc_lld.c
+ * @brief   AT91SAM7 RTC subsystem low level driver header.
  *
- * @addtogroup HAL
+ * @addtogroup RTC
  * @{
  */
 
 #include "ch.h"
 #include "qhal.h"
+
+#if HAL_USE_RTC || defined(__DOXYGEN__)
+
+/*===========================================================================*/
+/* Driver local definitions.                                                 */
+/*===========================================================================*/
 
 /*===========================================================================*/
 /* Driver exported variables.                                                */
@@ -46,12 +52,33 @@
 /*===========================================================================*/
 
 /**
- * @brief   Low level HAL driver initialization.
+ * @brief   Convert from RTCTime to struct tm.
  *
- * @notapi
+ * @param[in] timespec      pointer to RTCTime structure
+ * @param[out] result       pointer to tm structure
+ *
+ * @api
  */
-void qhal_lld_init(void) {
-
+void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result)
+{
+    (void)result;
+    (void)timespec;
 }
+
+/**
+ * @brief   Convert from struct tm to RTCTime.
+ *
+ * @param[in] result        pointer to tm structure
+ * @param[out] timespec     pointer to RTCTime structure
+ *
+ * @api
+ */
+void rtcTM2RTCTime(const struct tm *result, const RTCTime *timespec)
+{
+    (void)result;
+    (void)timespec;
+}
+
+#endif /* HAL_USE_RTC */
 
 /** @} */

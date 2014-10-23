@@ -15,21 +15,19 @@
 */
 
 /**
- * @file    STM32/RTCv1/qrtc_lld.c
- * @brief   STM32 RTC subsystem low level driver header.
+ * @file    AT91SAM7/qhal_lld.c
+ * @brief   AT91SAM7 QHAL subsystem low level driver source.
  *
- * @addtogroup RTC
+ * @addtogroup HAL
  * @{
  */
 
 #include "ch.h"
 #include "qhal.h"
 
-#if HAL_USE_RTC || defined(__DOXYGEN__)
-
-/*===========================================================================*/
-/* Driver local definitions.                                                 */
-/*===========================================================================*/
+#include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 /*===========================================================================*/
 /* Driver exported variables.                                                */
@@ -52,33 +50,60 @@
 /*===========================================================================*/
 
 /**
- * @brief   Convert from RTCTime to struct tm.
+ * @brief   Low level HAL driver initialization.
  *
- * @param[in] timespec      pointer to RTCTime structure
- * @param[out] result       pointer to tm structure
- *
- * @api
+ * @notapi
  */
-void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result)
+
+/*
+ * @brief: This is a simple trampoline put at the start of the image in flash.
+ *
+ */
+__attribute__((section(".reset_trampoline_1")))
+__attribute__((naked))
+__attribute__((used))
+static void reset_trampoline_1(void)
 {
-    (void)result;
-    (void)timespec;
+    asm("b       reset_trampoline_2\n");
 }
 
-/**
- * @brief   Convert from struct tm to RTCTime.
- *
- * @param[in] result        pointer to tm structure
- * @param[out] timespec     pointer to RTCTime structure
- *
- * @api
- */
-void rtcTM2RTCTime(const struct tm *result, const RTCTime *timespec)
+__attribute__((section(".reset_trampoline_2")))
+__attribute__((naked))
+__attribute__((used))
+static void reset_trampoline_2(void)
 {
-    (void)result;
-    (void)timespec;
+    asm(".global reset_trampoline_2\n"
+        "reset_trampoline_2:\n"
+        "ldr     pc, _reset\n"
+        "_reset:\n"
+        ".word   ResetHandler");
 }
 
-#endif /* HAL_USE_RTC */
+void qhal_lld_init(void)
+{
+    /* Ensure that 0x00000000 is mapped to sram. */
+    {
+        /* Save remap value. */
+        volatile uint8_t* remap = (volatile uint8_t*)0x00000000;
+        volatile uint8_t* ram = (volatile uint8_t*)AT91C_ISRAM;
+
+        /* Probe remap. */
+        const bool probe_1 = *remap == *ram;
+
+        /* Modify sram content. */
+        *ram += 1;
+
+        const bool probe_2 = *remap == *ram;
+
+        /* Restore sram content. */
+        *ram -= 1;
+
+        if (!probe_1 || !probe_2)
+        {
+            /* 0x00000000 is mapped to flash, remap it to sram. */
+            AT91C_BASE_MC->MC_RCR = AT91C_MC_RCB;
+        }
+    }
+}
 
 /** @} */

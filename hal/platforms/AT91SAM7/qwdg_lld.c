@@ -1,31 +1,15 @@
-/*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-*/
-
 /**
- * @file    STM32/RTCv1/qrtc_lld.c
- * @brief   STM32 RTC subsystem low level driver header.
+ * @file    AT91SAM7/qwdg_lld.c
+ * @brief   AT91SAM7 low level WDG driver code.
  *
- * @addtogroup RTC
+ * @addtogroup WDG
  * @{
  */
 
 #include "ch.h"
 #include "qhal.h"
 
-#if HAL_USE_RTC || defined(__DOXYGEN__)
+#if HAL_USE_WDG || defined(__DOXYGEN__)
 
 /*===========================================================================*/
 /* Driver local definitions.                                                 */
@@ -34,6 +18,11 @@
 /*===========================================================================*/
 /* Driver exported variables.                                                */
 /*===========================================================================*/
+
+/**
+ * @brief WDG driver identifier.
+ */
+WDGDriver WDGD;
 
 /*===========================================================================*/
 /* Driver local variables and types.                                         */
@@ -52,33 +41,65 @@
 /*===========================================================================*/
 
 /**
- * @brief   Convert from RTCTime to struct tm.
+ * @brief   Low level WDG driver initialization.
  *
- * @param[in] timespec      pointer to RTCTime structure
- * @param[out] result       pointer to tm structure
- *
- * @api
+ * @notapi
  */
-void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result)
+void wdg_lld_init(void)
 {
-    (void)result;
-    (void)timespec;
+    wdgObjectInit(&WDGD);
+    WDGD.wdg = AT91C_BASE_WDTC;
 }
 
 /**
- * @brief   Convert from struct tm to RTCTime.
+ * @brief   Configures and activates the WDG peripheral.
  *
- * @param[in] result        pointer to tm structure
- * @param[out] timespec     pointer to RTCTime structure
+ * @param[in] wdgp      pointer to the @p WDGDriver object
  *
- * @api
+ * @notapi
  */
-void rtcTM2RTCTime(const struct tm *result, const RTCTime *timespec)
+void wdg_lld_start(WDGDriver* wdgp)
 {
-    (void)result;
-    (void)timespec;
+    if (wdgp->state == WDG_STOP)
+    {
+        if (wdgp == &WDGD)
+        {
+            wdgp->wdg->WDTC_WDMR = wdgp->config->wdt_mr;
+            return;
+        }
+    }
 }
 
-#endif /* HAL_USE_RTC */
+/**
+ * @brief   Deactivates the WDG peripheral.
+ *
+ * @param[in] wdgp    pointer to the @p WDGDriver object
+ *
+ * @notapi
+ */
+void wdg_lld_stop(WDGDriver* wdgp)
+{
+    if (wdgp->state == WDG_READY)
+    {
+        if (wdgp == &WDGD)
+        {
+            return;
+        }
+    }
+}
+
+/**
+ * @brief   Reloads the watchdog counter.
+ *
+ * @param[in] wdgp    pointer to the @p WDGDriver object
+ *
+ * @notapi
+ */
+void wdg_lld_reload(WDGDriver* wdgp)
+{
+    wdgp->wdg->WDTC_WDCR = 0xA5000001;
+}
+
+#endif /* HAL_USE_WDG */
 
 /** @} */
