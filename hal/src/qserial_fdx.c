@@ -228,34 +228,27 @@ static msg_t sfdxd_pump(void* parameters)
 
 static void sfdx_send(SerialFdxDriver *sfdxdp)
 {
-	uint8_t buffer[2];
-	uint8_t charCount = 0;
+	uint8_t buffer[SERIAL_FDX_MTU];
 
-	chSequentialStreamPut(sfdxdp->configp->farp, SFDX_FRAME_BEGIN);
+	uint8_t idx = 0;
+	buffer[idx++] = SFDX_FRAME_BEGIN;
+
 	chSysLock();
-	while(chSymQIsEmptyI(&sfdxdp->oqueue) == FALSE)
+	while((chSymQIsEmptyI(&sfdxdp->oqueue) == FALSE) && (idx < SERIAL_FDX_MTU - 2))
 	{
 		chSysUnlock();
-		buffer[0] = (uint8_t)chSymQGet(&sfdxdp->oqueue);
-
-		charCount = sfdxd_escape(buffer[0], buffer, sizeof(buffer));
-
-		if (chSequentialStreamWrite(sfdxdp->configp->farp, buffer, charCount) != charCount)
-		{
-
-		}
+		idx += sfdxd_escape((uint8_t)chSymQGet(&sfdxdp->oqueue), buffer + idx, sizeof(buffer));
 		chSysLock();
 	}
 	chSysUnlock();
 
-
-	chSequentialStreamPut(sfdxdp->configp->farp, SFDX_FRAME_END);
+	buffer[idx++] = SFDX_FRAME_END;
+	chSequentialStreamWrite(sfdxdp->configp->farp, buffer, idx);
 
 	chSysLock();
 	if (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE)
 		chnAddFlagsI(sfdxdp, CHN_OUTPUT_EMPTY);
 	chSysUnlock();
-
 
 }
 
