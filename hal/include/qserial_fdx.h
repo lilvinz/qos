@@ -89,7 +89,7 @@
 /*===========================================================================*/
 
 #if !CH_USE_QUEUES && !CH_USE_EVENTS
-#error "Virtual serial fdx requires CH_USE_QUEUES and CH_USE_EVENTS"
+#error "Serial fdx requires CH_USE_QUEUES and CH_USE_EVENTS"
 #endif
 
 /*===========================================================================*/
@@ -147,6 +147,8 @@ typedef struct
 	uint8_t                   ob[SERIAL_FDX_BUFFER_SIZE];                 \
 	/* Buffer for outgoing message composing.*/                           \
 	uint8_t                   sendbuffer[SERIAL_FDX_MTU];                 \
+	/* Connection status.*/												  \
+	bool                   connected;					                  \
 
 /**
  * @brief   @p SerialFdxDriver specific methods.
