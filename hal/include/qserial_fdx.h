@@ -22,18 +22,51 @@
 /*===========================================================================*/
 
 /**
- * @name    Virtual serial configuration options
+ * @name    Serial full duplex configuration options
  * @{
  */
 
 /**
- * @brief   Virtual serial buffer size.
+ * @brief   Serial full duplex buffer size.
  * @note    The default is 256 bytes for both the transmit and receive
  *          buffers.
  */
 #if !defined(SERIAL_FDX_BUFFER_SIZE) || defined(__DOXYGEN__)
 #define SERIAL_FDX_BUFFER_SIZE  256
 #endif
+
+/**
+ * @brief   Serial full duplex maximum transfer unit.
+ * @note    The default is 32 bytes.
+ */
+#if !defined(SERIAL_FDX_MTU) || defined(__DOXYGEN__)
+#define SERIAL_FDX_MTU  32
+#endif
+
+/**
+ * @brief   Serial full duplex frame begin character.
+ * @note    The default is 0x12.
+ */
+#if !defined(SFDX_FRAME_BEGIN) || defined(__DOXYGEN__)
+#define SFDX_FRAME_BEGIN  0x12
+#endif
+
+/**
+ * @brief   Serial full duplex frame end character.
+ * @note    The default is 0x13.
+ */
+#if !defined(SFDX_FRAME_END) || defined(__DOXYGEN__)
+#define SFDX_FRAME_END  0x13
+#endif
+
+/**
+ * @brief   Serial full duplex escape character.
+ * @note    The default is 0x7D.
+ */
+#if !defined(SFDX_BYTE_ESC) || defined(__DOXYGEN__)
+#define SFDX_BYTE_ESC  0x7D
+#endif
+
 
 /**
  * @brief   Dedicated data pump threads stack size.

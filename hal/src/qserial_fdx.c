@@ -14,9 +14,6 @@
 /*===========================================================================*/
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
-#define SFDX_BYTE_BEGIN 0x12
-#define SFDX_BYTE_END 0x13
-#define SFDX_BYTE_ESC 0x7D
 
 /*===========================================================================*/
 /* Driver exported variables.                                                */
@@ -234,7 +231,7 @@ static void sfdx_send(SerialFdxDriver *sfdxdp)
 	uint8_t buffer[2];
 	uint8_t charCount = 0;
 
-	chSequentialStreamPut(sfdxdp->configp->farp, SFDX_BYTE_BEGIN);
+	chSequentialStreamPut(sfdxdp->configp->farp, SFDX_FRAME_BEGIN);
 	chSysLock();
 	while(chSymQIsEmptyI(&sfdxdp->oqueue) == FALSE)
 	{
@@ -252,7 +249,7 @@ static void sfdx_send(SerialFdxDriver *sfdxdp)
 	chSysUnlock();
 
 
-	chSequentialStreamPut(sfdxdp->configp->farp, SFDX_BYTE_END);
+	chSequentialStreamPut(sfdxdp->configp->farp, SFDX_FRAME_END);
 
 	chSysLock();
 	if (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE)
@@ -269,15 +266,15 @@ static void sfdx_receive(SerialFdxDriver *sfdxdp, systime_t timeout)
 	uint8_t c;
 	while((c = (uint8_t)chnGetTimeout((BaseAsynchronousChannel*)sfdxdp->configp->farp, timeout)) != Q_RESET)
 	{
-		if (c == SFDX_BYTE_BEGIN && foundFrameBegin == FALSE && foundEsc == FALSE)
+		if (c == SFDX_FRAME_BEGIN && foundFrameBegin == FALSE && foundEsc == FALSE)
 		{
 			foundFrameBegin = TRUE;
 		}
-		else if(c == SFDX_BYTE_END && foundFrameBegin == TRUE && foundEsc == FALSE)
+		else if(c == SFDX_FRAME_END && foundFrameBegin == TRUE && foundEsc == FALSE)
 		{
 			return;
 		}
-		else if(c == SFDX_BYTE_END && foundFrameBegin == TRUE && foundEsc == FALSE)
+		else if(c == SFDX_FRAME_END && foundFrameBegin == TRUE && foundEsc == FALSE)
 		{
 			foundEsc = TRUE;
 		}
@@ -304,7 +301,7 @@ static void sfdx_receive(SerialFdxDriver *sfdxdp, systime_t timeout)
 static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer, uint8_t size)
 {
 	uint8_t idx = 0;
-	if (c == SFDX_BYTE_BEGIN || c == SFDX_BYTE_END || c == SFDX_BYTE_ESC)
+	if (c == SFDX_FRAME_BEGIN || c == SFDX_FRAME_END || c == SFDX_BYTE_ESC)
 	{
 		buffer[idx++] = SFDX_BYTE_ESC;
 	}
