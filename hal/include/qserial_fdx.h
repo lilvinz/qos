@@ -145,6 +145,8 @@ typedef struct
 	uint8_t                   ib[SERIAL_FDX_BUFFER_SIZE];                 \
 	/* Output circular buffer.*/                                          \
 	uint8_t                   ob[SERIAL_FDX_BUFFER_SIZE];                 \
+	/* Buffer for outgoing message composing.*/                           \
+	uint8_t                   sendbuffer[SERIAL_FDX_MTU];                 \
 
 /**
  * @brief   @p SerialFdxDriver specific methods.
@@ -165,7 +167,7 @@ struct SerialFdxDriverVMT
 /**
  * @extends BaseAsynchronousChannel
  *
- * @brief   Full duplex virtual serial driver class.
+ * @brief   Full duplex serial driver class.
  * @details This class extends @p BaseAsynchronousChannel by adding virtual
  *          I/O queues.
  */

@@ -228,22 +228,20 @@ static msg_t sfdxd_pump(void* parameters)
 
 static void sfdx_send(SerialFdxDriver *sfdxdp)
 {
-	uint8_t buffer[SERIAL_FDX_MTU];
-
 	uint8_t idx = 0;
-	buffer[idx++] = SFDX_FRAME_BEGIN;
+	sfdxdp->sendbuffer[idx++] = SFDX_FRAME_BEGIN;
 
 	chSysLock();
 	while((chSymQIsEmptyI(&sfdxdp->oqueue) == FALSE) && (idx < SERIAL_FDX_MTU - 2))
 	{
 		chSysUnlock();
-		idx += sfdxd_escape((uint8_t)chSymQGet(&sfdxdp->oqueue), buffer + idx, sizeof(buffer));
+		idx += sfdxd_escape((uint8_t)chSymQGet(&sfdxdp->oqueue), sfdxdp->sendbuffer + idx, sizeof(sfdxdp->sendbuffer));
 		chSysLock();
 	}
 	chSysUnlock();
 
-	buffer[idx++] = SFDX_FRAME_END;
-	chSequentialStreamWrite(sfdxdp->configp->farp, buffer, idx);
+	sfdxdp->sendbuffer[idx++] = SFDX_FRAME_END;
+	chSequentialStreamWrite(sfdxdp->configp->farp, sfdxdp->sendbuffer, idx);
 
 	chSysLock();
 	if (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE)
