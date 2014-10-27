@@ -89,7 +89,7 @@ void qhalInit(void)
     sdvirtualInit();
 #endif
 #if HAL_USE_SERIAL_FDX || defined(__DOXYGEN__)
-    sdfdxInit();
+    sfdxdInit();
 #endif
 }
 
