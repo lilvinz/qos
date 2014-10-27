@@ -67,6 +67,22 @@
 #define SFDX_BYTE_ESC  0x7D
 #endif
 
+/**
+ * @brief   Timeout in MS for slave responses
+ * @note    The default is 1000.
+ */
+#if !defined(SFDX_MASTER_RECEIVE_TIMEOUT_MS) || defined(__DOXYGEN__)
+#define SFDX_MASTER_RECEIVE_TIMEOUT_MS  1000
+#endif
+
+/**
+ * @brief   Timeout in MS for master requests
+ * @note    The default is 1000.
+ */
+#if !defined(SFDX_SLAVE_RECEIVE_TIMEOUT_MS) || defined(__DOXYGEN__)
+#define SFDX_SLAVE_RECEIVE_TIMEOUT_MS  2000
+#endif
+
 
 /**
  * @brief   Dedicated data pump threads stack size.

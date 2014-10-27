@@ -227,11 +227,11 @@ static msg_t sfdxd_pump(void* parameters)
 			if(sfdxdp->configp->type == SFDXD_MASTER)
 			{
 				sfdx_send(sfdxdp);
-				receiveResult = sfdx_receive(sfdxdp, S2ST(1));
+				receiveResult = sfdx_receive(sfdxdp, MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
 			}
 			else
 			{
-				receiveResult = sfdx_receive(sfdxdp, S2ST(1));
+				receiveResult = sfdx_receive(sfdxdp, MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
 				if (receiveResult >= 0)
 					sfdx_send(sfdxdp);
 			}
