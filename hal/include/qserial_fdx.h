@@ -1,6 +1,6 @@
 /**
  * @file    qserial_fdx.h
- * @brief   serial full duplex driver macros and structures.
+ * @brief   Serial full duplex driver macros and structures.
  *
  * @addtogroup SERIAL_FDX
  * @{
@@ -22,12 +22,12 @@
 /*===========================================================================*/
 
 /**
- * @name    Serial full duplex configuration options
+ * @name    Serial full duplex driver configuration options
  * @{
  */
 
 /**
- * @brief   Serial full duplex buffer size.
+ * @brief   Serial full duplex driver buffer size.
  * @note    The default is 256 bytes for both the transmit and receive
  *          buffers.
  */
@@ -36,7 +36,7 @@
 #endif
 
 /**
- * @brief   Serial full duplex maximum transfer unit.
+ * @brief   Serial full duplex driver maximum transfer unit.
  * @note    The default is 32 bytes.
  */
 #if !defined(SERIAL_FDX_MTU) || defined(__DOXYGEN__)
@@ -44,7 +44,7 @@
 #endif
 
 /**
- * @brief   Serial full duplex frame begin character.
+ * @brief   Serial full duplex driver frame begin character.
  * @note    The default is 0x12.
  */
 #if !defined(SFDX_FRAME_BEGIN) || defined(__DOXYGEN__)
@@ -52,7 +52,7 @@
 #endif
 
 /**
- * @brief   Serial full duplex frame end character.
+ * @brief   Serial full duplex driver frame end character.
  * @note    The default is 0x13.
  */
 #if !defined(SFDX_FRAME_END) || defined(__DOXYGEN__)
@@ -60,7 +60,7 @@
 #endif
 
 /**
- * @brief   Serial full duplex escape character.
+ * @brief   Serial full duplex driver escape character.
  * @note    The default is 0x7D.
  */
 #if !defined(SFDX_BYTE_ESC) || defined(__DOXYGEN__)
@@ -68,7 +68,7 @@
 #endif
 
 /**
- * @brief   Timeout in MS for slave responses
+ * @brief   Slave response timeout in ms.
  * @note    The default is 1000.
  */
 #if !defined(SFDX_MASTER_RECEIVE_TIMEOUT_MS) || defined(__DOXYGEN__)
@@ -76,7 +76,7 @@
 #endif
 
 /**
- * @brief   Timeout in MS for master requests
+ * @brief   Master request timeout in ms.
  * @note    The default is 1000.
  */
 #if !defined(SFDX_SLAVE_RECEIVE_TIMEOUT_MS) || defined(__DOXYGEN__)
@@ -122,20 +122,23 @@ typedef enum
     SFDXD_READY = 2                 /**< Ready.                          */
 } sfdxdstate_t;
 
+/**
+ * @brief Possible driver operation types.
+ */
 typedef enum
 {
     SFDXD_MASTER = 0,               /**< Master.                          */
-    SFDXD_SLAVE = 1,                 /**< Slave.                          */
+    SFDXD_SLAVE = 1,                /**< Slave.                          */
 } sfdxdtype_t;
 
 /**
- * @brief   Structure representing a serial driver.
+ * @brief   Structure representing a serial full duplex driver.
  */
 typedef struct SerialFdxDriver SerialFdxDriver;
 
 /**
- * @brief   Virtual serial driver configuration structure.
- * @details An instance of this structure must be passed to @p svirtualdStart()
+ * @brief   Serial full duplex driver configuration structure.
+ * @details An instance of this structure must be passed to @p sfdxddStart()
  *          in order to configure and start the driver operations.
  */
 typedef struct
@@ -185,9 +188,8 @@ struct SerialFdxDriverVMT
 /**
  * @extends BaseAsynchronousChannel
  *
- * @brief   Full duplex serial driver class.
- * @details This class extends @p BaseAsynchronousChannel by adding virtual
- *          I/O queues.
+ * @brief   Serial full duplex driver class.
+ * @details This class extends @p BaseAsynchronousChannel.
  */
 struct SerialFdxDriver
 {
@@ -229,7 +231,7 @@ extern "C" {
 }
 #endif
 
-#endif /* HAL_USE_SERIAL_FDXL */
+#endif /* HAL_USE_SERIAL_FDX */
 
 #endif /* _QSERIAL_FDX_H_ */
 

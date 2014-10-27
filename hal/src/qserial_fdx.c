@@ -1,6 +1,6 @@
 /**
  * @file    qserial_fdx.c
- * @brief   Virtual serial driver code.
+ * @brief   Serial full duplex driver code.
  *
  * @addtogroup SERIAL_FDX
  * @{
@@ -29,7 +29,7 @@
 static msg_t sfdxd_pump(void* parameters) __attribute__ ((noreturn));
 static void sfdx_send(SerialFdxDriver *sfdxdp);
 static msg_t sfdx_receive(SerialFdxDriver *sfdxdp, systime_t timeout);
-static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer, uint8_t size);
+static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer);
 
 /*
  * Interface implementation, the following functions just invoke the equivalent
@@ -97,7 +97,7 @@ static const struct SerialFdxDriverVMT vmt =
 /*===========================================================================*/
 
 /**
- * @brief   Virtual serial driver initialization.
+ * @brief   Serial full duplex driver initialization.
  * @note    This function is implicitly invoked by @p qhalInit(), there is
  *          no need to explicitly initialize the driver.
  *
@@ -108,7 +108,7 @@ void sfdxdInit(void)
 }
 
 /**
- * @brief   Initializes a generic full duplex driver object.
+ * @brief   Initializes a generic serial full duplex driver object.
  * @details The HW dependent part of the initialization has to be performed
  *          outside, usually in the hardware initialization code.
  *
@@ -151,9 +151,7 @@ void sfdxdObjectInit(SerialFdxDriver *sfdxdp)
  * @brief   Configures and starts the driver.
  *
  * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
- * @param[in] config        the architecture-dependent serial driver configuration.
- *                          If this parameter is set to @p NULL then a default
- *                          configuration is used.
+ * @param[in] config        the architecture-dependent serial full duplex driver configuration.
  *
  * @api
  */
@@ -214,6 +212,12 @@ void sfdxdStop(SerialFdxDriver *sfdxdp)
     chSysUnlock();
 }
 
+/**
+ * @brief   Drivers pump thread function.
+ *
+ * @param[in] parameters    pointer to a @p SerialFdxDriver object
+ *
+ */
 static msg_t sfdxd_pump(void* parameters)
 {
 	SerialFdxDriver *sfdxdp = (SerialFdxDriver*)parameters;
@@ -262,7 +266,12 @@ static msg_t sfdxd_pump(void* parameters)
 		}
 	}
 }
-
+/**
+ * @brief   Send function
+ * @details Called from pump thread function to send a frame.
+ *
+ * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
+ */
 static void sfdx_send(SerialFdxDriver *sfdxdp)
 {
 	uint8_t idx = 0;
@@ -272,7 +281,7 @@ static void sfdx_send(SerialFdxDriver *sfdxdp)
 	while((chSymQIsEmptyI(&sfdxdp->oqueue) == FALSE) && (idx < SERIAL_FDX_MTU - 2))
 	{
 		chSysUnlock();
-		idx += sfdxd_escape((uint8_t)chSymQGet(&sfdxdp->oqueue), sfdxdp->sendbuffer + idx, sizeof(sfdxdp->sendbuffer));
+		idx += sfdxd_escape((uint8_t)chSymQGet(&sfdxdp->oqueue), sfdxdp->sendbuffer + idx);
 		chSysLock();
 	}
 	chSysUnlock();
@@ -286,7 +295,18 @@ static void sfdx_send(SerialFdxDriver *sfdxdp)
 	chSysUnlock();
 
 }
-
+/**
+ * @brief   Receive function
+ * @details Called from pump thread function to receive a frame.
+ *
+ * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
+ * @param[in] timeout   timeout for waiting for new data
+ *
+ * @return              count of received bytes.
+ * @retval Q_TIMEOUT    if the specified time expired.
+ * @retval Q_RESET      if the channel associated queue (if any) has been
+ *                      reset.
+ */
 static msg_t sfdx_receive(SerialFdxDriver *sfdxdp, systime_t timeout)
 {
 	bool foundFrameBegin = FALSE;
@@ -329,8 +349,16 @@ static msg_t sfdx_receive(SerialFdxDriver *sfdxdp, systime_t timeout)
 
 	return c;
 }
-
-static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer, uint8_t size)
+/**
+ * @brief   Escaping characters
+ * @details If needed function escapes a single character.
+ *
+ * @param[in] c    		character to escape
+ * @param[out] buffer   pointer to message buffer
+ *
+ * @return              byte count used to escape the character.
+ */
+static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer)
 {
 	uint8_t idx = 0;
 	if (c == SFDX_FRAME_BEGIN || c == SFDX_FRAME_END || c == SFDX_BYTE_ESC)
