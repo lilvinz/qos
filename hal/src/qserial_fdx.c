@@ -26,9 +26,9 @@
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
-static msg_t sfdxd_pump(void* parameters) __attribute__ ((noreturn));
-static void sfdx_send(SerialFdxDriver *sfdxdp);
-static msg_t sfdx_receive(SerialFdxDriver *sfdxdp, systime_t timeout);
+static msg_t sfdxd_pump(void* parameters) __attribute__((noreturn));
+static void sfdx_send(SerialFdxDriver* sfdxdp);
+static msg_t sfdx_receive(SerialFdxDriver* sfdxdp, systime_t timeout);
 static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer);
 
 /*
@@ -36,55 +36,53 @@ static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer);
  * queue-level function or macro.
  */
 
-static msg_t putt(void *ip, uint8_t b, systime_t timeout)
+static msg_t putt(void* ip, uint8_t b, systime_t timeout)
 {
-	SerialFdxDriver	*sfdxdp = (SerialFdxDriver*)ip;
-	size_t result = chSymQPutTimeout(&sfdxdp->oqueue, b, timeout);
-	return result;
+    SerialFdxDriver* sfdxdp = (SerialFdxDriver*)ip;
+    size_t result = chSymQPutTimeout(&sfdxdp->oqueue, b, timeout);
+    return result;
 }
 
-static msg_t gett(void *ip, systime_t timeout)
+static msg_t gett(void* ip, systime_t timeout)
 {
-	SerialFdxDriver	*sfdxdp = (SerialFdxDriver*)ip;
-	size_t result = chSymQGetTimeout(&sfdxdp->iqueue, timeout);
-	return result;
+    SerialFdxDriver* sfdxdp = (SerialFdxDriver*)ip;
+    size_t result = chSymQGetTimeout(&sfdxdp->iqueue, timeout);
+    return result;
 }
 
-static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
+static size_t writet(void* ip, const uint8_t* bp, size_t n, systime_t timeout)
 {
-	SerialFdxDriver	*sfdxdp = (SerialFdxDriver*)ip;
-	size_t result = chSymQWriteTimeout(&sfdxdp->oqueue, bp, n, TIME_INFINITE);
-	return result;
+    SerialFdxDriver* sfdxdp = (SerialFdxDriver*)ip;
+    size_t result = chSymQWriteTimeout(&sfdxdp->oqueue, bp, n, TIME_INFINITE);
+    return result;
 }
 
-static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout)
+static size_t readt(void* ip, uint8_t* bp, size_t n, systime_t timeout)
 {
-	SerialFdxDriver	*sfdxdp = (SerialFdxDriver*)ip;
-	size_t result = chSymQReadTimeout(&sfdxdp->iqueue, bp, n, timeout);
-	return result;
+    SerialFdxDriver* sfdxdp = (SerialFdxDriver*)ip;
+    size_t result = chSymQReadTimeout(&sfdxdp->iqueue, bp, n, timeout);
+    return result;
 }
 
-static size_t write(void *ip, const uint8_t *bp, size_t n)
+static size_t write(void* ip, const uint8_t* bp, size_t n)
 {
-
-	return writet(ip, bp, n, TIME_INFINITE);
+    return writet(ip, bp, n, TIME_INFINITE);
 }
 
-static size_t read(void *ip, uint8_t *bp, size_t n)
+static size_t read(void* ip, uint8_t* bp, size_t n)
 {
-	return readt(ip, bp, n, TIME_INFINITE);
+    return readt(ip, bp, n, TIME_INFINITE);
 }
 
-static msg_t put(void *ip, uint8_t b)
+static msg_t put(void* ip, uint8_t b)
 {
-	return putt(ip, b, TIME_INFINITE);
+    return putt(ip, b, TIME_INFINITE);
 }
 
-static msg_t get(void *ip)
+static msg_t get(void* ip)
 {
-	return gett(ip, TIME_INFINITE);
+    return gett(ip, TIME_INFINITE);
 }
-
 
 static const struct SerialFdxDriverVMT vmt =
 {
@@ -116,7 +114,7 @@ void sfdxdInit(void)
  *
  * @init
  */
-void sfdxdObjectInit(SerialFdxDriver *sfdxdp)
+void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
 {
     sfdxdp->vmt = &vmt;
     chEvtInit(&sfdxdp->event);
@@ -129,10 +127,10 @@ void sfdxdObjectInit(SerialFdxDriver *sfdxdp)
             sizeof(sfdxdp->ib));
 
     chSymQInit(&sfdxdp->oqueue, sfdxdp->ob,
-                sizeof(sfdxdp->ob));
+            sizeof(sfdxdp->ob));
 
     /* Filling the thread working area here because the function
-       @p chThdCreateI() does not do it. */
+     @p chThdCreateI() does not do it. */
 #if CH_DBG_FILL_THREADS
     {
         void *wsp = sfdxdp->wa_pump;
@@ -144,18 +142,17 @@ void sfdxdObjectInit(SerialFdxDriver *sfdxdp)
                 CH_STACK_FILL_VALUE);
     }
 #endif
-
 }
 
 /**
  * @brief   Configures and starts the driver.
  *
  * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
- * @param[in] config        the architecture-dependent serial full duplex driver configuration.
+ * @param[in] config    the architecture-dependent serial full duplex driver configuration.
  *
  * @api
  */
-void sfdxdStart(SerialFdxDriver *sfdxdp, const SerialFdxConfig *configp)
+void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
 {
     chDbgCheck(sfdxdp != NULL, "sfdxdStart");
 
@@ -168,15 +165,15 @@ void sfdxdStart(SerialFdxDriver *sfdxdp, const SerialFdxConfig *configp)
     sfdxdp->connected = FALSE;
 
     if (sfdxdp->thd_ptr == NULL)
-    	sfdxdp->thd_ptr = sfdxdp->thd_wait = chThdCreateI(sfdxdp->wa_pump,
-                                                        sizeof sfdxdp->wa_pump,
-                                                        SERIAL_FDX_THREAD_PRIO,
-                                                        sfdxd_pump,
-                                                        sfdxdp);
+    sfdxdp->thd_ptr = sfdxdp->thd_wait = chThdCreateI(sfdxdp->wa_pump,
+            sizeof sfdxdp->wa_pump,
+            SERIAL_FDX_THREAD_PRIO,
+            sfdxd_pump,
+            sfdxdp);
     if (sfdxdp->thd_wait != NULL)
     {
-    	chThdResumeI(sfdxdp->thd_wait);
-    	sfdxdp->thd_wait = NULL;
+        chThdResumeI(sfdxdp->thd_wait);
+        sfdxdp->thd_wait = NULL;
     }
 
     chSysUnlock();
@@ -191,23 +188,23 @@ void sfdxdStart(SerialFdxDriver *sfdxdp, const SerialFdxConfig *configp)
  *
  * @api
  */
-void sfdxdStop(SerialFdxDriver *sfdxdp)
+void sfdxdStop(SerialFdxDriver* sfdxdp)
 {
     chDbgCheck(sfdxdp != NULL, "sfdxdStop");
 
     chSysLock();
     chDbgAssert((sfdxdp->state == SFDXD_STOP) || (sfdxdp->state == SFDXD_READY),
-                "sfdxdStop(), #1",
-                "invalid state");
+            "sfdxdStop(), #1",
+            "invalid state");
     sfdxdp->state = SFDXD_STOP;
 
     if (sfdxdp->connected == TRUE)
-    	chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
+    chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
 
     sfdxdp->connected = FALSE;
 
-	chSymQResetI(&sfdxdp->oqueue);
-	chSymQResetI(&sfdxdp->iqueue);
+    chSymQResetI(&sfdxdp->oqueue);
+    chSymQResetI(&sfdxdp->iqueue);
     chSchRescheduleS();
     chSysUnlock();
 }
@@ -220,81 +217,82 @@ void sfdxdStop(SerialFdxDriver *sfdxdp)
  */
 static msg_t sfdxd_pump(void* parameters)
 {
-	SerialFdxDriver *sfdxdp = (SerialFdxDriver*)parameters;
-	chRegSetThreadName("sfdxd_pump");
+    SerialFdxDriver* sfdxdp = (SerialFdxDriver*)parameters;
+    chRegSetThreadName("sfdxd_pump");
 
-	msg_t receiveResult = 0;
-	while(TRUE)
-	{
-		if (sfdxdp->state == SFDXD_READY)
-		{
-			if(sfdxdp->configp->type == SFDXD_MASTER)
-			{
-				sfdx_send(sfdxdp);
-				receiveResult = sfdx_receive(sfdxdp, MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
-			}
-			else
-			{
-				receiveResult = sfdx_receive(sfdxdp, MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
-				if (receiveResult >= 0)
-					sfdx_send(sfdxdp);
-			}
+    msg_t receiveResult = 0;
+    while (TRUE)
+    {
+        if (sfdxdp->state == SFDXD_READY)
+        {
+            if (sfdxdp->configp->type == SFDXD_MASTER)
+            {
+                sfdx_send(sfdxdp);
+                receiveResult = sfdx_receive(sfdxdp, MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
+            }
+            else
+            {
+                receiveResult = sfdx_receive(sfdxdp, MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
+                if (receiveResult >= 0)
+                sfdx_send(sfdxdp);
+            }
 
-			// send connect or disconnect event
-			if ((receiveResult >= 0) && (sfdxdp->connected == FALSE) && (sfdxdp->state == SFDXD_READY))
-			{
-				chSysLock();
-				sfdxdp->connected = TRUE;
-				chnAddFlagsI(sfdxdp, CHN_CONNECTED);
-				chSysUnlock();
-			}
-			else if ((receiveResult == Q_TIMEOUT) && (sfdxdp->connected == TRUE))
-			{
-				chSysLock();
-				sfdxdp->connected = FALSE;
-				chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
-				chSysUnlock();
-			}
-		}
-		else
-		{
-			// nothing to do. going to sleep
-			chSysLock();
-			sfdxdp->thd_wait = chThdSelf();
-			chSchGoSleepS(THD_STATE_SUSPENDED);
-			chSysUnlock();
-		}
-	}
+            /* send connect or disconnect event */
+            if ((receiveResult >= 0) && (sfdxdp->connected == FALSE) && (sfdxdp->state == SFDXD_READY))
+            {
+                chSysLock();
+                sfdxdp->connected = TRUE;
+                chnAddFlagsI(sfdxdp, CHN_CONNECTED);
+                chSysUnlock();
+            }
+            else if ((receiveResult == Q_TIMEOUT) && (sfdxdp->connected == TRUE))
+            {
+                chSysLock();
+                sfdxdp->connected = FALSE;
+                chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
+                chSysUnlock();
+            }
+        }
+        else
+        {
+            /* nothing to do. going to sleep */
+            chSysLock();
+            sfdxdp->thd_wait = chThdSelf();
+            chSchGoSleepS(THD_STATE_SUSPENDED);
+            chSysUnlock();
+        }
+    }
 }
+
 /**
  * @brief   Send function
  * @details Called from pump thread function to send a frame.
  *
  * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
  */
-static void sfdx_send(SerialFdxDriver *sfdxdp)
+static void sfdx_send(SerialFdxDriver* sfdxdp)
 {
-	uint8_t idx = 0;
-	sfdxdp->sendbuffer[idx++] = SFDX_FRAME_BEGIN;
+    uint8_t idx = 0;
+    sfdxdp->sendbuffer[idx++] = SFDX_FRAME_BEGIN;
 
-	chSysLock();
-	while((chSymQIsEmptyI(&sfdxdp->oqueue) == FALSE) && (idx < SERIAL_FDX_MTU - 2))
-	{
-		chSysUnlock();
-		idx += sfdxd_escape((uint8_t)chSymQGet(&sfdxdp->oqueue), sfdxdp->sendbuffer + idx);
-		chSysLock();
-	}
-	chSysUnlock();
+    chSysLock();
+    while ((chSymQIsEmptyI(&sfdxdp->oqueue) == FALSE) && (idx < SERIAL_FDX_MTU - 2))
+    {
+        chSysUnlock();
+        idx += sfdxd_escape((uint8_t)chSymQGet(&sfdxdp->oqueue), sfdxdp->sendbuffer + idx);
+        chSysLock();
+    }
+    chSysUnlock();
 
-	sfdxdp->sendbuffer[idx++] = SFDX_FRAME_END;
-	chSequentialStreamWrite(sfdxdp->configp->farp, sfdxdp->sendbuffer, idx);
+    sfdxdp->sendbuffer[idx++] = SFDX_FRAME_END;
+    chSequentialStreamWrite(sfdxdp->configp->farp, sfdxdp->sendbuffer, idx);
 
-	chSysLock();
-	if (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE)
-		chnAddFlagsI(sfdxdp, CHN_OUTPUT_EMPTY);
-	chSysUnlock();
-
+    chSysLock();
+    if (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE)
+    chnAddFlagsI(sfdxdp, CHN_OUTPUT_EMPTY);
+    chSysUnlock();
 }
+
 /**
  * @brief   Receive function
  * @details Called from pump thread function to receive a frame.
@@ -307,66 +305,67 @@ static void sfdx_send(SerialFdxDriver *sfdxdp)
  * @retval Q_RESET      if the channel associated queue (if any) has been
  *                      reset.
  */
-static msg_t sfdx_receive(SerialFdxDriver *sfdxdp, systime_t timeout)
+static msg_t sfdx_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
 {
-	bool foundFrameBegin = FALSE;
-	bool foundEsc = FALSE;
-	msg_t byteCount = 0;
-	msg_t c;
-	while((c = chnGetTimeout((BaseAsynchronousChannel*)sfdxdp->configp->farp, timeout)) >= 0)
-	{
-		if (c == SFDX_FRAME_BEGIN && foundFrameBegin == FALSE && foundEsc == FALSE)
-		{
-			foundFrameBegin = TRUE;
-		}
-		else if(c == SFDX_FRAME_END && foundFrameBegin == TRUE && foundEsc == FALSE)
-		{
-			return byteCount;
-		}
-		else if(c == SFDX_FRAME_END && foundFrameBegin == TRUE && foundEsc == FALSE)
-		{
-			foundEsc = TRUE;
-		}
-		else
-		{
-			if(c == SFDX_BYTE_ESC && foundEsc == FALSE)
-			{
-				foundEsc = TRUE;
-			}
-			else
-			{
-				byteCount++;
-				if (chSymQPut(&sfdxdp->iqueue, (uint8_t)c) == Q_OK)
-				{
-					chSysLock();
-						chnAddFlagsI(sfdxdp, CHN_INPUT_AVAILABLE);
-					chSysUnlock();
-				}
-				foundEsc = FALSE;
-			}
-		}
-	}
+    bool foundFrameBegin = FALSE;
+    bool foundEsc = FALSE;
+    msg_t byteCount = 0;
+    msg_t c;
+    while ((c = chnGetTimeout((BaseAsynchronousChannel*)sfdxdp->configp->farp, timeout)) >= 0)
+    {
+        if (c == SFDX_FRAME_BEGIN && foundFrameBegin == FALSE && foundEsc == FALSE)
+        {
+            foundFrameBegin = TRUE;
+        }
+        else if (c == SFDX_FRAME_END && foundFrameBegin == TRUE && foundEsc == FALSE)
+        {
+            return byteCount;
+        }
+        else if (c == SFDX_FRAME_END && foundFrameBegin == TRUE && foundEsc == FALSE)
+        {
+            foundEsc = TRUE;
+        }
+        else
+        {
+            if (c == SFDX_BYTE_ESC && foundEsc == FALSE)
+            {
+                foundEsc = TRUE;
+            }
+            else
+            {
+                byteCount++;
+                if (chSymQPut(&sfdxdp->iqueue, (uint8_t)c) == Q_OK)
+                {
+                    chSysLock();
+                    chnAddFlagsI(sfdxdp, CHN_INPUT_AVAILABLE);
+                    chSysUnlock();
+                }
+                foundEsc = FALSE;
+            }
+        }
+    }
 
-	return c;
+    return c;
 }
+
 /**
  * @brief   Escaping characters
  * @details If needed function escapes a single character.
  *
- * @param[in] c    		character to escape
+ * @param[in] c         character to escape
  * @param[out] buffer   pointer to message buffer
  *
  * @return              byte count used to escape the character.
  */
 static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer)
 {
-	uint8_t idx = 0;
-	if (c == SFDX_FRAME_BEGIN || c == SFDX_FRAME_END || c == SFDX_BYTE_ESC)
-	{
-		buffer[idx++] = SFDX_BYTE_ESC;
-	}
-	buffer[idx++] = c;
-	return idx;
+    uint8_t idx = 0;
+    if (c == SFDX_FRAME_BEGIN || c == SFDX_FRAME_END || c == SFDX_BYTE_ESC)
+    {
+        buffer[idx++] = SFDX_BYTE_ESC;
+    }
+    buffer[idx++] = c;
+    return idx;
 }
 #endif /* HAL_USE_SERIAL_FDX */
 

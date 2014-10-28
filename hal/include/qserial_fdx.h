@@ -77,22 +77,21 @@
 
 /**
  * @brief   Master request timeout in ms.
- * @note    The default is 1000.
+ * @note    The default is 2000.
  */
 #if !defined(SFDX_SLAVE_RECEIVE_TIMEOUT_MS) || defined(__DOXYGEN__)
 #define SFDX_SLAVE_RECEIVE_TIMEOUT_MS  2000
 #endif
 
-
 /**
- * @brief   Dedicated data pump threads stack size.
+ * @brief   Dedicated data pump thread stack size.
  */
 #if !defined(SERIAL_FDX_THREAD_STACK_SIZE) || defined(__DOXYGEN__)
 #define SERIAL_FDX_THREAD_STACK_SIZE     128
 #endif
 
 /**
- * @brief   Dedicated data pump threads priority.
+ * @brief   Dedicated data pump thread priority.
  */
 #if !defined(SERIAL_FDX_THREAD_PRIO) || defined(__DOXYGEN__)
 #define SERIAL_FDX_THREAD_PRIO           LOWPRIO
@@ -104,7 +103,7 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
-#if !CH_USE_QUEUES && !CH_USE_EVENTS
+#if !CH_USE_QUEUES || !CH_USE_EVENTS
 #error "Serial fdx requires CH_USE_QUEUES and CH_USE_EVENTS"
 #endif
 
@@ -117,9 +116,9 @@
  */
 typedef enum
 {
-    SFDXD_UNINIT = 0,               /**< Not initialized.                */
-    SFDXD_STOP = 1,                 /**< Stopped.                        */
-    SFDXD_READY = 2                 /**< Ready.                          */
+    SFDXD_UNINIT = 0, /**< Not initialized.                */
+    SFDXD_STOP = 1,   /**< Stopped.                        */
+    SFDXD_READY = 2   /**< Ready.                          */
 } sfdxdstate_t;
 
 /**
@@ -127,8 +126,8 @@ typedef enum
  */
 typedef enum
 {
-    SFDXD_MASTER = 0,               /**< Master.                          */
-    SFDXD_SLAVE = 1,                /**< Slave.                          */
+    SFDXD_MASTER = 0, /**< Master.                          */
+    SFDXD_SLAVE = 1,  /**< Slave.                           */
 } sfdxdtype_t;
 
 /**
@@ -144,30 +143,30 @@ typedef struct SerialFdxDriver SerialFdxDriver;
 typedef struct
 {
     /* Pointer to the far end. */
-	BaseAsynchronousChannel *farp;
-	/* type of this driver instance. */
-	sfdxdtype_t type;
+    BaseAsynchronousChannel* farp;
+    /* type of this driver instance. */
+    sfdxdtype_t type;
 } SerialFdxConfig;
 
 /**
  * @brief   @p SerialFdxDriver specific data.
  */
 #define _serial_fdx_driver_data                                           \
-	_base_asynchronous_channel_data                                       \
+    _base_asynchronous_channel_data                                       \
     /* Driver state. */                                                   \
-	sfdxdstate_t state;                                                   \
-	/* Input queue.*/                                                     \
-	SymmetricQueue                iqueue;                                 \
-	/* Output queue.*/                                                    \
-	SymmetricQueue                oqueue;                                 \
-	/* Input circular buffer.*/                                           \
-	uint8_t                   ib[SERIAL_FDX_BUFFER_SIZE];                 \
-	/* Output circular buffer.*/                                          \
-	uint8_t                   ob[SERIAL_FDX_BUFFER_SIZE];                 \
-	/* Buffer for outgoing message composing.*/                           \
-	uint8_t                   sendbuffer[SERIAL_FDX_MTU];                 \
-	/* Connection status.*/												  \
-	bool                   connected;					                  \
+    sfdxdstate_t state;                                                   \
+    /* Input queue.*/                                                     \
+    SymmetricQueue                iqueue;                                 \
+    /* Output queue.*/                                                    \
+    SymmetricQueue                oqueue;                                 \
+    /* Input circular buffer.*/                                           \
+    uint8_t                   ib[SERIAL_FDX_BUFFER_SIZE];                 \
+    /* Output circular buffer.*/                                          \
+    uint8_t                   ob[SERIAL_FDX_BUFFER_SIZE];                 \
+    /* Buffer for outgoing message composing.*/                           \
+    uint8_t                   sendbuffer[SERIAL_FDX_MTU];                 \
+    /* Connection status.*/                                               \
+    bool                   connected;                                     \
 
 /**
  * @brief   @p SerialFdxDriver specific methods.
@@ -194,21 +193,21 @@ struct SerialFdxDriverVMT
 struct SerialFdxDriver
 {
     /** @brief Virtual Methods Table.*/
-    const struct SerialFdxDriverVMT *vmt;
+    const struct SerialFdxDriverVMT* vmt;
     _serial_fdx_driver_data
-    const SerialFdxConfig *configp;
+    const SerialFdxConfig* configp;
     /**
-	* @brief   Pointer to the thread.
-	*/
-	Thread                        *thd_ptr;
-	/**
-	* @brief   Pointer to the thread when it is sleeping or @p NULL.
-	*/
-	Thread                        *thd_wait;
-	/**
-	* @brief   Working area for the dedicated data pump thread;
-	*/
-	WORKING_AREA(wa_pump, SERIAL_FDX_THREAD_STACK_SIZE);
+     * @brief   Pointer to the thread.
+     */
+    Thread* thd_ptr;
+    /**
+     * @brief   Pointer to the thread when it is sleeping or @p NULL.
+     */
+    Thread* thd_wait;
+    /**
+     * @brief   Working area for the dedicated data pump thread;
+     */
+    WORKING_AREA(wa_pump, SERIAL_FDX_THREAD_STACK_SIZE);
 };
 
 /*===========================================================================*/
@@ -220,13 +219,14 @@ struct SerialFdxDriver
 /*===========================================================================*/
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
     void sfdxdInit(void);
-    void sfdxdObjectInit(SerialFdxDriver *sfdxdp);
-    void sfdxdStart(SerialFdxDriver *sfdxdp,
-            const SerialFdxConfig *configp);
-    void sfdxdStop(SerialFdxDriver *sfdxdp);
+    void sfdxdObjectInit(SerialFdxDriver* sfdxdp);
+    void sfdxdStart(SerialFdxDriver* sfdxdp,
+            const SerialFdxConfig* configp);
+    void sfdxdStop(SerialFdxDriver* sfdxdp);
 #ifdef __cplusplus
 }
 #endif
