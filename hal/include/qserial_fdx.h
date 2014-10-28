@@ -213,6 +213,23 @@ struct SerialFdxDriver
 /*===========================================================================*/
 /* Driver macros.                                                            */
 /*===========================================================================*/
+/**
+ * @name    Macro Functions (SerialFdxDriver)
+ * @{
+ */
+/**
+ * @brief   Returns connection status.
+ * @details Connection status changes if a connection event occurs
+ *
+ * @param[in] ip        pointer to a @p SerialFdxDriver object
+ *
+ * @return              Connection status.
+ * @retval TRUE         Driver receives responses from remote driver
+ * @retval FALSE        Driver receives no responses from remote driver
+ *
+ * @api
+ */
+#define sfdxdConnected(ip) ((ip)->connected)
 
 /*===========================================================================*/
 /* External declarations.                                                    */
