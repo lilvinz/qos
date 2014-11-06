@@ -32,15 +32,18 @@
  *          buffers.
  */
 #if !defined(SERIAL_FDX_BUFFER_SIZE) || defined(__DOXYGEN__)
-#define SERIAL_FDX_BUFFER_SIZE  256
+#define SERIAL_FDX_BUFFER_SIZE 256
 #endif
 
 /**
  * @brief   Serial full duplex driver maximum transfer unit.
+ * @details MTU includes frame overhead and payload bytes. Increasing MTU value
+ *          leads to higher memory allocation but less frame overhead bytes.
+ *          Smallest MTU should be 4.
  * @note    The default is 32 bytes.
  */
 #if !defined(SERIAL_FDX_MTU) || defined(__DOXYGEN__)
-#define SERIAL_FDX_MTU  32
+#define SERIAL_FDX_MTU 32
 #endif
 
 /**
@@ -48,7 +51,7 @@
  * @note    The default is 0x12.
  */
 #if !defined(SFDX_FRAME_BEGIN) || defined(__DOXYGEN__)
-#define SFDX_FRAME_BEGIN  0x12
+#define SFDX_FRAME_BEGIN 0x12
 #endif
 
 /**
@@ -64,7 +67,7 @@
  * @note    The default is 0x7D.
  */
 #if !defined(SFDX_BYTE_ESC) || defined(__DOXYGEN__)
-#define SFDX_BYTE_ESC  0x7D
+#define SFDX_BYTE_ESC 0x7D
 #endif
 
 /**
@@ -72,7 +75,7 @@
  * @note    The default is 1000.
  */
 #if !defined(SFDX_MASTER_RECEIVE_TIMEOUT_MS) || defined(__DOXYGEN__)
-#define SFDX_MASTER_RECEIVE_TIMEOUT_MS  1000
+#define SFDX_MASTER_RECEIVE_TIMEOUT_MS 1000
 #endif
 
 /**
@@ -80,21 +83,21 @@
  * @note    The default is 2000.
  */
 #if !defined(SFDX_SLAVE_RECEIVE_TIMEOUT_MS) || defined(__DOXYGEN__)
-#define SFDX_SLAVE_RECEIVE_TIMEOUT_MS  2000
+#define SFDX_SLAVE_RECEIVE_TIMEOUT_MS 2000
 #endif
 
 /**
  * @brief   Dedicated data pump thread stack size.
  */
 #if !defined(SERIAL_FDX_THREAD_STACK_SIZE) || defined(__DOXYGEN__)
-#define SERIAL_FDX_THREAD_STACK_SIZE     128
+#define SERIAL_FDX_THREAD_STACK_SIZE 128
 #endif
 
 /**
  * @brief   Dedicated data pump thread priority.
  */
 #if !defined(SERIAL_FDX_THREAD_PRIO) || defined(__DOXYGEN__)
-#define SERIAL_FDX_THREAD_PRIO           LOWPRIO
+#define SERIAL_FDX_THREAD_PRIO LOWPRIO
 #endif
 
 /** @} */
@@ -126,8 +129,8 @@ typedef enum
  */
 typedef enum
 {
-    SFDXD_MASTER = 0, /**< Master.                          */
-    SFDXD_SLAVE = 1,  /**< Slave.                           */
+    SFDXD_MASTER = 0, /**< Master.                         */
+    SFDXD_SLAVE = 1,  /**< Slave.                          */
 } sfdxdtype_t;
 
 /**
@@ -144,7 +147,7 @@ typedef struct
 {
     /* Pointer to the far end. */
     BaseAsynchronousChannel* farp;
-    /* type of this driver instance. */
+    /* Type of this driver instance. */
     sfdxdtype_t type;
 } SerialFdxConfig;
 
@@ -156,17 +159,17 @@ typedef struct
     /* Driver state. */                                                   \
     sfdxdstate_t state;                                                   \
     /* Input queue.*/                                                     \
-    SymmetricQueue                iqueue;                                 \
+    SymmetricQueue iqueue;                                                \
     /* Output queue.*/                                                    \
-    SymmetricQueue                oqueue;                                 \
+    SymmetricQueue oqueue;                                                \
     /* Input circular buffer.*/                                           \
-    uint8_t                   ib[SERIAL_FDX_BUFFER_SIZE];                 \
+    uint8_t ib[SERIAL_FDX_BUFFER_SIZE];                                   \
     /* Output circular buffer.*/                                          \
-    uint8_t                   ob[SERIAL_FDX_BUFFER_SIZE];                 \
+    uint8_t ob[SERIAL_FDX_BUFFER_SIZE];                                   \
     /* Buffer for outgoing message composing.*/                           \
-    uint8_t                   sendbuffer[SERIAL_FDX_MTU];                 \
+    uint8_t sendbuffer[SERIAL_FDX_MTU];                                   \
     /* Connection status.*/                                               \
-    bool                   connected;                                     \
+    bool connected;                                                       \
 
 /**
  * @brief   @p SerialFdxDriver specific methods.
@@ -219,13 +222,13 @@ struct SerialFdxDriver
  */
 /**
  * @brief   Returns connection status.
- * @details Connection status changes if a connection event occurs
+ * @details Connection status changes if a connection event occurs.
  *
  * @param[in] ip        pointer to a @p SerialFdxDriver object
  *
- * @return              Connection status.
- * @retval TRUE         Driver receives responses from remote driver
- * @retval FALSE        Driver receives no responses from remote driver
+ * @return              connection status
+ * @retval TRUE         Driver receives responses from remote driver.
+ * @retval FALSE        Driver receives no responses from remote driver.
  *
  * @api
  */
