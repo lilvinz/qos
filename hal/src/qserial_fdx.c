@@ -63,10 +63,12 @@ static void sfdxd_send(SerialFdxDriver* sfdxdp)
     sfdxdp->sendbuffer[idx++] = SFDX_FRAME_BEGIN;
 
     chSysLock();
-    while ((chSymQIsEmptyI(&sfdxdp->oqueue) == FALSE) && (idx < (SERIAL_FDX_MTU - 3)))
+    while ((chSymQIsEmptyI(&sfdxdp->oqueue) == FALSE) &&
+            (idx < (SERIAL_FDX_MTU - 3)))
     {
         chSysUnlock();
-        idx += sfdxd_escape((uint8_t)chSymQGet(&sfdxdp->oqueue), sfdxdp->sendbuffer + idx);
+        idx += sfdxd_escape((uint8_t)chSymQGet(&sfdxdp->oqueue),
+                sfdxdp->sendbuffer + idx);
         chSysLock();
     }
     chSysUnlock();
@@ -100,13 +102,17 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
     bool foundEsc = FALSE;
     msg_t byteCount = 0;
     msg_t c;
-    while ((c = chnGetTimeout((BaseAsynchronousChannel*)sfdxdp->configp->farp, timeout)) >= 0)
+    while ((c = chnGetTimeout((BaseAsynchronousChannel*)sfdxdp->configp->farp,
+            timeout)) >= 0)
     {
-        if (c == SFDX_FRAME_BEGIN && foundFrameBegin == FALSE && foundEsc == FALSE)
+        if (c == SFDX_FRAME_BEGIN && foundFrameBegin == FALSE &&
+                foundEsc == FALSE)
         {
             foundFrameBegin = TRUE;
         }
-        else if (c == SFDX_FRAME_END && foundFrameBegin == TRUE && foundEsc == FALSE)
+        else if (c == SFDX_FRAME_END &&
+                foundFrameBegin == TRUE &&
+                foundEsc == FALSE)
         {
             return byteCount;
         }
@@ -157,24 +163,28 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
             if (sfdxdp->configp->type == SFDXD_MASTER)
             {
                 sfdxd_send(sfdxdp);
-                receiveResult = sfdxd_receive(sfdxdp, MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
+                receiveResult = sfdxd_receive(sfdxdp,
+                        MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
             }
             else
             {
-                receiveResult = sfdxd_receive(sfdxdp, MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
+                receiveResult = sfdxd_receive(sfdxdp,
+                        MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
                 if (receiveResult >= 0)
                     sfdxd_send(sfdxdp);
             }
 
             /* send connect or disconnect event */
-            if ((receiveResult >= 0) && (sfdxdp->connected == FALSE) && (sfdxdp->state == SFDXD_READY))
+            if ((receiveResult >= 0) && (sfdxdp->connected == FALSE) &&
+                    (sfdxdp->state == SFDXD_READY))
             {
                 chSysLock();
                 sfdxdp->connected = TRUE;
                 chnAddFlagsI(sfdxdp, CHN_CONNECTED);
                 chSysUnlock();
             }
-            else if ((receiveResult == Q_TIMEOUT) && (sfdxdp->connected == TRUE))
+            else if ((receiveResult == Q_TIMEOUT) &&
+                    (sfdxdp->connected == TRUE))
             {
                 chSysLock();
                 sfdxdp->connected = FALSE;
@@ -310,7 +320,8 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
  * @brief   Configures and starts the driver.
  *
  * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
- * @param[in] config    the architecture-dependent serial full duplex driver configuration.
+ * @param[in] config    the architecture-dependent serial full duplex driver
+ *                      configuration.
  *
  * @api
  */
