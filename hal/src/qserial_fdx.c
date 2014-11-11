@@ -36,6 +36,7 @@ static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer);
  *
  * @param[in] parameters    pointer to a @p SerialFdxDriver object
  *
+ * @notapi
  */
 static msg_t sfdxd_pump(void* parameters)
 {
@@ -91,6 +92,8 @@ static msg_t sfdxd_pump(void* parameters)
  * @details Called from pump thread function to send a frame.
  *
  * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
+ *
+ * @notapi
  */
 static void sfdxd_send(SerialFdxDriver* sfdxdp)
 {
@@ -126,6 +129,8 @@ static void sfdxd_send(SerialFdxDriver* sfdxdp)
  * @retval Q_TIMEOUT    If the specified time expired.
  * @retval Q_RESET      If the channel associated queue (if any) has been
  *                      reset.
+ *
+ * @notapi
  */
 static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
 {
@@ -178,6 +183,8 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
  * @param[out] buffer   pointer to message buffer
  *
  * @return              Byte count used to escape the character.
+ *
+ * @notapi
  */
 static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer)
 {
