@@ -26,65 +26,27 @@
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
-static msg_t sfdxd_pump(void* parameters) __attribute__((noreturn));
-static void sfdxd_send(SerialFdxDriver* sfdxdp);
-static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout);
-static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer);
 
 /**
- * @brief   Drivers pump thread function.
+ * @brief   Escaping characters
+ * @details If needed function escapes a single character.
  *
- * @param[in] parameters    pointer to a @p SerialFdxDriver object
+ * @param[in] c         character to escape
+ * @param[out] buffer   pointer to message buffer
+ *
+ * @return              Byte count used to escape the character.
  *
  * @notapi
  */
-static msg_t sfdxd_pump(void* parameters)
+static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer)
 {
-    SerialFdxDriver* sfdxdp = (SerialFdxDriver*)parameters;
-    chRegSetThreadName("sfdxd_pump");
-
-    msg_t receiveResult = 0;
-    while (TRUE)
+    uint8_t idx = 0;
+    if (c == SFDX_FRAME_BEGIN || c == SFDX_FRAME_END || c == SFDX_BYTE_ESC)
     {
-        if (sfdxdp->state == SFDXD_READY)
-        {
-            if (sfdxdp->configp->type == SFDXD_MASTER)
-            {
-                sfdxd_send(sfdxdp);
-                receiveResult = sfdxd_receive(sfdxdp, MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
-            }
-            else
-            {
-                receiveResult = sfdxd_receive(sfdxdp, MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
-                if (receiveResult >= 0)
-                    sfdxd_send(sfdxdp);
-            }
-
-            /* send connect or disconnect event */
-            if ((receiveResult >= 0) && (sfdxdp->connected == FALSE) && (sfdxdp->state == SFDXD_READY))
-            {
-                chSysLock();
-                sfdxdp->connected = TRUE;
-                chnAddFlagsI(sfdxdp, CHN_CONNECTED);
-                chSysUnlock();
-            }
-            else if ((receiveResult == Q_TIMEOUT) && (sfdxdp->connected == TRUE))
-            {
-                chSysLock();
-                sfdxdp->connected = FALSE;
-                chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
-                chSysUnlock();
-            }
-        }
-        else
-        {
-            /* nothing to do. going to sleep */
-            chSysLock();
-            sfdxdp->thd_wait = chThdSelf();
-            chSchGoSleepS(THD_STATE_SUSPENDED);
-            chSysUnlock();
-        }
+        buffer[idx++] = SFDX_BYTE_ESC;
     }
+    buffer[idx++] = c;
+    return idx;
 }
 
 /**
@@ -176,25 +138,59 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
 }
 
 /**
- * @brief   Escaping characters
- * @details If needed function escapes a single character.
+ * @brief   Drivers pump thread function.
  *
- * @param[in] c         character to escape
- * @param[out] buffer   pointer to message buffer
- *
- * @return              Byte count used to escape the character.
+ * @param[in] parameters    pointer to a @p SerialFdxDriver object
  *
  * @notapi
  */
-static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer)
+__attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
 {
-    uint8_t idx = 0;
-    if (c == SFDX_FRAME_BEGIN || c == SFDX_FRAME_END || c == SFDX_BYTE_ESC)
+    SerialFdxDriver* sfdxdp = (SerialFdxDriver*)parameters;
+    chRegSetThreadName("sfdxd_pump");
+
+    msg_t receiveResult = 0;
+    while (TRUE)
     {
-        buffer[idx++] = SFDX_BYTE_ESC;
+        if (sfdxdp->state == SFDXD_READY)
+        {
+            if (sfdxdp->configp->type == SFDXD_MASTER)
+            {
+                sfdxd_send(sfdxdp);
+                receiveResult = sfdxd_receive(sfdxdp, MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
+            }
+            else
+            {
+                receiveResult = sfdxd_receive(sfdxdp, MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
+                if (receiveResult >= 0)
+                    sfdxd_send(sfdxdp);
+            }
+
+            /* send connect or disconnect event */
+            if ((receiveResult >= 0) && (sfdxdp->connected == FALSE) && (sfdxdp->state == SFDXD_READY))
+            {
+                chSysLock();
+                sfdxdp->connected = TRUE;
+                chnAddFlagsI(sfdxdp, CHN_CONNECTED);
+                chSysUnlock();
+            }
+            else if ((receiveResult == Q_TIMEOUT) && (sfdxdp->connected == TRUE))
+            {
+                chSysLock();
+                sfdxdp->connected = FALSE;
+                chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
+                chSysUnlock();
+            }
+        }
+        else
+        {
+            /* nothing to do. going to sleep */
+            chSysLock();
+            sfdxdp->thd_wait = chThdSelf();
+            chSchGoSleepS(THD_STATE_SUSPENDED);
+            chSysUnlock();
+        }
     }
-    buffer[idx++] = c;
-    return idx;
 }
 
 /*
