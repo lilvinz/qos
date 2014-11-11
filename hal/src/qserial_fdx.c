@@ -28,13 +28,13 @@
 /*===========================================================================*/
 
 /**
- * @brief   Escaping characters
- * @details If needed function escapes a single character.
+ * @brief   Character escape function.
+ * @details If required, function escapes a single character.
  *
  * @param[in] c         character to escape
  * @param[out] buffer   pointer to message buffer
  *
- * @return              Byte count used to escape the character.
+ * @return              byte count used to escape the character
  *
  * @notapi
  */
@@ -50,7 +50,7 @@ static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer)
 }
 
 /**
- * @brief   Send function
+ * @brief   Send function.
  * @details Called from pump thread function to send a frame.
  *
  * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
@@ -83,16 +83,15 @@ static void sfdxd_send(SerialFdxDriver* sfdxdp)
 }
 
 /**
- * @brief   Receive function
+ * @brief   Receive function.
  * @details Called from pump thread function to receive a frame.
  *
  * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
- * @param[in] timeout   Timeout for waiting for new data.
+ * @param[in] timeout   timeout for waiting for new data
  *
  * @return              count of received bytes
- * @retval Q_TIMEOUT    If the specified time expired.
- * @retval Q_RESET      If the channel associated queue (if any) has been
- *                      reset.
+ * @retval Q_TIMEOUT    Specified timeout expired.
+ * @retval Q_RESET      Queue associated with the channel has been reset.
  *
  * @notapi
  */
@@ -174,7 +173,7 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
                     sfdxd_send(sfdxdp);
             }
 
-            /* send connect or disconnect event */
+            /* Send connect or disconnect event. */
             if ((receiveResult >= 0) && (sfdxdp->connected == FALSE) &&
                     (sfdxdp->state == SFDXD_READY))
             {
@@ -194,7 +193,7 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
         }
         else
         {
-            /* nothing to do. going to sleep */
+            /* Nothing to do. Going to sleep. */
             chSysLock();
             sfdxdp->thd_wait = chThdSelf();
             chSchGoSleepS(THD_STATE_SUSPENDED);
@@ -207,7 +206,6 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
  * Interface implementation, the following functions just invoke the equivalent
  * queue-level function or macro.
  */
-
 static msg_t putt(void* ip, uint8_t b, systime_t timeout)
 {
     SerialFdxDriver* sfdxdp = (SerialFdxDriver*)ip;

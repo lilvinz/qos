@@ -216,10 +216,12 @@ struct SerialFdxDriver
 /*===========================================================================*/
 /* Driver macros.                                                            */
 /*===========================================================================*/
+
 /**
  * @name    Macro Functions (SerialFdxDriver)
  * @{
  */
+
 /**
  * @brief   Returns connection status.
  * @details Connection status changes if a connection event occurs.
