@@ -26,71 +26,36 @@
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
-static msg_t sfdxd_pump(void* parameters) __attribute__((noreturn));
-static void sfdxd_send(SerialFdxDriver* sfdxdp);
-static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout);
-static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer);
 
 /**
- * @brief   Drivers pump thread function.
+ * @brief   Character escape function.
+ * @details If required, function escapes a single character.
  *
- * @param[in] parameters    pointer to a @p SerialFdxDriver object
+ * @param[in] c         character to escape
+ * @param[out] buffer   pointer to message buffer
  *
+ * @return              byte count used to escape the character
+ *
+ * @notapi
  */
-static msg_t sfdxd_pump(void* parameters)
+static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer)
 {
-    SerialFdxDriver* sfdxdp = (SerialFdxDriver*)parameters;
-    chRegSetThreadName("sfdxd_pump");
-
-    msg_t receiveResult = 0;
-    while (TRUE)
+    uint8_t idx = 0;
+    if (c == SFDX_FRAME_BEGIN || c == SFDX_FRAME_END || c == SFDX_BYTE_ESC)
     {
-        if (sfdxdp->state == SFDXD_READY)
-        {
-            if (sfdxdp->configp->type == SFDXD_MASTER)
-            {
-                sfdxd_send(sfdxdp);
-                receiveResult = sfdxd_receive(sfdxdp, MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
-            }
-            else
-            {
-                receiveResult = sfdxd_receive(sfdxdp, MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
-                if (receiveResult >= 0)
-                    sfdxd_send(sfdxdp);
-            }
-
-            /* send connect or disconnect event */
-            if ((receiveResult >= 0) && (sfdxdp->connected == FALSE) && (sfdxdp->state == SFDXD_READY))
-            {
-                chSysLock();
-                sfdxdp->connected = TRUE;
-                chnAddFlagsI(sfdxdp, CHN_CONNECTED);
-                chSysUnlock();
-            }
-            else if ((receiveResult == Q_TIMEOUT) && (sfdxdp->connected == TRUE))
-            {
-                chSysLock();
-                sfdxdp->connected = FALSE;
-                chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
-                chSysUnlock();
-            }
-        }
-        else
-        {
-            /* nothing to do. going to sleep */
-            chSysLock();
-            sfdxdp->thd_wait = chThdSelf();
-            chSchGoSleepS(THD_STATE_SUSPENDED);
-            chSysUnlock();
-        }
+        buffer[idx++] = SFDX_BYTE_ESC;
     }
+    buffer[idx++] = c;
+    return idx;
 }
 
 /**
- * @brief   Send function
+ * @brief   Send function.
  * @details Called from pump thread function to send a frame.
  *
  * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
+ *
+ * @notapi
  */
 static void sfdxd_send(SerialFdxDriver* sfdxdp)
 {
@@ -98,10 +63,12 @@ static void sfdxd_send(SerialFdxDriver* sfdxdp)
     sfdxdp->sendbuffer[idx++] = SFDX_FRAME_BEGIN;
 
     chSysLock();
-    while ((chSymQIsEmptyI(&sfdxdp->oqueue) == FALSE) && (idx < (SERIAL_FDX_MTU - 3)))
+    while ((chSymQIsEmptyI(&sfdxdp->oqueue) == FALSE) &&
+            (idx < (SERIAL_FDX_MTU - 3)))
     {
         chSysUnlock();
-        idx += sfdxd_escape((uint8_t)chSymQGet(&sfdxdp->oqueue), sfdxdp->sendbuffer + idx);
+        idx += sfdxd_escape((uint8_t)chSymQGet(&sfdxdp->oqueue),
+                sfdxdp->sendbuffer + idx);
         chSysLock();
     }
     chSysUnlock();
@@ -116,16 +83,17 @@ static void sfdxd_send(SerialFdxDriver* sfdxdp)
 }
 
 /**
- * @brief   Receive function
+ * @brief   Receive function.
  * @details Called from pump thread function to receive a frame.
  *
  * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
- * @param[in] timeout   Timeout for waiting for new data.
+ * @param[in] timeout   timeout for waiting for new data
  *
  * @return              count of received bytes
- * @retval Q_TIMEOUT    If the specified time expired.
- * @retval Q_RESET      If the channel associated queue (if any) has been
- *                      reset.
+ * @retval Q_TIMEOUT    Specified timeout expired.
+ * @retval Q_RESET      Queue associated with the channel has been reset.
+ *
+ * @notapi
  */
 static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
 {
@@ -133,13 +101,17 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
     bool foundEsc = FALSE;
     msg_t byteCount = 0;
     msg_t c;
-    while ((c = chnGetTimeout((BaseAsynchronousChannel*)sfdxdp->configp->farp, timeout)) >= 0)
+    while ((c = chnGetTimeout((BaseAsynchronousChannel*)sfdxdp->configp->farp,
+            timeout)) >= 0)
     {
-        if (c == SFDX_FRAME_BEGIN && foundFrameBegin == FALSE && foundEsc == FALSE)
+        if (c == SFDX_FRAME_BEGIN && foundFrameBegin == FALSE &&
+                foundEsc == FALSE)
         {
             foundFrameBegin = TRUE;
         }
-        else if (c == SFDX_FRAME_END && foundFrameBegin == TRUE && foundEsc == FALSE)
+        else if (c == SFDX_FRAME_END &&
+                foundFrameBegin == TRUE &&
+                foundEsc == FALSE)
         {
             return byteCount;
         }
@@ -171,30 +143,69 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
 }
 
 /**
- * @brief   Escaping characters
- * @details If needed function escapes a single character.
+ * @brief   Drivers pump thread function.
  *
- * @param[in] c         character to escape
- * @param[out] buffer   pointer to message buffer
+ * @param[in] parameters    pointer to a @p SerialFdxDriver object
  *
- * @return              Byte count used to escape the character.
+ * @notapi
  */
-static uint8_t sfdxd_escape(uint8_t c, uint8_t* buffer)
+__attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
 {
-    uint8_t idx = 0;
-    if (c == SFDX_FRAME_BEGIN || c == SFDX_FRAME_END || c == SFDX_BYTE_ESC)
+    SerialFdxDriver* sfdxdp = (SerialFdxDriver*)parameters;
+    chRegSetThreadName("sfdxd_pump");
+
+    msg_t receiveResult = 0;
+    while (TRUE)
     {
-        buffer[idx++] = SFDX_BYTE_ESC;
+        if (sfdxdp->state == SFDXD_READY)
+        {
+            if (sfdxdp->configp->type == SFDXD_MASTER)
+            {
+                sfdxd_send(sfdxdp);
+                receiveResult = sfdxd_receive(sfdxdp,
+                        MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
+            }
+            else
+            {
+                receiveResult = sfdxd_receive(sfdxdp,
+                        MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
+                if (receiveResult >= 0)
+                    sfdxd_send(sfdxdp);
+            }
+
+            /* Send connect or disconnect event. */
+            if ((receiveResult >= 0) && (sfdxdp->connected == FALSE) &&
+                    (sfdxdp->state == SFDXD_READY))
+            {
+                chSysLock();
+                sfdxdp->connected = TRUE;
+                chnAddFlagsI(sfdxdp, CHN_CONNECTED);
+                chSysUnlock();
+            }
+            else if ((receiveResult == Q_TIMEOUT) &&
+                    (sfdxdp->connected == TRUE))
+            {
+                chSysLock();
+                sfdxdp->connected = FALSE;
+                chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
+                chSysUnlock();
+            }
+        }
+        else
+        {
+            /* Nothing to do. Going to sleep. */
+            chSysLock();
+            sfdxdp->thd_wait = chThdSelf();
+            chSchGoSleepS(THD_STATE_SUSPENDED);
+            chSysUnlock();
+        }
     }
-    buffer[idx++] = c;
-    return idx;
 }
 
 /*
  * Interface implementation, the following functions just invoke the equivalent
  * queue-level function or macro.
  */
-
 static msg_t putt(void* ip, uint8_t b, systime_t timeout)
 {
     SerialFdxDriver* sfdxdp = (SerialFdxDriver*)ip;
@@ -307,7 +318,8 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
  * @brief   Configures and starts the driver.
  *
  * @param[in] sfdxdp    pointer to a @p SerialFdxDriver object
- * @param[in] config    the architecture-dependent serial full duplex driver configuration.
+ * @param[in] config    the architecture-dependent serial full duplex driver
+ *                      configuration.
  *
  * @api
  */

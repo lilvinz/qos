@@ -110,6 +110,10 @@
 #error "Serial fdx requires CH_USE_QUEUES and CH_USE_EVENTS"
 #endif
 
+#if SERIAL_FDX_MTU < 4
+#error "SERIAL_FDX_MTU must be >= 4"
+#endif
+
 /*===========================================================================*/
 /* Driver data structures and types.                                         */
 /*===========================================================================*/
@@ -216,10 +220,12 @@ struct SerialFdxDriver
 /*===========================================================================*/
 /* Driver macros.                                                            */
 /*===========================================================================*/
+
 /**
  * @name    Macro Functions (SerialFdxDriver)
  * @{
  */
+
 /**
  * @brief   Returns connection status.
  * @details Connection status changes if a connection event occurs.
@@ -233,6 +239,8 @@ struct SerialFdxDriver
  * @api
  */
 #define sfdxdConnected(ip) ((ip)->connected)
+
+/** @} */
 
 /*===========================================================================*/
 /* External declarations.                                                    */
