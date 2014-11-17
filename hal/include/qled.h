@@ -68,10 +68,15 @@ typedef struct
  */
 typedef struct
 {
-    /* Driver state.*/
+    /* Driver state */
     ledstate_t state;
-    /* Current configuration data.*/
+    /* Current configuration data */
     const LedConfig* config;
+    /* Blink timer state */
+    VirtualTimer blink_vt;
+    systime_t blink_on;
+    systime_t blink_off;
+    int32_t blink_loop;
 } LedDriver;
 
 /*===========================================================================*/
@@ -93,6 +98,7 @@ extern "C"
     void ledOn(LedDriver* ledp);
     void ledOff(LedDriver* ledp);
     void ledToggle(LedDriver* ledp);
+    void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop);
     bool_t ledIsLedOn(LedDriver* ledp);
 #ifdef __cplusplus
 }

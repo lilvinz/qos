@@ -26,6 +26,59 @@
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
+static void blink_timer_off_cb(void *par);
+static void blink_timer_on_cb(void *par);
+
+static void led_on(LedDriver* ledp)
+{
+    if (ledp->config->drive == LED_ACTIVE_LOW)
+        palClearPad(ledp->config->ledport, ledp->config->ledpad);
+    else
+        palSetPad(ledp->config->ledport, ledp->config->ledpad);
+}
+
+static void led_off(LedDriver* ledp)
+{
+    if (ledp->config->drive == LED_ACTIVE_LOW)
+        palSetPad(ledp->config->ledport, ledp->config->ledpad);
+    else
+        palClearPad(ledp->config->ledport, ledp->config->ledpad);
+}
+
+static void blink_timer_on_cb(void *par)
+{
+    LedDriver* ledp = (LedDriver*)par;
+
+    chSysLockFromIsr();
+
+    /* Set new timer. */
+    chVTSetI(&ledp->blink_vt, ledp->blink_off, blink_timer_off_cb, ledp);
+
+    led_off(ledp);
+
+    chSysUnlockFromIsr();
+}
+
+static void blink_timer_off_cb(void *par)
+{
+    LedDriver* ledp = (LedDriver*)par;
+
+    chSysLockFromIsr();
+
+    /* Decrement counter. */
+    if (ledp->blink_loop > 0)
+        --ledp->blink_loop;
+
+    if (ledp->blink_loop != 0)
+    {
+        /* Set new timer. */
+        chVTSetI(&ledp->blink_vt, ledp->blink_on, blink_timer_on_cb, ledp);
+
+        led_on(ledp);
+    }
+
+    chSysUnlockFromIsr();
+}
 
 /*===========================================================================*/
 /* Driver exported functions.                                                */
@@ -96,6 +149,10 @@ void ledStop(LedDriver* ledp)
 
     chSysLock();
 
+    /* Reset blink timer in case it is armed. */
+    if (chVTIsArmedI(&ledp->blink_vt))
+        chVTResetI(&ledp->blink_vt);
+
     chDbgAssert((ledp->state == LED_STOP) || (ledp->state == LED_READY),
             "ledStop(), #1",
             "invalid state");
@@ -120,10 +177,10 @@ void ledOn(LedDriver* ledp)
     chDbgAssert(ledp->state >= LED_READY, "ledOn(), #1",
             "invalid state");
 
-    if (ledp->config->drive == LED_ACTIVE_LOW)
-        palClearPad(ledp->config->ledport, ledp->config->ledpad);
-    else
-        palSetPad(ledp->config->ledport, ledp->config->ledpad);
+    /* Reset blink timer in case it is armed. */
+    chVTReset(&ledp->blink_vt);
+
+    led_on(ledp);
 }
 
 /**
@@ -140,10 +197,10 @@ void ledOff(LedDriver* ledp)
     chDbgAssert(ledp->state >= LED_READY, "ledOff(), #1",
             "invalid state");
 
-    if (ledp->config->drive == LED_ACTIVE_LOW)
-        palSetPad(ledp->config->ledport, ledp->config->ledpad);
-    else
-        palClearPad(ledp->config->ledport, ledp->config->ledpad);
+    /* Reset blink timer in case it is armed. */
+    chVTReset(&ledp->blink_vt);
+
+    led_off(ledp);
 }
 
 /**
@@ -160,7 +217,51 @@ void ledToggle(LedDriver* ledp)
     chDbgAssert(ledp->state >= LED_READY, "ledToggle(), #1",
             "invalid state");
 
+    /* Reset blink timer in case it is armed. */
+    chVTReset(&ledp->blink_vt);
+
     palTogglePad(ledp->config->ledport, ledp->config->ledpad);
+}
+
+/**
+ * @brief   Blink LED with defined period and number of loops.
+ *
+ * @param[in] ledp      pointer to a @p LedDriver object
+ * @param[in] on        time specifier for led on duration
+ * @param[in] off       time specifier for led off duration
+ * @param[in] loop      number of blink periods or <= 0 for infinite loop
+ *
+ * @api
+ */
+void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop)
+{
+    chDbgCheck(ledp != NULL, "ledBlink");
+    /* Verify device status. */
+    chDbgAssert(ledp->state >= LED_READY, "ledBlink(), #1",
+            "invalid state");
+    /* Verify parameters. */
+    chDbgAssert(on > TIME_IMMEDIATE && off > TIME_IMMEDIATE,
+            "ledBlink(), #2", "invalid parameters");
+
+    if (loop <= 0)
+        loop = -1;
+
+    chSysLock();
+
+    ledp->blink_on = on;
+    ledp->blink_off = off;
+    ledp->blink_loop = loop;
+
+    /* Reset timer in case it is already armed. */
+    if (chVTIsArmedI(&ledp->blink_vt))
+        chVTResetI(&ledp->blink_vt);
+
+    /* Set new timer. */
+    chVTSetI(&ledp->blink_vt, ledp->blink_on, blink_timer_on_cb, ledp);
+
+    led_on(ledp);
+
+    chSysUnlock();
 }
 
 /**
