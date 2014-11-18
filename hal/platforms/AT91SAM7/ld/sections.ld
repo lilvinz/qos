@@ -38,7 +38,7 @@ SECTIONS
 {
     . = 0;
 
-    .text :
+    .text ALIGN(4) : ALIGN(4)
     {
         _text = .;
         . = ALIGN(4);
@@ -67,7 +67,7 @@ SECTIONS
         *(.dtors)
     } > flash
 
-    .initcall : ALIGN(4)
+    .initcall ALIGN(4) : ALIGN(4)
     {
         __module_initcall_start = .;
         KEEP(*(SORT(.initcall.*)))
@@ -84,13 +84,10 @@ SECTIONS
 
     .eh_frame : ONLY_IF_RO {*(.eh_frame)}
 
-    . = ALIGN(4);
-    _etext = .;
-    _textdata = _etext;
-
-    .data :
+    .data ALIGN(4) : ALIGN(4)
     {
-        _data = .;
+        PROVIDE(_textdata = LOADADDR(.data));
+        PROVIDE(_data = .);
         KEEP(*(vectors))
         . = ALIGN(4);
         *(.ramfunc)
@@ -104,7 +101,7 @@ SECTIONS
         _edata = .;
     } > ram AT > flash
 
-    .bss :
+    .bss : ALIGN(4)
     {
         _bss_start = .;
         *(.bss)
