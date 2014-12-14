@@ -51,7 +51,7 @@ SECTIONS
         PROVIDE(__fini_array_end = .);
     } > flash
 
-    .initcall : ALIGN(4)
+    .initcall ALIGN(4) : ALIGN(4)
     {
         __module_initcall_start = .;
         KEEP(*(SORT(.initcall.*)))
@@ -91,18 +91,8 @@ SECTIONS
         *(.eh_frame)
     } > flash
 
-    .textalign : ONLY_IF_RO
+    .stacks : ALIGN(8)
     {
-        . = ALIGN(8);
-    } > flash
-
-    . = ALIGN(4);
-    _etext = .;
-    _textdata = _etext;
-
-    .stacks :
-    {
-        . = ALIGN(8);
         __main_stack_base__ = .;
         . += __main_stack_size__;
         . = ALIGN(8);
@@ -115,9 +105,9 @@ SECTIONS
         __main_thread_stack_end__ = .;
     } > ram
 
-    .data :
+    .data ALIGN(4) : ALIGN(4)
     {
-        . = ALIGN(4);
+        PROVIDE(_textdata = LOADADDR(.data));
         PROVIDE(_data = .);
         *(.data)
         . = ALIGN(4);
@@ -128,9 +118,8 @@ SECTIONS
         PROVIDE(_edata = .);
     } > ram AT > flash
 
-    .bss :
+    .bss : ALIGN(4)
     {
-        . = ALIGN(4);
         PROVIDE(_bss_start = .);
         *(.bss)
         . = ALIGN(4);
@@ -139,7 +128,7 @@ SECTIONS
         *(COMMON)
         . = ALIGN(4);
         PROVIDE(_bss_end = .);
-    } > ram    
+    } > ram
 }
 
 PROVIDE(end = .);
