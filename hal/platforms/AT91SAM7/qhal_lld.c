@@ -25,7 +25,6 @@
 #include "ch.h"
 #include "qhal.h"
 
-#include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -64,7 +63,8 @@ __attribute__((naked))
 __attribute__((used))
 static void reset_trampoline_1(void)
 {
-    asm("b       reset_trampoline_2\n");
+    asm(".arm\n"
+        "b       reset_trampoline_2_arm\n");
 }
 
 __attribute__((section(".reset_trampoline_2")))
@@ -72,8 +72,9 @@ __attribute__((naked))
 __attribute__((used))
 static void reset_trampoline_2(void)
 {
-    asm(".global reset_trampoline_2\n"
-        "reset_trampoline_2:\n"
+    asm(".arm\n"
+        ".global reset_trampoline_2_arm\n"
+        "reset_trampoline_2_arm:\n"
         "ldr     pc, _reset\n"
         "_reset:\n"
         ".word   ResetHandler");
