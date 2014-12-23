@@ -38,7 +38,7 @@ SECTIONS
 {
     . = 0;
 
-    .text ALIGN(4) : ALIGN(4)
+    .text : ALIGN(4)
     {
         _text = .;
         . = ALIGN(4);
@@ -84,7 +84,7 @@ SECTIONS
 
     .eh_frame : ONLY_IF_RO {*(.eh_frame)}
 
-    .data ALIGN(4) : ALIGN(4)
+    .data : ALIGN(4)
     {
         PROVIDE(_textdata = LOADADDR(.data));
         PROVIDE(_data = .);
