@@ -48,8 +48,13 @@ static size_t writes(void *ip, const uint8_t *bp, size_t n)
     if (nvmsp->size - nvmsp->eos < n)
         n = nvmsp->size - nvmsp->eos;
 
+    nvmAcquire(nvmsp->nvmdp);
     if (nvmWrite(nvmsp->nvmdp, nvmsp->eos, n, bp) != CH_SUCCESS)
+    {
+        nvmRelease(nvmsp->nvmdp);
         return 0;
+    }
+    nvmRelease(nvmsp->nvmdp);
 
     nvmsp->eos += n;
 
@@ -63,8 +68,13 @@ static size_t reads(void *ip, uint8_t *bp, size_t n)
     if (nvmsp->eos - nvmsp->offset < n)
         n = nvmsp->eos - nvmsp->offset;
 
+    nvmAcquire(nvmsp->nvmdp);
     if (nvmRead(nvmsp->nvmdp, nvmsp->offset, n, bp) != CH_SUCCESS)
+    {
+        nvmRelease(nvmsp->nvmdp);
         return 0;
+    }
+    nvmRelease(nvmsp->nvmdp);
 
     nvmsp->offset += n;
 
@@ -78,8 +88,13 @@ static msg_t put(void *ip, uint8_t b)
     if (nvmsp->size - nvmsp->eos <= 0)
         return RDY_RESET;
 
+    nvmAcquire(nvmsp->nvmdp);
     if (nvmWrite(nvmsp->nvmdp, nvmsp->eos, 1, &b) != CH_SUCCESS)
+    {
+        nvmRelease(nvmsp->nvmdp);
         return RDY_RESET;
+    }
+    nvmRelease(nvmsp->nvmdp);
 
     nvmsp->eos += 1;
 
@@ -94,8 +109,13 @@ static msg_t get(void *ip)
     if (nvmsp->eos - nvmsp->offset <= 0)
         return RDY_RESET;
 
+    nvmAcquire(nvmsp->nvmdp);
     if (nvmRead(nvmsp->nvmdp, nvmsp->offset, 1, &b) != CH_SUCCESS)
+    {
+        nvmRelease(nvmsp->nvmdp);
         return RDY_RESET;
+    }
+    nvmRelease(nvmsp->nvmdp);
 
     nvmsp->offset += 1;
 
