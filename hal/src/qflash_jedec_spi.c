@@ -40,6 +40,7 @@
 #define FLASH_JEDEC_RDID 0x9f
 #define FLASH_JEDEC_RDSR 0x05
 #define FLASH_JEDEC_WRSR 0x01
+#define FLASH_JEDEC_READ 0x03
 #define FLASH_JEDEC_FAST_READ 0x0b
 #define FLASH_JEDEC_PP 0x02
 #define FLASH_JEDEC_MASS_ERASE 0xc7
@@ -441,7 +442,8 @@ void fjsStart(FlashJedecSPIDriver* fjsp, const FlashJedecSPIConfig* config)
             IS_POW2(config->page_size) &&
             IS_POW2(config->page_alignment) &&
             (config->page_alignment <= config->page_size) &&
-            config->bpbits_num <= 3,
+            config->bpbits_num <= 3 &&
+            config->cmd_read > 0x00,
             "fjsStart(), #2", "invalid config");
 
     fjsp->config = config;
@@ -500,7 +502,7 @@ bool_t fjsRead(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
 
     const uint8_t out[] =
     {
-        FLASH_JEDEC_FAST_READ,
+        fjsp->config->cmd_read,
         (startaddr >> 24) & 0xff,
         (startaddr >> 16) & 0xff,
         (startaddr >> 8) & 0xff,
@@ -514,9 +516,12 @@ bool_t fjsRead(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
     spiSend(fjsp->config->spip, fjsp->config->addrbytes_num,
             &out[NELEMS(out) - fjsp->config->addrbytes_num]);
 
-    /* Dummy byte required for timing. */
-    static const uint8_t dummy = 0x00;
-    spiSend(fjsp->config->spip, sizeof(dummy), &dummy);
+    if (fjsp->config->cmd_read == FLASH_JEDEC_FAST_READ)
+    {
+        /* Dummy byte required for timing. */
+        static const uint8_t dummy = 0x00;
+        spiSend(fjsp->config->spip, sizeof(dummy), &dummy);
+    }
 
     /* Receive data. */
     spiReceive(fjsp->config->spip, n, buffer);

@@ -102,6 +102,13 @@ typedef struct
      * @brief Page program command.
      */
     uint8_t cmd_page_program;
+    /**
+     * @brief Read command.
+     * JEDEC Commands:
+     * - 0x03 (READ)
+     * - 0x0b (FAST READ)
+     */
+    uint8_t cmd_read;
 } FlashJedecSPIConfig;
 
 /**
