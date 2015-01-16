@@ -96,15 +96,20 @@ typedef struct
     uint8_t bpbits_num;
     /**
      * @brief Sector erase command.
+     * Set to erase command matching sector size.
+     * Set to 0x00 if erase is not required.
      */
     uint8_t cmd_sector_erase;
     /**
      * @brief Page program command.
+     * Commands:
+     * - 0x02 (BYTE program)
+     * - 0xad (AAI WORD program)
      */
     uint8_t cmd_page_program;
     /**
      * @brief Read command.
-     * JEDEC Commands:
+     * Commands:
      * - 0x03 (READ)
      * - 0x0b (FAST READ)
      */
