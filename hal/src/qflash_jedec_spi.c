@@ -443,7 +443,7 @@ void fjsStart(FlashJedecSPIDriver* fjsp, const FlashJedecSPIConfig* config)
             IS_POW2(config->page_alignment) &&
             (config->page_alignment <= config->page_size) &&
             config->bpbits_num <= 3 &&
-            config->cmd_read > 0x00,
+            config->cmd_read != 0x00,
             "fjsStart(), #2", "invalid config");
 
     fjsp->config = config;
