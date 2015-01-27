@@ -77,7 +77,7 @@ static void sfdxd_send(SerialFdxDriver* sfdxdp)
     chSequentialStreamWrite(sfdxdp->configp->farp, sfdxdp->sendbuffer, idx);
 
     chSysLock();
-    if (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE)
+    if ((sfdxdp->connected == TRUE) && (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE))
         chnAddFlagsI(sfdxdp, CHN_OUTPUT_EMPTY);
     chSysUnlock();
 }
@@ -113,6 +113,12 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
                 foundFrameBegin == TRUE &&
                 foundEsc == FALSE)
         {
+            if (byteCount > 0)
+            {
+                chSysLock();
+                chnAddFlagsI(sfdxdp, CHN_INPUT_AVAILABLE);
+                chSysUnlock();
+            }
             return byteCount;
         }
         else
@@ -123,22 +129,15 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
             }
             else
             {
-                byteCount++;
-                if (chSymQIsEmptyI(&sfdxdp->iqueue) == TRUE)
+                if (sfdxdp->connected == TRUE)
                 {
-                    chSysLock();
-                    chnAddFlagsI(sfdxdp, CHN_INPUT_AVAILABLE);
-                    chSysUnlock();
-                }
-                if (chSymQPut(&sfdxdp->iqueue, (uint8_t)c) < Q_OK)
-                {
-
+                    byteCount++;
+                    chSymQPut(&sfdxdp->iqueue, (uint8_t)c);
                 }
                 foundEsc = FALSE;
             }
         }
     }
-
     return c;
 }
 
@@ -178,16 +177,25 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
                     (sfdxdp->state == SFDXD_READY))
             {
                 chSysLock();
+
+                chSymQResetI(&sfdxdp->oqueue);
+                chSymQResetI(&sfdxdp->iqueue);
                 sfdxdp->connected = TRUE;
                 chnAddFlagsI(sfdxdp, CHN_CONNECTED);
+
                 chSysUnlock();
             }
             else if ((receiveResult == Q_TIMEOUT) &&
                     (sfdxdp->connected == TRUE))
             {
                 chSysLock();
+
                 sfdxdp->connected = FALSE;
                 chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
+                chSymQResetI(&sfdxdp->oqueue);
+                chSymQResetI(&sfdxdp->iqueue);
+                chSchRescheduleS();
+
                 chSysUnlock();
             }
         }
