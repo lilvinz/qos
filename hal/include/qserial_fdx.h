@@ -16,6 +16,13 @@
 /*===========================================================================*/
 /* Driver constants.                                                         */
 /*===========================================================================*/
+/**
+ * @name    Serial status flags
+ * @{
+ */
+#define SFDX_OVERRUN_ERROR      32  /**< @brief Overflow happened.          */
+#define SFDX_FRAMING_ERROR      64  /**< @brief Framing error happened.     */
+/** @} */
 
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */

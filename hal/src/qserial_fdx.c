@@ -113,12 +113,6 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
                 foundFrameBegin == TRUE &&
                 foundEsc == FALSE)
         {
-            if (byteCount > 0)
-            {
-                chSysLock();
-                chnAddFlagsI(sfdxdp, CHN_INPUT_AVAILABLE);
-                chSysUnlock();
-            }
             return byteCount;
         }
         else
@@ -131,12 +125,29 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
             {
                 if (sfdxdp->connected == TRUE)
                 {
+                    chSysLock();
                     byteCount++;
-                    chSymQPut(&sfdxdp->iqueue, (uint8_t)c);
+                    if (chSymQIsEmptyI(&sfdxdp->iqueue) == TRUE)
+                    {
+                        chnAddFlagsI(sfdxdp, CHN_INPUT_AVAILABLE);
+                    }
+                    if (chSymQPutI(&sfdxdp->iqueue, (uint8_t)c) == Q_FULL)
+                    {
+                        chnAddFlagsI(sfdxdp, SFDX_OVERRUN_ERROR);
+                    }
+                    chSysUnlock();
                 }
                 foundEsc = FALSE;
             }
         }
+    }
+
+    /* Raise an event if end of frame was not read */
+    if (foundFrameBegin)
+    {
+        chSysLock();
+        chnAddFlagsI(sfdxdp, SFDX_FRAMING_ERROR);
+        chSysUnlock();
     }
     return c;
 }
@@ -194,7 +205,6 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
                 chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
                 chSymQResetI(&sfdxdp->oqueue);
                 chSymQResetI(&sfdxdp->iqueue);
-                chSchRescheduleS();
 
                 chSysUnlock();
             }
