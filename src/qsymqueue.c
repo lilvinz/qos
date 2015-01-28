@@ -108,6 +108,39 @@ void chSymQResetI(SymmetricQueue *sqp)
 }
 
 /**
+ * @brief   Symmetric queue read.
+ * @details This function reads a byte value from a symmetric queue.
+ *
+ * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ *
+ * @return              A byte value from the queue.
+ * @retval Q_EMPTY      If the queue is empty.
+ *
+ * @iclass
+ */
+msg_t chSymQGetI(SymmetricQueue *sqp)
+{
+    uint8_t b;
+
+    chDbgCheckClassI();
+
+    if (chSymQIsEmptyI(sqp))
+    {
+        return Q_EMPTY;
+    }
+
+    sqp->q_counter--;
+    b = *sqp->q_rdptr++;
+    if (sqp->q_rdptr >= sqp->q_top)
+        sqp->q_rdptr = sqp->q_buffer;
+
+    if (notempty(&sqp->q_waiting))
+        chSchReadyI(fifo_remove(&sqp->q_waiting))->p_u.rdymsg = Q_OK;
+
+    return b;
+}
+
+/**
  * @brief   Input queue read with timeout.
  * @details This function reads a byte value from an input queue. If the queue
  *          is empty then the calling thread is suspended until a byte arrives
@@ -208,6 +241,38 @@ size_t chSymQReadTimeout(SymmetricQueue *sqp, uint8_t *bp,
 
         chSysLock();
     }
+}
+/**
+ * @brief   Symmetric queue write.
+ * @details This function writes a byte value to a symmetric queue.
+ *
+ * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] b         the byte value to be written in the queue
+ *                      .
+ * @return              The operation status.
+ * @retval Q_OK         If the operation succeeded.
+ * @retval Q_FULL       If the queue is full and the operation cannot be
+ *                      completed.
+ *
+ * @iclass
+ */
+msg_t chSymQPutI(SymmetricQueue *sqp, uint8_t b)
+{
+    chDbgCheckClassI();
+    if (chSymQIsFullI(sqp) == TRUE)
+    {
+        return Q_FULL;
+    }
+
+    sqp->q_counter++;
+    *sqp->q_wrptr++ = b;
+    if (sqp->q_wrptr >= sqp->q_top)
+        sqp->q_wrptr = sqp->q_buffer;
+
+    if (notempty(&sqp->q_waiting))
+        chSchReadyI(fifo_remove(&sqp->q_waiting))->p_u.rdymsg = Q_OK;
+
+    return Q_OK;
 }
 
 /**
