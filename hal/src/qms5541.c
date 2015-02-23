@@ -11,6 +11,8 @@
 
 #if HAL_USE_MS5541 || defined(__DOXYGEN__)
 
+#include <string.h>
+
 /*
  * @todo    - add sanity check for calibration values
  *          - add conversion error detection and recovery
@@ -53,7 +55,7 @@ enum
     MS5541_CAL_4 = 3,
     MS5541_CAL_TCO = 3,
     MS5541_CAL_5 = 4,
-    MS5541_CAL_Tref = 4,
+    MS5541_CAL_TREF = 4,
     MS5541_CAL_6 = 5,
     MS5541_CAL_TEMPSENS = 5,
 };
@@ -121,6 +123,9 @@ void ms5541ObjectInit(MS5541Driver* ms5541p)
 {
     ms5541p->state = MS5541_STOP;
     ms5541p->config = NULL;
+    ms5541p->last_d1 = 0;
+    ms5541p->last_d2 = 0;
+    memset(ms5541p->calibration, 0, sizeof(ms5541p->calibration));
 #if MS5541_USE_MUTUAL_EXCLUSION
 #if CH_USE_MUTEXES
     chMtxInit(&ms5541p->mutex);
@@ -298,7 +303,7 @@ int16_t ms5541TemperatureResult(MS5541Driver* ms5541p)
     ms5541p->state = MS5541_READY;
 
     /* Calculate result. */
-    int32_t UT1 = (int32_t)ms5541p->calibration[MS5541_CAL_Tref] * 8 + 10000;
+    int32_t UT1 = (int32_t)ms5541p->calibration[MS5541_CAL_TREF] * 8 + 10000;
     int32_t dT = (int32_t)ms5541p->last_d2 - UT1;
 
     int32_t dT2;
@@ -307,7 +312,8 @@ int16_t ms5541TemperatureResult(MS5541Driver* ms5541p)
     else
         dT2 = dT - (dT / 128 * dT / 128) / 8;
 
-    int32_t TEMP = 200 + dT2 * (ms5541p->calibration[MS5541_CAL_TEMPSENS] + 100) / 2048;
+    int32_t TEMP = 200 + dT2 *
+            (ms5541p->calibration[MS5541_CAL_TEMPSENS] + 100) / 2048;
 
     return TEMP;
 }
@@ -332,7 +338,7 @@ void ms5541PressureStart(MS5541Driver* ms5541p)
     if (ms5541p->config->mclk_cb != NULL)
         ms5541p->config->mclk_cb(ms5541p, TRUE);
 
-    /* Initiate temperature conversion. */
+    /* Initiate pressure conversion. */
     ms5541_write(ms5541p, MS5541_COMMAND_RESET);
     ms5541_write(ms5541p, MS5451_COMMAND_ACQUIRE_D1);
 }
@@ -363,7 +369,7 @@ uint16_t ms5541PressureResult(MS5541Driver* ms5541p)
     ms5541p->state = MS5541_READY;
 
     /* Calculate result. */
-    int32_t UT1 = (int32_t)ms5541p->calibration[MS5541_CAL_Tref] * 8 + 10000;
+    int32_t UT1 = (int32_t)ms5541p->calibration[MS5541_CAL_TREF] * 8 + 10000;
     int32_t dT = (int32_t)ms5541p->last_d2 - UT1;
 
     int32_t dT2;
@@ -372,9 +378,11 @@ uint16_t ms5541PressureResult(MS5541Driver* ms5541p)
     else
         dT2 = dT - (dT / 128 * dT / 128) / 8;
 
-    int32_t OFF = (int32_t)ms5541p->calibration[MS5541_CAL_OFFT1] + (((int32_t)ms5541p->calibration[MS5541_CAL_TCO] - 250) * dT2) / 4096 + 10000;
+    int32_t OFF = (int32_t)ms5541p->calibration[MS5541_CAL_OFFT1] +
+            (((int32_t)ms5541p->calibration[MS5541_CAL_TCO] - 250) * dT2) / 4096 + 10000;
 
-    int32_t SENS = (int32_t)ms5541p->calibration[MS5541_CAL_SENST1] / 2 + (((int32_t)ms5541p->calibration[MS5541_CAL_TCS] + 200) * dT2) / 8192 + 3000;
+    int32_t SENS = (int32_t)ms5541p->calibration[MS5541_CAL_SENST1] / 2 +
+            (((int32_t)ms5541p->calibration[MS5541_CAL_TCS] + 200) * dT2) / 8192 + 3000;
 
     int32_t P = (SENS * (ms5541p->last_d1 - OFF)) / 4096 + 1000;
 
