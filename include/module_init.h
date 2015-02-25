@@ -13,7 +13,7 @@ typedef struct
 {
     initcall_t fn_minit;
     initcall_t fn_mstart;
-    initcall_t fn_mterm;
+    initcall_t fn_mstop;
 } initmodule_t;
 
 // variables from linker script
@@ -27,11 +27,13 @@ extern initmodule_t __module_initcall_start[], __module_initcall_end[];
  * can point at the same handler without causing duplicate-symbol build errors.
  */
 
-#define __define_module_initcall(level, ifn, sfn, tfn) \
+#define __define_module_initcall(level, initfn, startfn, stopfn) \
     static const initmodule_t __initcall_##fn __attribute__((__used__)) \
-    __attribute__((__section__(".initcall." #level ".init"))) = { .fn_minit = ifn, .fn_mstart = sfn, .fn_mterm = tfn };
+    __attribute__((__section__(".initcall." #level ".init"))) \
+    = { .fn_minit = initfn, .fn_mstart = startfn, .fn_mstop = stopfn };
 
-#define MODULE_INITCALL(level, ifn, sfn, tfn) __define_module_initcall(level, ifn, sfn, tfn)
+#define MODULE_INITCALL(level, initfn, startfn, stopfn) \
+    __define_module_initcall(level, initfn, startfn, stopfn)
 
 #define MODULE_INITIALISE_ALL() \
     { \
@@ -51,12 +53,12 @@ extern initmodule_t __module_initcall_start[], __module_initcall_end[];
         } \
     }
 
-#define MODULE_TERMINATE_ALL() \
+#define MODULE_STOP_ALL() \
     { \
         for (initmodule_t *fn = __module_initcall_start; fn < __module_initcall_end; fn++) \
         { \
-            if (fn->fn_mterm) \
-                (fn->fn_mterm)(); \
+            if (fn->fn_mstop) \
+                (fn->fn_mstop)(); \
         } \
     }
 
