@@ -80,6 +80,7 @@ static void reset_trampoline_2(void)
         ".word   ResetHandler");
 }
 
+__attribute__((optimize(1)))
 void qhal_lld_init(void)
 {
     /* Ensure that 0x00000000 is mapped to sram. */
