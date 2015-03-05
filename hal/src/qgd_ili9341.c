@@ -623,13 +623,23 @@ void gdili9341WriteChunk(GDILI9341Driver* gdili9341p, const uint8_t chunk[],
 #if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
     GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
     spiSend(gdili9341p->config->spip, length, chunk);
-#else
+#elif GD_ILI9341_IM == GD_ILI9341_IM_8LPI_2
     palSetBusMode(gdili9341p->config->db_bus,
             PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST);
     for (size_t i = 0; i < length; ++i)
     {
         palClearPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
         palWriteBus(gdili9341p->config->db_bus, chunk[i]);
+        palSetPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
+    }
+#elif GD_ILI9341_IM == GD_ILI9341_IM_16LPI_2
+    palSetBusMode(gdili9341p->config->db_bus,
+            PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST);
+    for (size_t i = 0; i < length; i += 2)
+    {
+        palClearPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
+        palWriteBus(gdili9341p->config->db_bus,
+                (chunk[i + 0] << 8) | (chunk[i + 1] << 0));
         palSetPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
     }
 #endif /* GD_ILI9341_IM */
@@ -659,12 +669,21 @@ void gdili9341ReadChunk(GDILI9341Driver* gdili9341p, uint8_t chunk[],
 #if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
     GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
     spiReceive(gdili9341p->config->spip, length, chunk);
-#else
+#elif GD_ILI9341_IM == GD_ILI9341_IM_8LPI_2
     palSetBusMode(gdili9341p->config->db_bus, PAL_MODE_INPUT);
     for (size_t i = 0; i < length; ++i)
     {
         palClearPad(gdili9341p->config->rdx_port, gdili9341p->config->rdx_pad);
         chunk[i] = palReadBus(gdili9341p->config->db_bus);
+        palSetPad(gdili9341p->config->rdx_port, gdili9341p->config->rdx_pad);
+    }
+#elif GD_ILI9341_IM == GD_ILI9341_IM_16LPI_2
+    palSetBusMode(gdili9341p->config->db_bus, PAL_MODE_INPUT);
+    for (size_t i = 0; i < length / 2; i += 2)
+    {
+        palClearPad(gdili9341p->config->rdx_port, gdili9341p->config->rdx_pad);
+        chunk[i + 0] = palReadBus(gdili9341p->config->db_bus) >> 8;
+        chunk[i + 1] = palReadBus(gdili9341p->config->db_bus) >> 0;
         palSetPad(gdili9341p->config->rdx_port, gdili9341p->config->rdx_pad);
     }
 #endif /* GD_ILI9341_IM */
