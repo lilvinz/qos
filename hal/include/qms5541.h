@@ -145,8 +145,7 @@ extern "C" {
 #endif
     void ms5541Init(void);
     void ms5541ObjectInit(MS5541Driver* ms5541p);
-    void ms5541Start(MS5541Driver* ms5541p,
-            const MS5541Config* config);
+    void ms5541Start(MS5541Driver* ms5541p, const MS5541Config* config);
     void ms5541Stop(MS5541Driver* ms5541p);
     void ms5541AcquireBus(MS5541Driver* ms5541p);
     void ms5541ReleaseBus(MS5541Driver* ms5541p);

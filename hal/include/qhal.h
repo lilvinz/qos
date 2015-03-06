@@ -42,6 +42,7 @@
 #include "qgd_ili9341.h"
 #include "qms5541.h"
 #include "qserial_fdx.h"
+#include "qms58xx.h"
 
 /*===========================================================================*/
 /* External declarations.                                                    */

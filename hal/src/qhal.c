@@ -91,6 +91,9 @@ void qhalInit(void)
 #if HAL_USE_SERIAL_FDX || defined(__DOXYGEN__)
     sfdxdInit();
 #endif
+#if HAL_USE_MS58XX || defined(__DOXYGEN__)
+    ms58xxInit();
+#endif
 }
 
 /** @} */
