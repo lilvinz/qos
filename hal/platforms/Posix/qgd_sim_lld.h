@@ -123,6 +123,7 @@ typedef struct
     xcb_screen_t* xcb_screen;
     xcb_window_t xcb_window;
     xcb_gcontext_t xcb_gcontext;
+    xcb_pixmap_t xcb_pixmap;
     /**
      * @brief   Stream write state.
      */

@@ -47,10 +47,17 @@ static msg_t gdsim_lld_pump(void* p)
 
         while ((e = xcb_poll_for_event(gdsimp->xcb_connection)) != NULL)
         {
-            switch (e->response_type & ~0x80)
+            switch (e->response_type)
             {
                 case XCB_EXPOSE:
                 {
+                    xcb_expose_event_t* ee = (xcb_expose_event_t*)e;
+                    xcb_copy_area(gdsimp->xcb_connection, gdsimp->xcb_pixmap,
+                            gdsimp->xcb_window, gdsimp->xcb_gcontext,
+                            ee->x, ee->y,
+                            ee->x, ee->y,
+                            ee->width, ee->height);
+                    xcb_flush(gdsimp->xcb_connection);
                     break;
                 }
                 default:
@@ -129,8 +136,8 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
 
         /* Create the window. */
         xcb_create_window(gdsimp->xcb_connection,
-                XCB_COPY_FROM_PARENT,               /* depth (same as root)  */
-                gdsimp->xcb_window,                 /* window Id             */
+                gdsimp->xcb_screen->root_depth,     /* depth (same as root)  */
+                gdsimp->xcb_window,                 /* window id             */
                 gdsimp->xcb_screen->root,           /* parent window         */
                 0, 0,                               /* x, y                  */
                 gdsimp->config->size_x,             /* width                 */
@@ -138,12 +145,33 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
                 10,                                 /* border_width          */
                 XCB_WINDOW_CLASS_INPUT_OUTPUT,      /* class                 */
                 gdsimp->xcb_screen->root_visual,    /* visual                */
-                0, NULL);                           /* masks, not used yet   */
+                XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK,
+                (uint32_t[]){ gdsimp->xcb_screen->black_pixel, XCB_EVENT_MASK_EXPOSURE });
 
         /* Set title on window. */
         xcb_icccm_set_wm_name(gdsimp->xcb_connection,
                 gdsimp->xcb_window,
                 XCB_ATOM_STRING, 8, strlen("gdsim"), "gdsim");
+
+        /* Set size hints on window. */
+        xcb_size_hints_t hints;
+        xcb_icccm_size_hints_set_min_size(&hints, gdsimp->config->size_x,
+                gdsimp->config->size_y);
+        xcb_icccm_size_hints_set_max_size(&hints, gdsimp->config->size_x,
+                gdsimp->config->size_y);
+        xcb_icccm_set_wm_size_hints(gdsimp->xcb_connection, gdsimp->xcb_window,
+                XCB_ATOM_WM_NORMAL_HINTS, &hints);
+
+        /* Ask an id for our to be created pixmap. */
+        gdsimp->xcb_pixmap = xcb_generate_id(gdsimp->xcb_connection);
+
+        /* Create the pixmap. */
+        xcb_create_pixmap(gdsimp->xcb_connection,
+                gdsimp->xcb_screen->root_depth,     /* depth (same as root)  */
+                gdsimp->xcb_pixmap,                 /* id of the pixmap      */
+                gdsimp->xcb_window,
+                gdsimp->config->size_x,
+                gdsimp->config->size_y);
 
         /* Ask for our graphical context id. */
         gdsimp->xcb_gcontext = xcb_generate_id(gdsimp->xcb_connection);
@@ -151,8 +179,8 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
         /* Create a black graphic context for drawing in the foreground. */
         xcb_create_gc(gdsimp->xcb_connection,
                 gdsimp->xcb_gcontext,
-                gdsimp->xcb_window,
-                XCB_GC_FOREGROUND,
+                gdsimp->xcb_pixmap,
+                XCB_GC_BACKGROUND,
                 (uint32_t[]){ gdsimp->xcb_screen->black_pixel });
 
         /* Map the window on the screen. */
@@ -216,6 +244,13 @@ void gdsim_lld_pixel_set(GDSimDriver* gdsimp, coord_t x, coord_t y,
 
     xcb_poly_point(gdsimp->xcb_connection,
             XCB_COORD_MODE_ORIGIN,
+            gdsimp->xcb_pixmap,
+            gdsimp->xcb_gcontext,
+            1,
+            &point);
+
+    xcb_poly_point(gdsimp->xcb_connection,
+            XCB_COORD_MODE_ORIGIN,
             gdsimp->xcb_window,
             gdsimp->xcb_gcontext,
             1,
@@ -249,6 +284,12 @@ void gdsim_lld_rect_fill(GDSimDriver* gdsimp, coord_t left, coord_t top,
         .width = width,
         .height = height,
     };
+
+    xcb_poly_fill_rectangle(gdsimp->xcb_connection,
+            gdsimp->xcb_pixmap,
+            gdsimp->xcb_gcontext,
+            1,
+            &rect);
 
     xcb_poly_fill_rectangle(gdsimp->xcb_connection,
             gdsimp->xcb_window,
