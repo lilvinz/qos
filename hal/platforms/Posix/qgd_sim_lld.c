@@ -164,8 +164,10 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
         /* Creates the data pump threads in a suspended state. Note, it is
          * created only once, the first time @p gdsimStart() is invoked. */
         gdsimp->exit_pump = false;
-        gdsimp->thd_ptr = chThdCreateI(gdsimp->wa_pump, sizeof(gdsimp->wa_pump),
-                GD_SIM_THREAD_PRIO, gdsim_lld_pump, gdsimp);
+        if (gdsimp->thd_ptr == NULL)
+            gdsimp->thd_ptr = chThdCreateI(gdsimp->wa_pump,
+                    sizeof(gdsimp->wa_pump), GD_SIM_THREAD_PRIO,
+                    gdsim_lld_pump, gdsimp);
         chThdResumeI(gdsimp->thd_ptr);
     }
 }
