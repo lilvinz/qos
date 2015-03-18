@@ -109,10 +109,6 @@ typedef struct
      */
     Thread* thd_ptr;
     /**
-     * @brief   Flag to stop the pump thread.
-     */
-    bool exit_pump;
-    /**
      * @brief   Working area for the dedicated data pump thread;
      */
     WORKING_AREA(wa_pump, GD_SIM_THREAD_STACK_SIZE);

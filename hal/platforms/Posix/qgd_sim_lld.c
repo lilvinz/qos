@@ -41,7 +41,7 @@ static msg_t gdsim_lld_pump(void* p)
     GDSimDriver* gdsimp = (GDSimDriver*)p;
     chRegSetThreadName("gdsim_lld_pump");
 
-    while (gdsimp->exit_pump == false)
+    while (chThdShouldTerminate() == 0)
     {
         xcb_generic_event_t* e;
 
@@ -96,22 +96,6 @@ void gdsim_lld_init(void)
  */
 void gdsim_lld_object_init(GDSimDriver* gdsimp)
 {
-    gdsimp->thd_ptr = NULL;
-    gdsimp->exit_pump = true;
-
-    /* Filling the thread working area here because the function
-       @p chThdCreateI() does not do it. */
-#if CH_DBG_FILL_THREADS
-    {
-        void *wsp = gdsimp->wa_pump;
-        _thread_memfill((uint8_t*)wsp,
-                (uint8_t*)wsp + sizeof(Thread),
-                CH_THREAD_FILL_VALUE);
-        _thread_memfill((uint8_t*)wsp + sizeof(Thread),
-                (uint8_t*)wsp + sizeof(gdsimp->wa_pump),
-                CH_STACK_FILL_VALUE);
-    }
-#endif
 }
 
 /**
@@ -189,13 +173,25 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
         /* Make sure commands are sent before we pause, so window is shown. */
         xcb_flush(gdsimp->xcb_connection);
 
-        /* Creates the data pump threads in a suspended state. Note, it is
-         * created only once, the first time @p gdsimStart() is invoked. */
-        gdsimp->exit_pump = false;
-        if (gdsimp->thd_ptr == NULL)
-            gdsimp->thd_ptr = chThdCreateI(gdsimp->wa_pump,
-                    sizeof(gdsimp->wa_pump), GD_SIM_THREAD_PRIO,
-                    gdsim_lld_pump, gdsimp);
+        /* Filling the thread working area here because the function
+           @p chThdCreateI() does not do it. */
+#if CH_DBG_FILL_THREADS
+        {
+            void *wsp = gdsimp->wa_pump;
+            _thread_memfill((uint8_t*)wsp,
+                    (uint8_t*)wsp + sizeof(Thread),
+                    CH_THREAD_FILL_VALUE);
+            _thread_memfill((uint8_t*)wsp + sizeof(Thread),
+                    (uint8_t*)wsp + sizeof(gdsimp->wa_pump),
+                    CH_STACK_FILL_VALUE);
+        }
+#endif
+
+        /* Creates the data pump threads in a suspended state. */
+        gdsimp->thd_ptr = chThdCreateI(gdsimp->wa_pump,
+                sizeof(gdsimp->wa_pump), GD_SIM_THREAD_PRIO,
+                gdsim_lld_pump, gdsimp);
+
         chThdResumeI(gdsimp->thd_ptr);
     }
 }
@@ -211,7 +207,8 @@ void gdsim_lld_stop(GDSimDriver* gdsimp)
 {
     if (gdsimp->state == GD_READY)
     {
-        gdsimp->exit_pump = true;
+        /* Signal thread to terminate. */
+        chThdTerminate(gdsimp->thd_ptr);
 
         /* Wait for pump thread to exit. */
         chThdWait(gdsimp->thd_ptr);
