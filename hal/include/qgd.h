@@ -27,7 +27,7 @@
 /**
  * @brief   Supported pixel color formats
  */
-#define GD_COLORFORMAT_RGBA8888 1
+#define GD_COLORFORMAT_ARGB8888 1
 #define GD_COLORFORMAT_RGB888 2
 #define GD_COLORFORMAT_RGB666 3
 #define GD_COLORFORMAT_RGB565 4
@@ -63,7 +63,7 @@ typedef uint16_t coord_t;
 /**
  * @brief   The type for a color.
  */
-#if (GD_COLORFORMAT == GD_COLORFORMAT_RGBA8888) || \
+#if (GD_COLORFORMAT == GD_COLORFORMAT_ARGB8888) || \
         (GD_COLORFORMAT == GD_COLORFORMAT_RGB888) || \
         (GD_COLORFORMAT == GD_COLORFORMAT_RGB666)
 typedef uint32_t color_t;
