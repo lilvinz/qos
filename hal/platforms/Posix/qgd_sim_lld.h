@@ -109,10 +109,6 @@ typedef struct
      */
     Thread* thd_ptr;
     /**
-     * @brief   Flag to stop the pump thread.
-     */
-    bool exit_pump;
-    /**
      * @brief   Working area for the dedicated data pump thread;
      */
     WORKING_AREA(wa_pump, GD_SIM_THREAD_STACK_SIZE);
@@ -123,6 +119,7 @@ typedef struct
     xcb_screen_t* xcb_screen;
     xcb_window_t xcb_window;
     xcb_gcontext_t xcb_gcontext;
+    xcb_pixmap_t xcb_pixmap;
     /**
      * @brief   Stream write state.
      */
