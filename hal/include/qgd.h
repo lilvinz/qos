@@ -18,6 +18,61 @@
 #ifndef _QGPRAHICS_DISPLAY_H_
 #define _QGPRAHICS_DISPLAY_H_
 
+#include <stdint.h>
+
+/*===========================================================================*/
+/* Driver constants.                                                         */
+/*===========================================================================*/
+
+/**
+ * @brief   Supported pixel color formats
+ */
+#define GD_COLORFORMAT_RGBA8888 1
+#define GD_COLORFORMAT_RGB888 2
+#define GD_COLORFORMAT_RGB666 3
+#define GD_COLORFORMAT_RGB565 4
+
+/*===========================================================================*/
+/* Driver pre-compile time settings.                                         */
+/*===========================================================================*/
+
+/**
+ * @name    GD configuration options
+ * @{
+ */
+
+#if !defined(GD_COLORFORMAT)
+#define GD_COLORFORMAT GD_COLORFORMAT_RGB565
+#endif /* !defined(GD_COLORFORMAT) */
+
+/** @} */
+
+/*===========================================================================*/
+/* Derived constants and error checks.                                       */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver data structures and types.                                         */
+/*===========================================================================*/
+
+/**
+ * @brief   The type for a coordinate.
+ */
+typedef uint16_t coord_t;
+
+/**
+ * @brief   The type for a color.
+ */
+#if (GD_COLORFORMAT == GD_COLORFORMAT_RGBA8888) || \
+        (GD_COLORFORMAT == GD_COLORFORMAT_RGB888) || \
+        (GD_COLORFORMAT == GD_COLORFORMAT_RGB666)
+typedef uint32_t color_t;
+#elif GD_COLORFORMAT == GD_COLORFORMAT_RGB565
+typedef uint16_t color_t;
+#else
+#error "Unsupported pixel color format"
+#endif
+
 /**
  * @brief   Driver state machine possible states.
  */
@@ -29,16 +84,6 @@ typedef enum
     GD_READY = 3,                   /**< Device ready.                      */
     GD_ACTIVE= 4,                   /**< Device transferring data.          */
 } gdstate_t;
-
-/**
- * @brief   The type for a coordinate.
- */
-typedef uint16_t coord_t;
-
-/**
- * @brief   The type for a color.
- */
-typedef uint32_t color_t;
 
 /**
  * @brief   Graphics display device info.
@@ -71,7 +116,7 @@ typedef struct
 /**
  * @brief   @p BaseGDDevice specific data.
  */
-#define _base_gd_device_data                                                 \
+#define _base_gd_device_data                                                  \
     /* Driver state.*/                                                        \
     gdstate_t state;
 
@@ -94,10 +139,15 @@ typedef struct
     _base_gd_device_data
 } BaseGDDevice;
 
+/*===========================================================================*/
+/* Driver macros.                                                            */
+/*===========================================================================*/
+
 /**
  * @name    Macro Functions (BaseGDDevice)
  * @{
  */
+
 /**
  * @brief   Returns the driver state.
  * @note    Can be called in ISR context.
@@ -206,5 +256,3 @@ typedef struct
 /** @} */
 
 #endif /* _QGPRAHICS_DISPLAY_H_ */
-
-/** @} */
