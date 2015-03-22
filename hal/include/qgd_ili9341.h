@@ -165,6 +165,10 @@
 #error "Unsupported interface mode selected"
 #endif
 
+#if GD_COLORFORMAT != GD_COLORFORMAT_RGB565
+#error "Unsupported color format selected"
+#endif /* GD_COLORFORMAT != GD_COLORFORMAT_RGB565 */
+
 /*===========================================================================*/
 /* Driver data structures and types.                                         */
 /*===========================================================================*/
@@ -196,6 +200,11 @@ typedef struct
      * @brief SPI driver used by ILI9341
      */
     SPIDriver *spip;
+    /**
+     * @brief Pointers to SPI configurations
+     */
+    const SPIConfig* spiconfig_8bit;
+    const SPIConfig* spiconfig_16bit;
 #else
     /**
      * @brief <tt>!CS</tt> signal port
@@ -318,10 +327,6 @@ extern "C" {
     void gdili9341WriteCommand(GDILI9341Driver* gdili9341p, uint8_t cmd);
     void gdili9341WriteByte(GDILI9341Driver* gdili9341p, uint8_t value);
     uint8_t gdili9341ReadByte(GDILI9341Driver* gdili9341p);
-    void gdili9341WriteChunk(GDILI9341Driver* gdili9341p,
-            const uint8_t chunk[], size_t length);
-    void gdili9341ReadChunk(GDILI9341Driver* gdili9341p,
-            uint8_t chunk[], size_t length);
 #ifdef __cplusplus
 }
 #endif
