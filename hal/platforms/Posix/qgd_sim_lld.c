@@ -32,6 +32,19 @@
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
+static uint32_t convert_color(color_t color)
+{
+#if (GD_COLORFORMAT == GD_COLORFORMAT_ARGB8888)
+    return (uint32_t)color;
+#elif GD_COLORFORMAT == GD_COLORFORMAT_RGB565
+    return ((((color >> 11) << 3) & 0xff) << 16) |
+            ((((color >> 5) << 2) & 0xff) << 8) |
+            ((((color >> 0) << 3) & 0xff) << 0);
+#else
+#error "Unsupported pixel color format"
+#endif
+}
+
 /*===========================================================================*/
 /* Driver interrupt handlers and threads.                                    */
 /*===========================================================================*/
@@ -231,7 +244,7 @@ void gdsim_lld_pixel_set(GDSimDriver* gdsimp, coord_t x, coord_t y,
         color_t color)
 {
     xcb_change_gc(gdsimp->xcb_connection, gdsimp->xcb_gcontext,
-            XCB_GC_FOREGROUND, (uint32_t[]){ color });
+            XCB_GC_FOREGROUND, (uint32_t[]){ convert_color(color) });
 
     const xcb_point_t point =
     {
@@ -272,7 +285,7 @@ void gdsim_lld_rect_fill(GDSimDriver* gdsimp, coord_t left, coord_t top,
         coord_t width, coord_t height, color_t color)
 {
     xcb_change_gc(gdsimp->xcb_connection, gdsimp->xcb_gcontext,
-            XCB_GC_FOREGROUND, (uint32_t[]){ color });
+            XCB_GC_FOREGROUND, (uint32_t[]){ convert_color(color) });
 
     const xcb_rectangle_t rect =
     {
