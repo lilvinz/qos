@@ -49,73 +49,6 @@ static const struct GDILI9341DriverVMT gd_sim_vmt =
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-static void column_address_set(GDILI9341Driver* gdili9341p, uint16_t x_start, uint16_t x_end)
-{
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_COL_ADDR);
-    gdili9341WriteByte(gdili9341p, x_start >> 8);
-    gdili9341WriteByte(gdili9341p, (uint8_t)x_start);
-    gdili9341WriteByte(gdili9341p, x_end >> 8);
-    gdili9341WriteByte(gdili9341p, (uint8_t)x_end);
-}
-
-static void page_address_set(GDILI9341Driver* gdili9341p, uint16_t y_start, uint16_t y_end)
-{
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_PAGE_ADDR);
-    gdili9341WriteByte(gdili9341p, y_start >> 8);
-    gdili9341WriteByte(gdili9341p, (uint8_t)y_start);
-    gdili9341WriteByte(gdili9341p, y_end >> 8);
-    gdili9341WriteByte(gdili9341p, (uint8_t)y_end);
-}
-
-/**
- * @brief   Write data chunk.
- * @details Sends a data chunk via SPI or parallel bus.
- * @pre     The chunk must be accessed by DMA when using SPI.
- *
- * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
- * @param[in] chunk         chunk of color_t data
- * @param[in] length        number of entries
- *
- * @notapi
- */
-static void gdili9341WriteChunk(GDILI9341Driver* gdili9341p, const color_t chunk[],
-        size_t length)
-{
-    chDbgCheck(gdili9341p != NULL, "gdili9341WriteChunk");
-    chDbgCheck(chunk != NULL, "gdili9341WriteChunk");
-    chDbgAssert(gdili9341p->state == GD_ACTIVE,
-              "gdili9341WriteChunk(), #1", "invalid state");
-
-    /* Data */
-    palSetPad(gdili9341p->config->dcx_port, gdili9341p->config->dcx_pad);
-#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
-    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
-    spiStart(gdili9341p->config->spip, gdili9341p->config->spiconfig_16bit);
-    spiSend(gdili9341p->config->spip, length, chunk);
-#elif GD_ILI9341_IM == GD_ILI9341_IM_8LPI_2
-    palSetBusMode(gdili9341p->config->db_bus,
-            PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST);
-    for (size_t i = 0; i < length; ++i)
-    {
-        palClearPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
-        palWriteBus(gdili9341p->config->db_bus, chunk[i] >> 8);
-        palSetPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
-        palClearPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
-        palWriteBus(gdili9341p->config->db_bus, chunk[i] >> 0);
-        palSetPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
-    }
-#elif GD_ILI9341_IM == GD_ILI9341_IM_16LPI_2
-    palSetBusMode(gdili9341p->config->db_bus,
-            PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST);
-    for (size_t i = 0; i < length; ++i)
-    {
-        palClearPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
-        palWriteBus(gdili9341p->config->db_bus, chunk[i]);
-        palSetPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
-    }
-#endif /* GD_ILI9341_IM */
-}
-
 /*===========================================================================*/
 /* Driver exported functions.                                                */
 /*===========================================================================*/
@@ -288,14 +221,9 @@ void gdili9341PixelSet(GDILI9341Driver* gdili9341p, coord_t x, coord_t y, color_
             "invalid state");
 
     gdili9341Select(gdili9341p);
-
-    column_address_set(gdili9341p, x, x);
-    page_address_set(gdili9341p, y, y);
-
-    gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_MEM);
-
-    gdili9341WriteChunk(gdili9341p, &color, 1);
-
+    gdili9341StreamStart(gdili9341p, x, y, 1, 1);
+    gdili9341StreamWrite(gdili9341p, &color, 1);
+    gdili9341StreamEnd(gdili9341p);
     gdili9341Unselect(gdili9341p);
 }
 
@@ -320,8 +248,29 @@ void gdili9341StreamStart(GDILI9341Driver* gdili9341p, coord_t left, coord_t top
 
     gdili9341Select(gdili9341p);
 
-    column_address_set(gdili9341p, left, left + width - 1);
-    page_address_set(gdili9341p, top, top + height - 1);
+    {
+        const uint8_t data[] =
+        {
+            left >> 8,
+            left >> 0,
+            (left + width - 1) >> 8,
+            (left + width - 1) >> 0,
+        };
+        gdili9341p->config->write_cmd_cb(GD_ILI9341_SET_COL_ADDR);
+        gdili9341p->config->write_parm_cb(data, NELEMS(data));
+    }
+
+    {
+        const uint8_t data[] =
+        {
+            top >> 8,
+            top >> 0,
+            (top + height - 1) >> 8,
+            (top + height - 1) >> 0,
+        };
+        gdili9341p->config->write_cmd_cb(GD_ILI9341_SET_PAGE_ADDR);
+        gdili9341p->config->write_parm_cb(data, NELEMS(data));
+    }
 
     gdili9341WriteCommand(gdili9341p, GD_ILI9341_SET_MEM);
 }
@@ -335,14 +284,15 @@ void gdili9341StreamStart(GDILI9341Driver* gdili9341p, coord_t left, coord_t top
  *
  * @api
  */
-void gdili9341StreamWrite(GDILI9341Driver* gdili9341p, const color_t data[], size_t n)
+void gdili9341StreamWrite(GDILI9341Driver* gdili9341p, const color_t data[],
+        size_t n)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341StreamWrite");
     /* Verify device status. */
     chDbgAssert(gdili9341p->state >= GD_ACTIVE, "gdili9341StreamWrite(), #1",
             "invalid state");
 
-    gdili9341WriteChunk(gdili9341p, data, n);
+    gdili9341p->config->write_mem_cb(data, n);
 }
 
 /**
@@ -392,7 +342,7 @@ void gdili9341RectFill(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
     const size_t n = (size_t)width * height;
 
     for (size_t i = 0; i < n; i += NELEMS(temp))
-        gdili9341WriteChunk(gdili9341p, temp, NELEMS(temp));
+        gdili9341StreamWrite(gdili9341p, temp, NELEMS(temp));
 
     gdili9341StreamEnd(gdili9341p);
 }
@@ -484,12 +434,8 @@ void gdili9341Select(GDILI9341Driver* gdili9341p)
             "gdili9341SelectI(), #1", "invalid state");
 
     gdili9341p->state = GD_ACTIVE;
-#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
-    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
-    spiSelect(gdili9341p->config->spip);
-#else
-    palClearPad(gdili9341p->config->csx_port, gdili9341p->config->csx_pad);
-#endif /* GD_ILI9341_IM */
+
+    gdili9341p->config->select_cb();
 }
 
 /**
@@ -507,12 +453,8 @@ void gdili9341Unselect(GDILI9341Driver* gdili9341p)
     chDbgAssert(gdili9341p->state == GD_ACTIVE,
             "gdili9341UnselectI(), #1", "invalid state");
 
-#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
-    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
-    spiUnselect(gdili9341p->config->spip);
-#else
-    palSetPad(gdili9341p->config->csx_port, gdili9341p->config->csx_pad);
-#endif /* GD_ILI9341_IM */
+    gdili9341p->config->unselect_cb();
+
     gdili9341p->state = GD_READY;
 }
 
@@ -531,20 +473,7 @@ void gdili9341WriteCommand(GDILI9341Driver* gdili9341p, uint8_t cmd)
     chDbgAssert(gdili9341p->state == GD_ACTIVE,
             "gdili9341WriteCommand(), #1", "invalid state");
 
-    gdili9341p->value = cmd;
-    /* Cmd */
-    palClearPad(gdili9341p->config->dcx_port, gdili9341p->config->dcx_pad);
-#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
-    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
-    spiStart(gdili9341p->config->spip, gdili9341p->config->spiconfig_8bit);
-    spiSend(gdili9341p->config->spip, 1, &gdili9341p->value);
-#else
-    palSetBusMode(gdili9341p->config->db_bus,
-            PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST);
-    palClearPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
-    palWriteBus(gdili9341p->config->db_bus, cmd);
-    palSetPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
-#endif /* GD_ILI9341_IM */
+    gdili9341p->config->write_cmd_cb(cmd);
 }
 
 /**
@@ -562,21 +491,7 @@ void gdili9341WriteByte(GDILI9341Driver* gdili9341p, uint8_t value)
     chDbgAssert(gdili9341p->state == GD_ACTIVE,
             "gdili9341WriteByte(), #1", "invalid state");
 
-    /* Data */
-    palSetPad(gdili9341p->config->dcx_port, gdili9341p->config->dcx_pad);
-#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
-    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
-    /* Buffer value to non CCM memory allowing DMA transfer. */
-    gdili9341p->value = value;
-    spiStart(gdili9341p->config->spip, gdili9341p->config->spiconfig_8bit);
-    spiSend(gdili9341p->config->spip, 1, &gdili9341p->value);
-#else
-    palSetBusMode(gdili9341p->config->db_bus,
-            PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST);
-    palClearPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
-    palWriteBus(gdili9341p->config->db_bus, value);
-    palSetPad(gdili9341p->config->wrx_port, gdili9341p->config->wrx_pad);
-#endif /* GD_ILI9341_IM */
+    gdili9341p->config->write_parm_cb(&value, 1);
 }
 
 /**
@@ -595,20 +510,10 @@ uint8_t gdili9341ReadByte(GDILI9341Driver* gdili9341p)
     chDbgAssert(gdili9341p->state == GD_ACTIVE,
             "gdili9341ReadByte(), #1", "invalid state");
 
-    /* Data */
-    palSetPad(gdili9341p->config->dcx_port, gdili9341p->config->dcx_pad);
-#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
-    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
-    spiStart(gdili9341p->config->spip, gdili9341p->config->spiconfig_8bit);
-    spiReceive(gdili9341p->config->spip, 1, &gdili9341p->value);
-    return gdili9341p->value;
-#else
-    palSetBusMode(gdili9341p->config->db_bus, PAL_MODE_INPUT);
-    palClearPad(gdili9341p->config->rdx_port, gdili9341p->config->rdx_pad);
-    uint8_t value = palReadBus(gdili9341p->config->db_bus);
-    palSetPad(gdili9341p->config->rdx_port, gdili9341p->config->rdx_pad);
-    return value;
-#endif /* GD_ILI9341_IM */
+    uint8_t result;
+    gdili9341p->config->read_parm_cb(&result, 1);
+
+    return result;
 }
 
 #endif /* HAL_USE_GD_ILI9341 */
