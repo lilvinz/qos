@@ -48,5 +48,6 @@
 /** @} */
 
 void chThdSleepPeriod(systime_t *previous, systime_t period);
+systime_t chThdRemainingPeriod(systime_t *previous, systime_t period);
 
 #endif /* CH_TOOLS_H_ */
