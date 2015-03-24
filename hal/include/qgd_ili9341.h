@@ -110,18 +110,6 @@
 #define GD_ILI9341_SET_PUMP_RATIO_CTL      0xF7    /**< Set pump ratio control.*/
 /** @} */
 
-/**
- * @name    GD_ILI9341 interface modes
- * @{
- */
-#define GD_ILI9341_IM_3LSI_1               0x5     /**< 3-line serial, mode 1.*/
-#define GD_ILI9341_IM_3LSI_2               0xD     /**< 3-line serial, mode 2.*/
-#define GD_ILI9341_IM_4LSI_1               0x6     /**< 4-line serial, mode 1.*/
-#define GD_ILI9341_IM_4LSI_2               0xE     /**< 4-line serial, mode 2.*/
-#define GD_ILI9341_IM_8LPI_2               0x9     /**< 8-line parallel, mode 2.*/
-#define GD_ILI9341_IM_16LPI_2              0x8     /**< 16-line parallel, mode 2.*/
-/** @} */
-
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
 /*===========================================================================*/
@@ -136,14 +124,7 @@
  * @note    Disabling this option saves both code and data space.
  */
 #if !defined(GD_ILI9341_USE_MUTUAL_EXCLUSION) || defined(__DOXYGEN__)
-#define GD_ILI9341_USE_MUTUAL_EXCLUSION         TRUE
-#endif
-
-/**
- * @brief   GD_ILI9341 Interface Mode
- */
-#if !defined(GD_ILI9341_IM) || defined(__DOXYGEN__)
-#define GD_ILI9341_IM                           GD_ILI9341_IM_4LSI_1
+#define GD_ILI9341_USE_MUTUAL_EXCLUSION         FALSE
 #endif
 
 /** @} */
@@ -156,13 +137,6 @@
     (!CH_USE_MUTEXES && !CH_USE_SEMAPHORES)
 #error "GD_ILI9341_USE_MUTUAL_EXCLUSION requires "                            \
     "CH_USE_MUTEXES and/or CH_USE_SEMAPHORES"
-#endif
-
-#if GD_ILI9341_IM != GD_ILI9341_IM_4LSI_1 && \
-    GD_ILI9341_IM != GD_ILI9341_IM_4LSI_2 && \
-    GD_ILI9341_IM != GD_ILI9341_IM_8LPI_2 && \
-    GD_ILI9341_IM != GD_ILI9341_IM_16LPI_2
-#error "Unsupported interface mode selected"
 #endif
 
 #if GD_COLORFORMAT != GD_COLORFORMAT_RGB565
@@ -187,54 +161,14 @@ typedef struct
      */
     coord_t size_y;
     /**
-     * @brief <tt>D/!C</tt> signal port
+     * @brief Data i/o callbacks
      */
-    ioportid_t dcx_port;
-    /**
-     * @brief <tt>D/!C</tt> signal pad
-     */
-    uint16_t dcx_pad;
-#if GD_ILI9341_IM == GD_ILI9341_IM_4LSI_1 || \
-    GD_ILI9341_IM == GD_ILI9341_IM_4LSI_2
-    /**
-     * @brief SPI driver used by ILI9341
-     */
-    SPIDriver *spip;
-    /**
-     * @brief Pointers to SPI configurations
-     */
-    const SPIConfig* spiconfig_8bit;
-    const SPIConfig* spiconfig_16bit;
-#else
-    /**
-     * @brief <tt>!CS</tt> signal port
-     */
-    ioportid_t csx_port;
-    /**
-     * @brief <tt>!CS</tt> signal pad
-     */
-    uint16_t csx_pad;
-    /**
-     * @brief <tt>!RD</tt> signal port
-     */
-    ioportid_t rdx_port;
-    /**
-     * @brief <tt>!RD</tt> signal pad
-     */
-    uint16_t rdx_pad;
-    /**
-     * @brief <tt>!WR</tt> signal port
-     */
-    ioportid_t wrx_port;
-    /**
-     * @brief <tt>!WR</tt> signal pad
-     */
-    uint16_t wrx_pad;
-    /**
-     * @brief <tt>DATA</tt> bus
-     */
-    IOBus* db_bus;
-#endif /* GD_ILI9341_IM */
+    void (*select_cb)(void);
+    void (*unselect_cb)(void);
+    void (*write_cmd_cb)(const uint8_t cmd);
+    void (*write_parm_cb)(const uint8_t data[], size_t n);
+    void (*write_mem_cb)(const color_t data[], size_t n);
+    void (*read_parm_cb)(uint8_t data[], size_t n);
     /**
      * @brief Configuration callback
      */
@@ -287,10 +221,6 @@ typedef struct
     * @brief Cached device info
     */
     GDDeviceInfo gddi;
-    /**
-     * @brief Non-stacked value, for SPI with CCM.
-     */
-    uint8_t value;
 } GDILI9341Driver;
 
 /*===========================================================================*/
