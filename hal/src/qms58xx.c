@@ -367,9 +367,9 @@ bool_t ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
     int32_t dT = (int32_t)ms58xxp->last_d2 -
             ((int32_t)ms58xxp->calibration[MS58XX_CAL_5] << 8);
 
-    int32_t TEMP = 2000 + ((dT * ms58xxp->calibration[MS58XX_CAL_6]) >> 23);
+    int32_t TEMP = 2000 + (((int64_t)dT * ms58xxp->calibration[MS58XX_CAL_6]) >> 23);
 
-    /* Apply second order temperature compenstation. */
+    /* Apply second order temperature compensation. */
     if (TEMP < 2000)
     {
         int32_t T2 = ((int64_t)3 * dT * dT) >> 33;
@@ -475,9 +475,9 @@ bool_t ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp)
 
     /* Calculate result. */
     int32_t dT = (int32_t)ms58xxp->last_d2 -
-            (int32_t)ms58xxp->calibration[MS58XX_CAL_5] * 256;
+            ((int32_t)ms58xxp->calibration[MS58XX_CAL_5] << 8);
 
-    int32_t TEMP = 2000 + dT * ms58xxp->calibration[MS58XX_CAL_6] / 8388608;
+    int32_t TEMP = 2000 + (((int64_t)dT * ms58xxp->calibration[MS58XX_CAL_6]) >> 23);
 
     int64_t OFF = (int64_t)ms58xxp->calibration[MS58XX_CAL_2] * 65536 +
             ((int64_t)ms58xxp->calibration[MS58XX_CAL_4] * dT) / 128;
