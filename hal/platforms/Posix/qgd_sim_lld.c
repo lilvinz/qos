@@ -109,6 +109,7 @@ void gdsim_lld_init(void)
  */
 void gdsim_lld_object_init(GDSimDriver* gdsimp)
 {
+    gdsimp->last_color = 0;
 }
 
 /**
@@ -243,8 +244,12 @@ void gdsim_lld_stop(GDSimDriver* gdsimp)
 void gdsim_lld_pixel_set(GDSimDriver* gdsimp, coord_t x, coord_t y,
         color_t color)
 {
-    xcb_change_gc(gdsimp->xcb_connection, gdsimp->xcb_gcontext,
-            XCB_GC_FOREGROUND, (uint32_t[]){ convert_color(color) });
+    if (color != gdsimp->last_color)
+    {
+        xcb_change_gc(gdsimp->xcb_connection, gdsimp->xcb_gcontext,
+                XCB_GC_FOREGROUND, (uint32_t[]){ convert_color(color) });
+        gdsimp->last_color = color;
+    }
 
     const xcb_point_t point =
     {
@@ -265,8 +270,6 @@ void gdsim_lld_pixel_set(GDSimDriver* gdsimp, coord_t x, coord_t y,
             gdsimp->xcb_gcontext,
             1,
             &point);
-
-    xcb_flush(gdsimp->xcb_connection);
 }
 
 /**
@@ -284,8 +287,12 @@ void gdsim_lld_pixel_set(GDSimDriver* gdsimp, coord_t x, coord_t y,
 void gdsim_lld_rect_fill(GDSimDriver* gdsimp, coord_t left, coord_t top,
         coord_t width, coord_t height, color_t color)
 {
-    xcb_change_gc(gdsimp->xcb_connection, gdsimp->xcb_gcontext,
-            XCB_GC_FOREGROUND, (uint32_t[]){ convert_color(color) });
+    if (color != gdsimp->last_color)
+    {
+        xcb_change_gc(gdsimp->xcb_connection, gdsimp->xcb_gcontext,
+                XCB_GC_FOREGROUND, (uint32_t[]){ convert_color(color) });
+        gdsimp->last_color = color;
+    }
 
     const xcb_rectangle_t rect =
     {
@@ -306,8 +313,6 @@ void gdsim_lld_rect_fill(GDSimDriver* gdsimp, coord_t left, coord_t top,
             gdsimp->xcb_gcontext,
             1,
             &rect);
-
-    xcb_flush(gdsimp->xcb_connection);
 }
 
 /**
@@ -328,6 +333,18 @@ bool_t gdsim_lld_get_info(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
     gddip->size_y = gdsimp->config->size_y;
 
     return CH_SUCCESS;
+}
+
+/**
+ * @brief   Flushes the the x client buffer.
+ *
+ * @param[in] gdsimp    pointer to the @p GDSimDriver object
+ *
+ * @notapi
+ */
+void gdsim_lld_flush(GDSimDriver* gdsimp)
+{
+    xcb_flush(gdsimp->xcb_connection);
 }
 
 #endif /* HAL_USE_GD_SIM */

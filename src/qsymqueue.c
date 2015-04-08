@@ -59,7 +59,7 @@
 static msg_t qwait(SymmetricQueue *sqp, systime_t timeout)
 {
     if (timeout == TIME_IMMEDIATE)
-      return Q_TIMEOUT;
+        return Q_TIMEOUT;
     currp->p_u.wtobjp = sqp;
     queue_insert(currp, &sqp->q_waiting);
     return chSchGoSleepTimeoutS(THD_STATE_WTQUEUE, timeout);
@@ -104,7 +104,7 @@ void chSymQResetI(SymmetricQueue *sqp)
     sqp->q_rdptr = sqp->q_wrptr = sqp->q_buffer;
     sqp->q_counter = 0;
     while (notempty(&sqp->q_waiting))
-      chSchReadyI(fifo_remove(&sqp->q_waiting))->p_u.rdymsg = Q_RESET;
+        chSchReadyI(fifo_remove(&sqp->q_waiting))->p_u.rdymsg = Q_RESET;
 }
 
 /**
@@ -125,9 +125,7 @@ msg_t chSymQGetI(SymmetricQueue *sqp)
     chDbgCheckClassI();
 
     if (chSymQIsEmptyI(sqp))
-    {
         return Q_EMPTY;
-    }
 
     sqp->q_counter--;
     b = *sqp->q_rdptr++;
@@ -260,9 +258,7 @@ msg_t chSymQPutI(SymmetricQueue *sqp, uint8_t b)
 {
     chDbgCheckClassI();
     if (chSymQIsFullI(sqp) == TRUE)
-    {
         return Q_FULL;
-    }
 
     sqp->q_counter++;
     *sqp->q_wrptr++ = b;

@@ -215,6 +215,7 @@ typedef struct
  * @param[in] top       top rectangle border coordinate
  * @param[in] width     height of the rectangle
  * @param[in] height    width of the rectangle
+ * @param[in] color     color to fill the rect with
  *
  * @api
  */

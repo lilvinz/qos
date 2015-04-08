@@ -128,6 +128,10 @@ typedef struct
     coord_t stream_width;
     coord_t stream_height;
     size_t stream_pos;
+    /**
+     * @brief   Cached color.
+     */
+    color_t last_color;
 } GDSimDriver;
 
 /*===========================================================================*/
@@ -150,7 +154,7 @@ extern "C" {
     void gdsim_lld_rect_fill(GDSimDriver* gdsimp, coord_t left, coord_t top,
             coord_t width, coord_t height, color_t color);
     bool_t gdsim_lld_get_info(GDSimDriver* gdsimp, GDDeviceInfo* gddip);
-
+    void gdsim_lld_flush(GDSimDriver* gdsimp);
 #ifdef __cplusplus
 }
 #endif
