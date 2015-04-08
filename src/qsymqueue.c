@@ -66,7 +66,7 @@ static msg_t qwait(SymmetricQueue *sqp, systime_t timeout)
 }
 
 /**
- * @brief   Initializes an input queue.
+ * @brief   Initializes a symmetric queue.
  * @details A Semaphore is internally initialized and works as a counter of
  *          the bytes contained in the queue.
  * @note    The callback is invoked from within the S-Locked system state,
@@ -87,7 +87,7 @@ void chSymQInit(SymmetricQueue *sqp, uint8_t *bp, size_t size)
 }
 
 /**
- * @brief   Resets an input queue.
+ * @brief   Resets a symmetric queue.
  * @details All the data in the input queue is erased and lost, any waiting
  *          thread is resumed with status @p Q_RESET.
  * @note    A reset operation can be used by a low level driver in order to
@@ -139,7 +139,7 @@ msg_t chSymQGetI(SymmetricQueue *sqp)
 }
 
 /**
- * @brief   Input queue read with timeout.
+ * @brief   Symmetric queue read with timeout.
  * @details This function reads a byte value from an input queue. If the queue
  *          is empty then the calling thread is suspended until a byte arrives
  *          in the queue or a timeout occurs.
@@ -184,7 +184,7 @@ msg_t chSymQGetTimeout(SymmetricQueue *sqp, systime_t timeout)
 }
 
 /**
- * @brief   Input queue read with timeout.
+ * @brief   Symmetric queue read with timeout.
  * @details The function reads data from an input queue into a buffer. The
  *          operation completes when the specified amount of data has been
  *          transferred or after the specified timeout or if the queue has
@@ -272,7 +272,7 @@ msg_t chSymQPutI(SymmetricQueue *sqp, uint8_t b)
 }
 
 /**
- * @brief   Output queue write with timeout.
+ * @brief   Symmetric queue write with timeout.
  * @details This function writes a byte value to an output queue. If the queue
  *          is full then the calling thread is suspended until there is space
  *          in the queue or a timeout occurs.
@@ -318,7 +318,7 @@ msg_t chSymQPutTimeout(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
 }
 
 /**
- * @brief   Output queue write with timeout.
+ * @brief   Symmetric queue write with timeout.
  * @details The function writes data from a buffer to an output queue. The
  *          operation completes when the specified amount of data has been
  *          transferred or after the specified timeout or if the queue has
