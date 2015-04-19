@@ -152,24 +152,27 @@ static void serve_interrupt(Serial485Driver *s485dp) {
 
   /* Data available.*/
   chSysLockFromIsr();
-  while (sr & USART_SR_RXNE) {
+  while (sr & (USART_SR_RXNE | USART_SR_ORE | USART_SR_NE | USART_SR_FE |
+               USART_SR_PE)) {
     /* Error condition detection.*/
     if (sr & (USART_SR_ORE | USART_SR_NE | USART_SR_FE | USART_SR_PE))
       set_error(s485dp, sr);
     uint16_t c = u->DR;
-    /* Mask parity bit according to configuration. */
-    switch (u->CR1 & (USART_CR1_PCE | USART_CR1_M))
-    {
-    case USART_CR1_PCE:
-        c &= 0x7f;
-        break;
-    case USART_CR1_PCE | USART_CR1_M:
-        c &= 0xff;
-        break;
-    default:
-        break;
+    if (sr & USART_SR_RXNE) {
+      /* Mask parity bit according to configuration. */
+      switch (u->CR1 & (USART_CR1_PCE | USART_CR1_M))
+      {
+      case USART_CR1_PCE:
+          c &= 0x7f;
+          break;
+      case USART_CR1_PCE | USART_CR1_M:
+          c &= 0xff;
+          break;
+      default:
+          break;
+      }
+      s485dIncomingDataI(s485dp, c);
     }
-    s485dIncomingDataI(s485dp, c);
     sr = u->SR;
   }
   chSysUnlockFromIsr();
