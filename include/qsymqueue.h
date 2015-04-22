@@ -179,7 +179,7 @@ struct SymmetricQueue {
 
 /**
  * @brief   Static symmetric queue initializer.
- * @details Statically initialized symetric queues require no explicit
+ * @details Statically initialized symmetric queues require no explicit
  *          initialization using @p chSymQInit().
  *
  * @param[in] name      the name of the input queue variable
