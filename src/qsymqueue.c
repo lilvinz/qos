@@ -52,7 +52,7 @@
  *                      .
  * @return              A message specifying how the invoking thread has been
  *                      released from threads queue.
- * @retval Q_OK         is the normal exit, thread signaled.
+ * @retval Q_OK         is the normal exit, thread signalled.
  * @retval Q_RESET      if the queue has been reset.
  * @retval Q_TIMEOUT    if the queue operation timed out.
  */
@@ -164,7 +164,7 @@ msg_t chSymQGetTimeout(SymmetricQueue *sqp, systime_t timeout)
     while (chSymQIsEmptyI(sqp))
     {
         msg_t msg;
-        if ((msg = qwait((SymmetricQueue *)sqp, timeout)) < Q_OK)
+        if ((msg = qwait((SymmetricQueue*)sqp, timeout)) < Q_OK)
         {
             chSysUnlock();
             return msg;
@@ -240,6 +240,7 @@ size_t chSymQReadTimeout(SymmetricQueue *sqp, uint8_t *bp,
         chSysLock();
     }
 }
+
 /**
  * @brief   Symmetric queue write.
  * @details This function writes a byte value to a symmetric queue.
@@ -327,7 +328,7 @@ msg_t chSymQPutTimeout(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
  *          to use a semaphore or a mutex for mutual exclusion.
  *
  * @param[in] sqp       pointer to an @p SymmetricQueue structure
- * @param[out] bp       pointer to the data buffer
+ * @param[in] bp        pointer to the data buffer
  * @param[in] n         the maximum amount of data to be transferred, the
  *                      value 0 is reserved
  * @param[in] time      the number of ticks before the operation timeouts,
