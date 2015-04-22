@@ -48,13 +48,14 @@ typedef struct SymmetricQueue SymmetricQueue;
  * @details This structure represents a symmetric queue.
  */
 struct SymmetricQueue {
-  ThreadsQueue          q_waiting;  /**< @brief Queue of waiting threads.   */
-  size_t                q_counter;  /**< @brief Resources counter.          */
-  uint8_t               *q_buffer;  /**< @brief Pointer to the queue buffer.*/
-  uint8_t               *q_top;     /**< @brief Pointer to the first location
-                                                after the buffer.           */
-  uint8_t               *q_wrptr;   /**< @brief Write pointer.              */
-  uint8_t               *q_rdptr;   /**< @brief Read pointer.               */
+  ThreadsQueue q_readers;   /**< @brief Queue of threads waiting to read.    */
+  ThreadsQueue  q_writers;  /**< @brief Queue of threads waiting to write.   */
+  size_t q_counter;         /**< @brief Resources counter.                   */
+  uint8_t *q_buffer;        /**< @brief Pointer to the queue buffer.         */
+  uint8_t *q_top;           /**< @brief Pointer to the first location
+                                        after the buffer.                    */
+  uint8_t *q_wrptr;         /**< @brief Write pointer.                       */
+  uint8_t *q_rdptr;         /**< @brief Read pointer.                        */
 };
 
 /**
