@@ -242,11 +242,25 @@ size_t chSymQReadTimeout(SymmetricQueue *sqp, uint8_t *bp,
     chDbgCheck(n > 0, "chSymQReadTimeout");
 
     chSysLock();
+
+    systime_t start = chTimeNow();
+
     while (TRUE)
     {
         if (chSymQIsEmptyI(sqp))
         {
-            if (qwait_readers((SymmetricQueue*)sqp, timeout) != Q_OK)
+            systime_t this_timeout = timeout;
+            if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
+            {
+                if (chTimeElapsedSince(start) >= timeout)
+                {
+                    chSysUnlock();
+                    return r;
+                }
+                this_timeout = timeout - chTimeElapsedSince(start);
+            }
+
+            if (qwait_readers((SymmetricQueue*)sqp, this_timeout) != Q_OK)
             {
                 chSysUnlock();
                 return r;
@@ -380,11 +394,25 @@ size_t chSymQWriteTimeout(SymmetricQueue *sqp, const uint8_t *bp,
     chDbgCheck(n > 0, "chSymQWriteTimeout");
 
     chSysLock();
+
+    systime_t start = chTimeNow();
+
     while (TRUE)
     {
         if (chSymQIsFullI(sqp))
         {
-            if (qwait_writers((SymmetricQueue*)sqp, timeout) != Q_OK)
+            systime_t this_timeout = timeout;
+            if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
+            {
+                if (chTimeElapsedSince(start) >= timeout)
+                {
+                    chSysUnlock();
+                    return w;
+                }
+                this_timeout = timeout - chTimeElapsedSince(start);
+            }
+
+            if (qwait_writers((SymmetricQueue*)sqp, this_timeout) != Q_OK)
             {
                 chSysUnlock();
                 return w;
