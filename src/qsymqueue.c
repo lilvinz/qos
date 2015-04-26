@@ -39,8 +39,6 @@
 #include "ch.h"
 #include "qsymqueue.h"
 
-#if CH_USE_QUEUES || defined(__DOXYGEN__)
-
 /**
  * @brief   Puts the invoking thread into the queue's reader threads queue.
  *
@@ -435,7 +433,5 @@ size_t chSymQWriteTimeout(SymmetricQueue *sqp, const uint8_t *bp,
         chSysLock();
     }
 }
-
-#endif  /* CH_USE_QUEUES */
 
 /** @} */
