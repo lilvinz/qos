@@ -25,6 +25,8 @@
 #include "ch.h"
 #include "qhal.h"
 
+#include <string.h>
+
 /*===========================================================================*/
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
@@ -56,6 +58,20 @@
  */
 void qhal_lld_init(void)
 {
+}
+
+/**
+ * @brief   Retrieve mcu GUID.
+ *
+ * @param[out] uid      array receiving 96 bit mcu guid
+ *
+ * @notapi
+ */
+void qhal_lld_get_uid(uint8_t uid[12])
+{
+    const uint8_t* cpu_uid = (const uint8_t*)0x1ffff7e8;
+
+    memcpy(uid, cpu_uid, 12);
 }
 
 /** @} */
