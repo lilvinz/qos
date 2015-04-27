@@ -42,6 +42,8 @@
 
 #include "stm32.h"
 
+#include <stdint.h>
+
 /*===========================================================================*/
 /* Driver constants.                                                         */
 /*===========================================================================*/
@@ -86,6 +88,7 @@
 extern "C" {
 #endif
   void qhal_lld_init(void);
+  void qhal_lld_get_uid(uint8_t uid[12]);
 #ifdef __cplusplus
 }
 #endif
