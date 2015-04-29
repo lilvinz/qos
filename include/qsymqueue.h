@@ -194,11 +194,17 @@ extern "C" {
   void chSymQInit(SymmetricQueue *sqp, uint8_t *bp, size_t size);
   void chSymQResetI(SymmetricQueue *sqp);
   msg_t chSymQGetI(SymmetricQueue *sqp);
+  msg_t chSymQGetTimeoutS(SymmetricQueue *sqp, systime_t timeout);
   msg_t chSymQGetTimeout(SymmetricQueue *sqp, systime_t timeout);
+  size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
+                         size_t n, systime_t timeout);
   size_t chSymQReadTimeout(SymmetricQueue *sqp, uint8_t *bp,
                          size_t n, systime_t timeout);
   msg_t chSymQPutI(SymmetricQueue *sqp, uint8_t b);
+  msg_t chSymQPutTimeoutS(SymmetricQueue *sqp, uint8_t b, systime_t timeout);
   msg_t chSymQPutTimeout(SymmetricQueue *sqp, uint8_t b, systime_t timeout);
+  size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
+                          size_t n, systime_t timeout);
   size_t chSymQWriteTimeout(SymmetricQueue *sqp, const uint8_t *bp,
                           size_t n, systime_t timeout);
 #ifdef __cplusplus
