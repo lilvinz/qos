@@ -191,7 +191,7 @@ msg_t chSymQGetTimeoutS(SymmetricQueue *sqp, systime_t timeout)
     if (chSymQIsEmptyI(sqp))
     {
         msg_t msg;
-        if ((msg = qwait_readers((SymmetricQueue*)sqp, timeout)) < Q_OK)
+        if ((msg = qwait_readers((SymmetricQueue*)sqp, timeout)) != Q_OK)
             return msg;
     }
 
@@ -396,7 +396,7 @@ msg_t chSymQPutTimeoutS(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
     {
         msg_t msg;
 
-        if ((msg = qwait_writers((SymmetricQueue*)sqp, timeout)) < Q_OK)
+        if ((msg = qwait_writers((SymmetricQueue*)sqp, timeout)) != Q_OK)
             return msg;
     }
 
