@@ -90,7 +90,7 @@ void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result)
 
     v = (timespec->tv_date & RTC_DR_YU) >> RTC_DR_YU_OFFSET;
     v += ((timespec->tv_date & RTC_DR_YT) >> RTC_DR_YT_OFFSET) * 10;
-    result->tm_year = v;
+    result->tm_year = v + 2000 - 1900;
 
     v = (timespec->tv_date & RTC_DR_WDU) >> RTC_DR_WDU_OFFSET;
     if (v == 7)
@@ -139,10 +139,10 @@ void rtcTM2RTCTime(const struct tm *timespec, RTCTime *result)
     result->tv_date |=
             (((timespec->tm_mon + 1) % 10) << RTC_DR_MU_OFFSET) & RTC_DR_MU;
 
-    result->tv_date |=
-            ((timespec->tm_year / 10) << RTC_DR_YT_OFFSET) & RTC_DR_YT;
-    result->tv_date |=
-            ((timespec->tm_year % 10) << RTC_DR_YU_OFFSET) & RTC_DR_YU;
+    result->tv_date |= (((timespec->tm_year + 1900 - 2000) / 10)
+            << RTC_DR_YT_OFFSET) & RTC_DR_YT;
+    result->tv_date |= (((timespec->tm_year + 1900 - 2000) % 10)
+            << RTC_DR_YU_OFFSET) & RTC_DR_YU;
 
     result->tv_date |=
             ((timespec->tm_wday + 1) << RTC_DR_WDU_OFFSET) & RTC_DR_WDU;
