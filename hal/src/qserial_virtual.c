@@ -42,9 +42,6 @@ static size_t write(void *ip, const uint8_t *bp, size_t n)
 
     for (; w < n; ++w)
     {
-        /* Store far queue empty state for later use. */
-        bool_t dst_queue_empty = chSymQIsEmptyI(&svdp->configp->farp->queue);
-
         /* Try to write a byte to far queue. */
         msg_t result = chSymQPutTimeoutS(&svdp->configp->farp->queue, *bp++, TIME_INFINITE);
         if (result != Q_OK)
@@ -54,7 +51,7 @@ static size_t write(void *ip, const uint8_t *bp, size_t n)
         }
 
         /* Check if far queue was empty and set flag. */
-        if (dst_queue_empty == TRUE)
+        if (chSymQSpaceI(&svdp->configp->farp->queue) == 1)
             chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
     }
 
@@ -100,9 +97,6 @@ static msg_t put(void *ip, uint8_t b)
 
     chSysLock();
 
-    /* Store far queue empty state for later use. */
-    bool_t dst_queue_empty = chSymQIsEmptyI(&svdp->configp->farp->queue);
-
     /* Try to write a byte to far queue. */
     msg_t result = chSymQPutTimeoutS(&svdp->configp->farp->queue, b, TIME_INFINITE);
     if (result != Q_OK)
@@ -112,7 +106,7 @@ static msg_t put(void *ip, uint8_t b)
     }
 
     /* Check if far queue was empty and set flag. */
-    if (dst_queue_empty == TRUE)
+    if (chSymQSpaceI(&svdp->configp->farp->queue) == 1)
         chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
 
     chSysUnlock();
@@ -149,9 +143,6 @@ static msg_t putt(void *ip, uint8_t b, systime_t timeout)
 
     chSysLock();
 
-    /* Store far queue empty state for later use. */
-    bool_t dst_queue_empty = chSymQIsEmptyI(&svdp->configp->farp->queue);
-
     /* Try to write a byte to far queue. */
     msg_t result = chSymQPutTimeoutS(&svdp->configp->farp->queue, b, timeout);
     if (result != Q_OK)
@@ -161,7 +152,7 @@ static msg_t putt(void *ip, uint8_t b, systime_t timeout)
     }
 
     /* Check if far queue was empty and set flag. */
-    if (dst_queue_empty == TRUE)
+    if (chSymQSpaceI(&svdp->configp->farp->queue) == 1)
         chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
 
     chSysUnlock();
@@ -203,9 +194,6 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
 
     for (; w < n; ++w)
     {
-        /* Store far queue empty state for later use. */
-        bool_t dst_queue_empty = chSymQIsEmptyI(&svdp->configp->farp->queue);
-
         /* Calculate remaining timeout. */
         systime_t this_timeout = timeout;
         if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
@@ -224,7 +212,7 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
         }
 
         /* Check if far queue was empty and set flag. */
-        if (dst_queue_empty == TRUE)
+        if (chSymQSpaceI(&svdp->configp->farp->queue) == 1)
             chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
     }
 
