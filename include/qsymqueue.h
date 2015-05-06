@@ -36,8 +36,6 @@
 #ifndef _QSYMQUEUES_H_
 #define _QSYMQUEUES_H_
 
-#if CH_USE_QUEUES || defined(__DOXYGEN__)
-
 /**
  * @brief   Type of a generic I/O queue structure.
  */
@@ -48,13 +46,14 @@ typedef struct SymmetricQueue SymmetricQueue;
  * @details This structure represents a symmetric queue.
  */
 struct SymmetricQueue {
-  ThreadsQueue          q_waiting;  /**< @brief Queue of waiting threads.   */
-  size_t                q_counter;  /**< @brief Resources counter.          */
-  uint8_t               *q_buffer;  /**< @brief Pointer to the queue buffer.*/
-  uint8_t               *q_top;     /**< @brief Pointer to the first location
-                                                after the buffer.           */
-  uint8_t               *q_wrptr;   /**< @brief Write pointer.              */
-  uint8_t               *q_rdptr;   /**< @brief Read pointer.               */
+  ThreadsQueue q_readers;   /**< @brief Queue of threads waiting to read.    */
+  ThreadsQueue  q_writers;  /**< @brief Queue of threads waiting to write.   */
+  size_t q_counter;         /**< @brief Resources counter.                   */
+  uint8_t *q_buffer;        /**< @brief Pointer to the queue buffer.         */
+  uint8_t *q_top;           /**< @brief Pointer to the first location
+                                        after the buffer.                    */
+  uint8_t *q_wrptr;         /**< @brief Write pointer.                       */
+  uint8_t *q_rdptr;         /**< @brief Read pointer.                        */
 };
 
 /**
@@ -179,7 +178,7 @@ struct SymmetricQueue {
 
 /**
  * @brief   Static symmetric queue initializer.
- * @details Statically initialized symetric queues require no explicit
+ * @details Statically initialized symmetric queues require no explicit
  *          initialization using @p chSymQInit().
  *
  * @param[in] name      the name of the input queue variable
@@ -195,17 +194,22 @@ extern "C" {
   void chSymQInit(SymmetricQueue *sqp, uint8_t *bp, size_t size);
   void chSymQResetI(SymmetricQueue *sqp);
   msg_t chSymQGetI(SymmetricQueue *sqp);
+  msg_t chSymQGetTimeoutS(SymmetricQueue *sqp, systime_t timeout);
   msg_t chSymQGetTimeout(SymmetricQueue *sqp, systime_t timeout);
+  size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
+                         size_t n, systime_t timeout);
   size_t chSymQReadTimeout(SymmetricQueue *sqp, uint8_t *bp,
                          size_t n, systime_t timeout);
   msg_t chSymQPutI(SymmetricQueue *sqp, uint8_t b);
+  msg_t chSymQPutTimeoutS(SymmetricQueue *sqp, uint8_t b, systime_t timeout);
   msg_t chSymQPutTimeout(SymmetricQueue *sqp, uint8_t b, systime_t timeout);
+  size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
+                          size_t n, systime_t timeout);
   size_t chSymQWriteTimeout(SymmetricQueue *sqp, const uint8_t *bp,
                           size_t n, systime_t timeout);
 #ifdef __cplusplus
 }
 #endif
-#endif /* CH_USE_QUEUES */
 
 #endif /* _QSYMQUEUES_H_ */
 

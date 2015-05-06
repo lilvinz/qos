@@ -36,39 +36,79 @@ static size_t write(void *ip, const uint8_t *bp, size_t n)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    size_t result = chSymQWriteTimeout(&svdp->configp->farp->queue, bp, n, TIME_INFINITE);
-
     chSysLock();
-    if (chSymQIsEmptyI(&svdp->configp->farp->queue) == FALSE)
-        chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
+
+    size_t w = 0;
+
+    for (; w < n; ++w)
+    {
+        /* Try to write a byte to far queue. */
+        msg_t result = chSymQPutTimeoutS(&svdp->configp->farp->queue, *bp++, TIME_INFINITE);
+        if (result != Q_OK)
+        {
+            chSysUnlock();
+            return w;
+        }
+
+        /* Check if far queue was empty and set flag. */
+        if (chSymQSpaceI(&svdp->configp->farp->queue) == 1)
+            chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
+    }
+
     chSysUnlock();
 
-    return result;
+    return w;
 }
 
 static size_t read(void *ip, uint8_t *bp, size_t n)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    size_t result = chSymQReadTimeout(&svdp->queue, bp, n, TIME_INFINITE);
-
     chSysLock();
-    if (chSymQIsEmptyI(&svdp->queue) == TRUE)
-        chnAddFlagsI(svdp->configp->farp, CHN_OUTPUT_EMPTY);
+
+    size_t r = 0;
+
+    for (; r < n; ++r)
+    {
+        /* Try to get a byte from near queue. */
+        msg_t result = chSymQGetTimeoutS(&svdp->queue, TIME_INFINITE);
+        if (result < Q_OK)
+        {
+            chSysUnlock();
+            return r;
+        }
+
+        /* Store it to buffer if successful. */
+        *bp++ = (uint8_t)result;
+
+        /* Check if near queue is empty and set flags. */
+        if (chSymQIsEmptyI(&svdp->queue) == TRUE)
+            chnAddFlagsI(svdp->configp->farp, CHN_OUTPUT_EMPTY);
+    }
+
     chSysUnlock();
 
-    return result;
+    return r;
 }
 
 static msg_t put(void *ip, uint8_t b)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    size_t result = chSymQPutTimeout(&svdp->configp->farp->queue, b, TIME_INFINITE);
-
     chSysLock();
-    if (chSymQIsEmptyI(&svdp->configp->farp->queue) == FALSE)
+
+    /* Try to write a byte to far queue. */
+    msg_t result = chSymQPutTimeoutS(&svdp->configp->farp->queue, b, TIME_INFINITE);
+    if (result != Q_OK)
+    {
+        chSysUnlock();
+        return result;
+    }
+
+    /* Check if far queue was empty and set flag. */
+    if (chSymQSpaceI(&svdp->configp->farp->queue) == 1)
         chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
+
     chSysUnlock();
 
     return result;
@@ -78,11 +118,20 @@ static msg_t get(void *ip)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    size_t result = chSymQGetTimeout(&svdp->queue, TIME_INFINITE);
-
     chSysLock();
+
+    /* Try to get a byte from near queue. */
+    msg_t result = chSymQGetTimeoutS(&svdp->queue, TIME_INFINITE);
+    if (result < Q_OK)
+    {
+        chSysUnlock();
+        return result;
+    }
+
+    /* Check if near queue is empty and set flags. */
     if (chSymQIsEmptyI(&svdp->queue) == TRUE)
         chnAddFlagsI(svdp->configp->farp, CHN_OUTPUT_EMPTY);
+
     chSysUnlock();
 
     return result;
@@ -92,11 +141,20 @@ static msg_t putt(void *ip, uint8_t b, systime_t timeout)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    size_t result = chSymQPutTimeout(&svdp->configp->farp->queue, b, timeout);
-
     chSysLock();
-    if (chSymQIsEmptyI(&svdp->configp->farp->queue) == FALSE)
+
+    /* Try to write a byte to far queue. */
+    msg_t result = chSymQPutTimeoutS(&svdp->configp->farp->queue, b, timeout);
+    if (result != Q_OK)
+    {
+        chSysUnlock();
+        return result;
+    }
+
+    /* Check if far queue was empty and set flag. */
+    if (chSymQSpaceI(&svdp->configp->farp->queue) == 1)
         chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
+
     chSysUnlock();
 
     return result;
@@ -106,42 +164,102 @@ static msg_t gett(void *ip, systime_t timeout)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    size_t result = chSymQGetTimeout(&svdp->queue, timeout);
-
     chSysLock();
+
+    /* Try to get a byte from near queue. */
+    msg_t result = chSymQGetTimeoutS(&svdp->queue, timeout);
+    if (result < Q_OK)
+    {
+        chSysUnlock();
+        return result;
+    }
+
+    /* Check if near queue is empty and set flags. */
     if (chSymQIsEmptyI(&svdp->queue) == TRUE)
         chnAddFlagsI(svdp->configp->farp, CHN_OUTPUT_EMPTY);
+
     chSysUnlock();
 
     return result;
 }
 
-static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t time)
+static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    size_t result = chSymQWriteTimeout(&svdp->configp->farp->queue, bp, n, time);
-
     chSysLock();
-    if (chSymQIsEmptyI(&svdp->configp->farp->queue) == FALSE)
-        chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
+
+    size_t w = 0;
+    systime_t start = chTimeNow();
+
+    for (; w < n; ++w)
+    {
+        /* Calculate remaining timeout. */
+        systime_t this_timeout = timeout;
+        if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
+        {
+            if (chTimeElapsedSince(start) >= timeout)
+                return w;
+            this_timeout = timeout - chTimeElapsedSince(start);
+        }
+
+        /* Try to write a byte to far queue. */
+        msg_t result = chSymQPutTimeoutS(&svdp->configp->farp->queue, *bp++, this_timeout);
+        if (result != Q_OK)
+        {
+            chSysUnlock();
+            return w;
+        }
+
+        /* Check if far queue was empty and set flag. */
+        if (chSymQSpaceI(&svdp->configp->farp->queue) == 1)
+            chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
+    }
+
     chSysUnlock();
 
-    return result;
+    return w;
 }
 
-static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time)
+static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    size_t result = chSymQReadTimeout(&svdp->queue, bp, n, time);
-
     chSysLock();
-    if (chSymQIsEmptyI(&svdp->queue) == TRUE)
-        chnAddFlagsI(svdp->configp->farp, CHN_OUTPUT_EMPTY);
+
+    size_t r = 0;
+    systime_t start = chTimeNow();
+
+    for (; r < n; ++r)
+    {
+        /* Calculate remaining timeout. */
+        systime_t this_timeout = timeout;
+        if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
+        {
+            if (chTimeElapsedSince(start) >= timeout)
+                return r;
+            this_timeout = timeout - chTimeElapsedSince(start);
+        }
+
+        /* Try to get a byte from near queue. */
+        msg_t result = chSymQGetTimeoutS(&svdp->queue, this_timeout);
+        if (result < Q_OK)
+        {
+            chSysUnlock();
+            return r;
+        }
+
+        /* Store it to buffer if successful. */
+        *bp++ = (uint8_t)result;
+
+        /* Check if near queue is empty and set flags. */
+        if (chSymQIsEmptyI(&svdp->queue) == TRUE)
+            chnAddFlagsI(svdp->configp->farp, CHN_OUTPUT_EMPTY);
+    }
+
     chSysUnlock();
 
-    return result;
+    return r;
 }
 
 static const struct SerialVirtualDriverVMT vmt =
