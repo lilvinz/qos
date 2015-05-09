@@ -29,6 +29,8 @@ void chThdSleepPeriod(systime_t *previous, systime_t period)
 
 /**
  * @brief   Returns remaining time of the specified time interval.
+ *          The advancement of previous has to be done by the caller only
+ *          after time has passed.
  *
  * @param[in] previous  pointer to the previous systime_t
  * @param[in] period    time period to match
@@ -48,7 +50,6 @@ systime_t chThdRemainingPeriod(systime_t *previous, systime_t period)
         now < *previous ?
         (now < future && future < *previous) :
         (now < future || future < *previous);
-    *previous = future;
     if (mustDelay)
         return future - now;
     else
