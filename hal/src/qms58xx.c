@@ -32,22 +32,14 @@ enum command_e
 
 enum
 {
-    MS58XX_CAL_0 = 0,
-    MS58XX_CAL_RESERVED = 0,
-    MS58XX_CAL_1 = 1,
-    MS58XX_CAL_SENST1 = 1,
-    MS58XX_CAL_2 = 2,
-    MS58XX_CAL_OFFT1 = 2,
-    MS58XX_CAL_3 = 3,
-    MS58XX_CAL_TCS = 3,
-    MS58XX_CAL_4 = 4,
-    MS58XX_CAL_TCO = 4,
-    MS58XX_CAL_5 = 5,
-    MS58XX_CAL_TREF = 5,
-    MS58XX_CAL_6 = 6,
-    MS58XX_CAL_TEMPSENS = 6,
-    MS58XX_CAL_7 = 7,
-    MS58XX_CAL_CRC = 7,
+    MS58XX_CAL_0_RESERVED = 0,
+    MS58XX_CAL_1_SENST1 = 1,
+    MS58XX_CAL_2_OFFT1 = 2,
+    MS58XX_CAL_3_TCS = 3,
+    MS58XX_CAL_4_TCO = 4,
+    MS58XX_CAL_5_TREF = 5,
+    MS58XX_CAL_6_TEMPSENS = 6,
+    MS58XX_CAL_7_CRC = 7,
 };
 
 /*===========================================================================*/
@@ -167,9 +159,9 @@ void ms58xxStart(MS58XXDriver* ms58xxp, const MS58XXConfig* configp)
     /* Verify crc. */
     {
         uint16_t n_rem = 0x00;
-        uint16_t crc_read = ms58xxp->calibration[MS58XX_CAL_CRC];
-        ms58xxp->calibration[MS58XX_CAL_CRC] =
-                ms58xxp->calibration[MS58XX_CAL_CRC] & 0xff00;
+        uint16_t crc_read = ms58xxp->calibration[MS58XX_CAL_7_CRC];
+        ms58xxp->calibration[MS58XX_CAL_7_CRC] =
+                ms58xxp->calibration[MS58XX_CAL_7_CRC] & 0xff00;
 
         for (size_t cnt = 0; cnt < 16; ++cnt)
         {
@@ -191,9 +183,9 @@ void ms58xxStart(MS58XXDriver* ms58xxp, const MS58XXConfig* configp)
             }
         }
         n_rem = (n_rem >> 12) & 0x000f;
-        ms58xxp->calibration[MS58XX_CAL_CRC] = crc_read;
+        ms58xxp->calibration[MS58XX_CAL_7_CRC] = crc_read;
 
-        if (n_rem != (ms58xxp->calibration[MS58XX_CAL_CRC] & 0x0f))
+        if (n_rem != (ms58xxp->calibration[MS58XX_CAL_7_CRC] & 0x0f))
         {
             ms58xxp->state = MS58XX_STOP;
             return;
@@ -363,11 +355,14 @@ bool_t ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
     /* Reset driver state. */
     ms58xxp->state = MS58XX_READY;
 
-    /* Calculate result. */
+    /* dT is the difference between current adc value and
+     * adc value at factory calibration (20 degree celsius). */
     int32_t dT = (int32_t)ms58xxp->last_d2 -
-            ((int32_t)ms58xxp->calibration[MS58XX_CAL_5] << 8);
+            ((int32_t)ms58xxp->calibration[MS58XX_CAL_5_TREF] << 8);
 
-    int32_t TEMP = 2000 + (((int64_t)dT * ms58xxp->calibration[MS58XX_CAL_6]) >> 23);
+    /* TEMP is the temperature in degree celsius * 100. */
+    int32_t TEMP = 2000 +
+            (((int64_t)dT * ms58xxp->calibration[MS58XX_CAL_6_TEMPSENS]) >> 23);
 
     /* Apply second order temperature compensation. */
     if (TEMP < 2000)
@@ -473,28 +468,33 @@ bool_t ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp)
     /* Reset driver state. */
     ms58xxp->state = MS58XX_READY;
 
-    /* Calculate result. */
+    /* dT is the difference between current adc value and
+     * adc value at factory calibration (20 degree celsius). */
     int32_t dT = (int32_t)ms58xxp->last_d2 -
-            ((int32_t)ms58xxp->calibration[MS58XX_CAL_5] << 8);
+            ((int32_t)ms58xxp->calibration[MS58XX_CAL_5_TREF] << 8);
 
-    int32_t TEMP = 2000 + (((int64_t)dT * ms58xxp->calibration[MS58XX_CAL_6]) >> 23);
+    /* TEMP is the temperature in degree celsius * 100. */
+    int32_t TEMP = 2000 +
+            (((int64_t)dT * ms58xxp->calibration[MS58XX_CAL_6_TEMPSENS]) >> 23);
 
-    int64_t OFF = (int64_t)ms58xxp->calibration[MS58XX_CAL_2] * 65536 +
-            ((int64_t)ms58xxp->calibration[MS58XX_CAL_4] * dT) / 128;
+    /* OFF is pressure adc offset at the current temperature. */
+    int64_t OFF = ((int64_t)ms58xxp->calibration[MS58XX_CAL_2_OFFT1] << 16) +
+            (((int64_t)ms58xxp->calibration[MS58XX_CAL_4_TCO] * dT) >> 7);
 
-    int64_t SENS = (int64_t)ms58xxp->calibration[MS58XX_CAL_1] * 32768 +
-            ((int64_t)ms58xxp->calibration[MS58XX_CAL_3] * dT) / 256;
+    /* SENS is pressure adc sensitivity at the current temperature. */
+    int64_t SENS = ((int64_t)ms58xxp->calibration[MS58XX_CAL_1_SENST1] << 15) +
+            (((int64_t)ms58xxp->calibration[MS58XX_CAL_3_TCS] * dT) >> 8);
 
-    /* Apply second order temperature compenstation. */
+    /* Apply second order temperature compensation. */
     if (TEMP < 2000)
     {
-        int64_t OFF2 = 3 * (TEMP - 2000) * (TEMP - 2000) / 2;
-        int64_t SENS2 = 5 * (TEMP - 2000) * (TEMP - 2000) / 8;
+        int64_t OFF2 = (3 * (TEMP - 2000) * (TEMP - 2000)) >> 1;
+        int64_t SENS2 = (5 * (TEMP - 2000) * (TEMP - 2000)) >> 3;
 
         if (TEMP < -1500)
         {
-            OFF2 = OFF2 + 7 * (TEMP + 1500) * (TEMP + 1500);
-            SENS2 = SENS2 + 4 * (TEMP + 1500) * (TEMP + 1500);
+            OFF2 += 7 * (TEMP + 1500) * (TEMP + 1500);
+            SENS2 += 4 * (TEMP + 1500) * (TEMP + 1500);
         }
 
         OFF -= OFF2;
@@ -502,12 +502,13 @@ bool_t ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp)
     }
     else
     {
-        int64_t OFF2 = 1 * (TEMP - 2000) * (TEMP - 2000) / 16;
+        int64_t OFF2 = (1 * (TEMP - 2000) * (TEMP - 2000)) >> 4;
 
         OFF -= OFF2;
     }
 
-    int32_t P = (ms58xxp->last_d1 * SENS / 2097152 - OFF) / 8192;
+    /* P is the pressure in bar * 10000. */
+    int32_t P = (((ms58xxp->last_d1 * SENS) >> 21) - OFF) >> 13;
 
     if (resultp != NULL)
         *resultp = P / 10000.0f;
