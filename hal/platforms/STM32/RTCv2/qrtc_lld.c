@@ -144,8 +144,12 @@ void rtcTM2RTCTime(const struct tm *timespec, RTCTime *result)
     result->tv_date |= (((timespec->tm_year + 1900 - 2000) % 10)
             << RTC_DR_YU_OFFSET) & RTC_DR_YU;
 
-    result->tv_date |=
-            ((timespec->tm_wday + 1) << RTC_DR_WDU_OFFSET) & RTC_DR_WDU;
+    if (timespec->tm_wday == 0)
+        result->tv_date |=
+                (7 << RTC_DR_WDU_OFFSET) & RTC_DR_WDU;
+    else
+        result->tv_date |=
+                (timespec->tm_wday << RTC_DR_WDU_OFFSET) & RTC_DR_WDU;
 }
 
 /**
