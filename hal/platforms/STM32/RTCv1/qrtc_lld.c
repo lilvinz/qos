@@ -61,8 +61,7 @@
  */
 void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result)
 {
-    (void)result;
-    (void)timespec;
+    gmtime_r((time_t *)&(timespec->tv_sec), result);
 }
 
 /**
@@ -73,10 +72,9 @@ void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result)
  *
  * @api
  */
-void rtcTM2RTCTime(const struct tm *result, const RTCTime *timespec)
+void rtcTM2RTCTime(struct tm *timespec, RTCTime *result)
 {
-    (void)result;
-    (void)timespec;
+    result->tv_sec = mktime(timespec);
 }
 
 #endif /* HAL_USE_RTC */

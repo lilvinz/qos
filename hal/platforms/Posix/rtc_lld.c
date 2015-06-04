@@ -97,7 +97,7 @@ void rtc_lld_get_time(RTCDriver *rtcp, RTCTime *timespec)
     (void)rtcp;
     time_t timestamp;
     time(&timestamp);
-    localtime_r(&timestamp, &timespec->tm);
+    gmtime_r(&timestamp, &timespec->tm);
 }
 
 /**
