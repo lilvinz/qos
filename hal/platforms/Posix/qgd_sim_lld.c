@@ -308,33 +308,49 @@ bool_t gdsim_lld_get_info(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
  *
  * @notapi
  */
-void gdsim_lld_flush(GDSimDriver* gdsimp)
+void gdsim_lld_flush(GDSimDriver* gdsimp, coord_t left, coord_t top,
+        coord_t width, coord_t height)
 {
+    /* Create subimage for to be flushed area. */
+    xcb_image_t* sub_image = xcb_image_subimage(
+            gdsimp->xcb_image,
+            left,
+            top,
+            width,
+            height,
+            0,
+            0,
+            0);
+
+    /* Convert subimage to connection native format. */
     xcb_image_t* native_image =
             xcb_image_native(gdsimp->xcb_connection,
-                    gdsimp->xcb_image,
+                    sub_image,
                     1);
 
+    /* Draw it into the window. */
     xcb_image_put(gdsimp->xcb_connection,
             gdsimp->xcb_window,
             gdsimp->xcb_gcontext,
             native_image,
-            0,
-            0,
+            left,
+            top,
             0);
 
+    /* Draw it into the pixmap (for restoring the window). */
     xcb_image_put(gdsimp->xcb_connection,
             gdsimp->xcb_pixmap,
             gdsimp->xcb_gcontext,
             native_image,
-            0,
-            0,
+            left,
+            top,
             0);
 
+    /* Flush out all requests. */
     xcb_flush(gdsimp->xcb_connection);
 
-    if (native_image != NULL && native_image != gdsimp->xcb_image)
-        xcb_image_destroy(native_image);
+    xcb_image_destroy(sub_image);
+    xcb_image_destroy(native_image);
 }
 
 #endif /* HAL_USE_GD_SIM */
