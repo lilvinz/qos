@@ -109,7 +109,6 @@ void gdsim_lld_init(void)
  */
 void gdsim_lld_object_init(GDSimDriver* gdsimp)
 {
-    gdsimp->last_color = 0;
 }
 
 /**
@@ -187,6 +186,21 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
         /* Make sure commands are sent before we pause, so window is shown. */
         xcb_flush(gdsimp->xcb_connection);
 
+        /* Create image. */
+        gdsimp->xcb_image = xcb_image_create(
+                gdsimp->config->size_x,
+                gdsimp->config->size_y,
+                XCB_IMAGE_FORMAT_Z_PIXMAP,
+                8,
+                24,
+                32,
+                32,
+                XCB_IMAGE_ORDER_MSB_FIRST,
+                XCB_IMAGE_ORDER_MSB_FIRST,
+                NULL,
+                0,
+                NULL);
+
         /* Filling the thread working area here because the function
            @p chThdCreateI() does not do it. */
 #if CH_DBG_FILL_THREADS
@@ -201,7 +215,7 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
         }
 #endif
 
-        /* Creates the data pump threads in a suspended state. */
+        /* Creates the data pump thread in a suspended state. */
         gdsimp->thd_ptr = chThdCreateI(gdsimp->wa_pump,
                 sizeof(gdsimp->wa_pump), GD_SIM_THREAD_PRIO,
                 gdsim_lld_pump, gdsimp);
@@ -244,32 +258,7 @@ void gdsim_lld_stop(GDSimDriver* gdsimp)
 void gdsim_lld_pixel_set(GDSimDriver* gdsimp, coord_t x, coord_t y,
         color_t color)
 {
-    if (color != gdsimp->last_color)
-    {
-        xcb_change_gc(gdsimp->xcb_connection, gdsimp->xcb_gcontext,
-                XCB_GC_FOREGROUND, (uint32_t[]){ convert_color(color) });
-        gdsimp->last_color = color;
-    }
-
-    const xcb_point_t point =
-    {
-        .x = x,
-        .y = y,
-    };
-
-    xcb_poly_point(gdsimp->xcb_connection,
-            XCB_COORD_MODE_ORIGIN,
-            gdsimp->xcb_pixmap,
-            gdsimp->xcb_gcontext,
-            1,
-            &point);
-
-    xcb_poly_point(gdsimp->xcb_connection,
-            XCB_COORD_MODE_ORIGIN,
-            gdsimp->xcb_window,
-            gdsimp->xcb_gcontext,
-            1,
-            &point);
+    xcb_image_put_pixel(gdsimp->xcb_image, x, y, convert_color(color));
 }
 
 /**
@@ -287,32 +276,9 @@ void gdsim_lld_pixel_set(GDSimDriver* gdsimp, coord_t x, coord_t y,
 void gdsim_lld_rect_fill(GDSimDriver* gdsimp, coord_t left, coord_t top,
         coord_t width, coord_t height, color_t color)
 {
-    if (color != gdsimp->last_color)
-    {
-        xcb_change_gc(gdsimp->xcb_connection, gdsimp->xcb_gcontext,
-                XCB_GC_FOREGROUND, (uint32_t[]){ convert_color(color) });
-        gdsimp->last_color = color;
-    }
-
-    const xcb_rectangle_t rect =
-    {
-        .x = left,
-        .y = top,
-        .width = width,
-        .height = height,
-    };
-
-    xcb_poly_fill_rectangle(gdsimp->xcb_connection,
-            gdsimp->xcb_pixmap,
-            gdsimp->xcb_gcontext,
-            1,
-            &rect);
-
-    xcb_poly_fill_rectangle(gdsimp->xcb_connection,
-            gdsimp->xcb_window,
-            gdsimp->xcb_gcontext,
-            1,
-            &rect);
+    for (coord_t y = top; y < top + height; ++y)
+        for (size_t x = left; x < left + width; ++x)
+            xcb_image_put_pixel(gdsimp->xcb_image, x, y, convert_color(color));
 }
 
 /**
@@ -344,7 +310,31 @@ bool_t gdsim_lld_get_info(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
  */
 void gdsim_lld_flush(GDSimDriver* gdsimp)
 {
+    xcb_image_t* native_image =
+            xcb_image_native(gdsimp->xcb_connection,
+                    gdsimp->xcb_image,
+                    1);
+
+    xcb_image_put(gdsimp->xcb_connection,
+            gdsimp->xcb_window,
+            gdsimp->xcb_gcontext,
+            native_image,
+            0,
+            0,
+            0);
+
+    xcb_image_put(gdsimp->xcb_connection,
+            gdsimp->xcb_pixmap,
+            gdsimp->xcb_gcontext,
+            native_image,
+            0,
+            0,
+            0);
+
     xcb_flush(gdsimp->xcb_connection);
+
+    if (native_image != NULL && native_image != gdsimp->xcb_image)
+        xcb_image_destroy(native_image);
 }
 
 #endif /* HAL_USE_GD_SIM */

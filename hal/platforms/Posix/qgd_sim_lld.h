@@ -12,6 +12,7 @@
 #if HAL_USE_GD_SIM || defined(__DOXYGEN__)
 
 #include <xcb/xcb.h>
+#include <xcb/xcb_image.h>
 
 /*===========================================================================*/
 /* Driver constants.                                                         */
@@ -120,6 +121,7 @@ typedef struct
     xcb_window_t xcb_window;
     xcb_gcontext_t xcb_gcontext;
     xcb_pixmap_t xcb_pixmap;
+    xcb_image_t* xcb_image;
     /**
      * @brief   Stream write state.
      */
@@ -128,10 +130,6 @@ typedef struct
     coord_t stream_width;
     coord_t stream_height;
     size_t stream_pos;
-    /**
-     * @brief   Cached color.
-     */
-    color_t last_color;
 } GDSimDriver;
 
 /*===========================================================================*/
