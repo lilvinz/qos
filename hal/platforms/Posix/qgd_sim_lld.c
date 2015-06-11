@@ -83,7 +83,7 @@ static msg_t gdsim_lld_pump(void* p)
             free(e);
         }
 
-        chThdSleepMilliseconds(1);
+        chThdSleepMilliseconds(10);
     }
 
     return 0;
