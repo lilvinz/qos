@@ -151,7 +151,7 @@ void gdsimPixelSet(GDSimDriver* gdsimp, coord_t x, coord_t y, color_t color)
             "invalid state");
 
     gdsim_lld_pixel_set(gdsimp, x, y, color);
-    gdsim_lld_flush(gdsimp);
+    gdsim_lld_flush(gdsimp, x, y, 1, 1);
 }
 
 /**
@@ -223,7 +223,8 @@ void gdsimStreamEnd(GDSimDriver* gdsimp)
     chDbgAssert(gdsimp->state >= GD_ACTIVE, "gdsimStreamEnd(), #1",
             "invalid state");
 
-    gdsim_lld_flush(gdsimp);
+    gdsim_lld_flush(gdsimp, gdsimp->stream_left, gdsimp->stream_top,
+            gdsimp->stream_width, gdsimp->stream_height);
 
     gdsimp->state = GD_READY;
 }
@@ -249,7 +250,7 @@ void gdsimRectFill(GDSimDriver* gdsimp, coord_t left, coord_t top,
             "invalid state");
 
     gdsim_lld_rect_fill(gdsimp, left, top, width, height, color);
-    gdsim_lld_flush(gdsimp);
+    gdsim_lld_flush(gdsimp, left, top, width, height);
 }
 
 /**
