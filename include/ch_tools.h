@@ -4,6 +4,30 @@
 
 #include "ch.h"
 
+/*===========================================================================*/
+/* Constants                                                                 */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Pre-compile time settings                                                 */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Derived constants and error checks                                        */
+/*===========================================================================*/
+
+#if CH_KERNEL_MAJOR != 2 || CH_KERNEL_MINOR != 6
+#error "ch_tools requires ChibiOS 2.6 and requires rework for other versions."
+#endif
+
+/*===========================================================================*/
+/* Data structures and types                                                 */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Macros                                                                    */
+/*===========================================================================*/
+
 /**
 * @name Time conversion utilities
 * @{
@@ -47,7 +71,22 @@
 
 /** @} */
 
-void chThdSleepPeriod(systime_t *previous, systime_t period);
-systime_t chThdRemainingPeriod(systime_t *previous, systime_t period);
+/*===========================================================================*/
+/* External declarations                                                     */
+/*===========================================================================*/
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+    void chThdSleepPeriod(systime_t *previous, systime_t period);
+    systime_t chThdRemainingPeriod(systime_t *previous, systime_t period);
+#if CH_USE_EVENTS || defined(__DOXYGEN__)
+    eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
+            systime_t period);
+#endif /* CH_USE_EVENTS || defined(__DOXYGEN__) */
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CH_TOOLS_H_ */
