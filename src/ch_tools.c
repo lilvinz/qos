@@ -55,7 +55,7 @@ void chThdSleepPeriod(systime_t *previous, systime_t period)
 
     chSysLock();
 
-    systime_t now = chTimeNow();
+    systime_t now = chTimeNowI();
 
     bool mustDelay =
         now < *previous ?
@@ -111,7 +111,7 @@ eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
         return m;
     }
 
-    systime_t now = chTimeNow();
+    systime_t now = chTimeNowI();
 
     bool mustDelay =
         now < *previous ?
