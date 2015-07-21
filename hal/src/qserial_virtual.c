@@ -199,7 +199,10 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
         if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
         {
             if (chTimeElapsedSinceI(start) >= timeout)
+            {
+                chSysUnlock();
                 return w;
+            }
             this_timeout = timeout - chTimeElapsedSinceI(start);
         }
 
@@ -237,7 +240,10 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout)
         if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
         {
             if (chTimeElapsedSinceI(start) >= timeout)
+            {
+                chSysUnlock();
                 return r;
+            }
             this_timeout = timeout - chTimeElapsedSinceI(start);
         }
 
