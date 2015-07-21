@@ -80,7 +80,6 @@ extern "C"
 {
 #endif
     void chThdSleepPeriod(systime_t *previous, systime_t period);
-    systime_t chThdRemainingPeriod(systime_t *previous, systime_t period);
 #if CH_USE_EVENTS || defined(__DOXYGEN__)
     eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
             systime_t period);

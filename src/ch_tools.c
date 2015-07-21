@@ -70,40 +70,6 @@ void chThdSleepPeriod(systime_t *previous, systime_t period)
     *previous = future;
 }
 
-/**
- * @brief   Returns remaining time of the specified time interval.
- *          The advancement of previous has to be done by the caller only
- *          after time has passed.
- *
- * @param[in] previous  pointer to the previous systime_t
- * @param[in] period    time period to match
- *                      - @a TIME_INFINITE the thread enters an infinite sleep
- *                        state.
- *                      - @a TIME_IMMEDIATE this value is not allowed.
- *
- * @returns             time to sleep in order to match period
- *
- * @api
- */
-systime_t chThdRemainingPeriod(systime_t *previous, systime_t period)
-{
-    chDbgCheck(period != TIME_INFINITE &&
-            previous != NULL, "chThdRemainingPeriod");
-
-    systime_t future = *previous + period;
-    systime_t now = chTimeNow();
-
-    bool mustDelay =
-        now < *previous ?
-        (now < future && future < *previous) :
-        (now < future || future < *previous);
-
-    if (mustDelay)
-        return future - now;
-    else
-        return TIME_IMMEDIATE;
-}
-
 #if CH_USE_EVENTS || defined(__DOXYGEN__)
 
 /**
