@@ -109,6 +109,7 @@ typedef struct
      * @brief   Pointer to the thread.
      */
     Thread* thd_ptr;
+    Thread* thd_wait;
     /**
      * @brief   Working area for the dedicated data pump thread;
      */
