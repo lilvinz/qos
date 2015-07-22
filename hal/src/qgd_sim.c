@@ -109,9 +109,8 @@ void gdsimStart(GDSimDriver* gdsimp, const GDSimConfig* config)
 
     chSysLock();
     gdsim_lld_start(gdsimp);
-    chSysUnlock();
-
     gdsimp->state = GD_READY;
+    chSysUnlock();
 }
 
 /**
@@ -130,9 +129,8 @@ void gdsimStop(GDSimDriver* gdsimp)
 
     chSysLock();
     gdsim_lld_stop(gdsimp);
-    chSysUnlock();
-
     gdsimp->state = GD_STOP;
+    chSysUnlock();
 }
 
 /**

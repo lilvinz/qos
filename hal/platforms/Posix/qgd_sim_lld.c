@@ -54,9 +54,18 @@ static msg_t gdsim_lld_pump(void* p)
     GDSimDriver* gdsimp = (GDSimDriver*)p;
     chRegSetThreadName("gdsim_lld_pump");
 
-    while (chThdShouldTerminate() == 0)
+    while (true)
     {
         xcb_generic_event_t* e;
+
+        /* Nothing to do, going to sleep.*/
+        chSysLock();
+        if ((gdsimp->state == GD_STOP))
+        {
+            gdsimp->thd_wait = chThdSelf();
+            chSchGoSleepS(THD_STATE_SUSPENDED);
+        }
+        chSysUnlock();
 
         while ((e = xcb_poll_for_event(gdsimp->xcb_connection)) != NULL)
         {
@@ -109,6 +118,22 @@ void gdsim_lld_init(void)
  */
 void gdsim_lld_object_init(GDSimDriver* gdsimp)
 {
+    gdsimp->thd_ptr = NULL;
+    gdsimp->thd_wait = NULL;
+
+    /* Filling the thread working area here because the function
+       @p chThdCreateI() does not do it. */
+#if CH_DBG_FILL_THREADS
+    {
+        void *wsp = gdsimp->wa_pump;
+        _thread_memfill((uint8_t*)wsp,
+                (uint8_t*)wsp + sizeof(Thread),
+                CH_THREAD_FILL_VALUE);
+        _thread_memfill((uint8_t*)wsp + sizeof(Thread),
+                (uint8_t*)wsp + sizeof(gdsimp->wa_pump),
+                CH_STACK_FILL_VALUE);
+    }
+#endif
 }
 
 /**
@@ -201,26 +226,17 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
                 0,
                 NULL);
 
-        /* Filling the thread working area here because the function
-           @p chThdCreateI() does not do it. */
-#if CH_DBG_FILL_THREADS
-        {
-            void *wsp = gdsimp->wa_pump;
-            _thread_memfill((uint8_t*)wsp,
-                    (uint8_t*)wsp + sizeof(Thread),
-                    CH_THREAD_FILL_VALUE);
-            _thread_memfill((uint8_t*)wsp + sizeof(Thread),
-                    (uint8_t*)wsp + sizeof(gdsimp->wa_pump),
-                    CH_STACK_FILL_VALUE);
-        }
-#endif
-
         /* Creates the data pump thread in a suspended state. */
-        gdsimp->thd_ptr = chThdCreateI(gdsimp->wa_pump,
-                sizeof(gdsimp->wa_pump), GD_SIM_THREAD_PRIO,
-                gdsim_lld_pump, gdsimp);
+        if (gdsimp->thd_ptr == NULL)
+            gdsimp->thd_ptr = gdsimp->thd_wait =
+                    chThdCreateI(gdsimp->wa_pump, sizeof(gdsimp->wa_pump),
+                            GD_SIM_THREAD_PRIO, gdsim_lld_pump, gdsimp);
 
-        chThdResumeI(gdsimp->thd_ptr);
+        if (gdsimp->thd_wait != NULL)
+        {
+            chThdResumeI(gdsimp->thd_wait);
+            gdsimp->thd_wait = NULL;
+        }
     }
 }
 
@@ -235,12 +251,6 @@ void gdsim_lld_stop(GDSimDriver* gdsimp)
 {
     if (gdsimp->state == GD_READY)
     {
-        /* Signal thread to terminate. */
-        chThdTerminate(gdsimp->thd_ptr);
-
-        /* Wait for pump thread to exit. */
-        chThdWait(gdsimp->thd_ptr);
-
         xcb_disconnect(gdsimp->xcb_connection);
     }
 }
