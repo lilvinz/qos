@@ -55,6 +55,7 @@
 #include "qms5541.h"
 #include "qserial_fdx.h"
 #include "qms58xx.h"
+#include "qfxos8700.h"
 
 /*===========================================================================*/
 /* External declarations.                                                    */

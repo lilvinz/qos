@@ -98,6 +98,9 @@ void qhalInit(void)
 #if HAL_USE_MS58XX || defined(__DOXYGEN__)
     ms58xxInit();
 #endif
+#if HAL_USE_FXOS8700 || defined(__DOXYGEN__)
+    fxos8700Init();
+#endif
 }
 
 /** @} */
