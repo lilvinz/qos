@@ -6,22 +6,21 @@ CHIBIOS := $(CHIBIOS_DIR)
 QHAL_STM32F1XX_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
 CSRC += $(wildcard $(QHAL_STM32F1XX_DIR)/*.c)
-CSRC += $(wildcard $(QHAL_STM32F1XX_DIR)/../STM32/FLASHv1/*.c)
-CSRC += $(wildcard $(QHAL_STM32F1XX_DIR)/../STM32/WDGv1/*.c)
-CSRC += $(wildcard $(QHAL_STM32F1XX_DIR)/../STM32/USARTv1/*.c)
-CSRC += $(wildcard $(QHAL_STM32F1XX_DIR)/../STM32/RTCv1/*.c)
+CSRC += $(wildcard $(QHAL_STM32F1XX_DIR)/../LLD/FLASHv1/*.c)
+CSRC += $(wildcard $(QHAL_STM32F1XX_DIR)/../LLD/WDGv1/*.c)
+CSRC += $(wildcard $(QHAL_STM32F1XX_DIR)/../LLD/USARTv1/*.c)
+CSRC += $(wildcard $(QHAL_STM32F1XX_DIR)/../LLD/RTCv1/*.c)
 
 EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)
-EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)/../STM32/FLASHv1
-EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)/../STM32/WDGv1
-EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)/../STM32/USARTv1
-EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)/../STM32/RTCv1
+EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)/../LLD/FLASHv1
+EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)/../LLD/WDGv1
+EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)/../LLD/USARTv1
+EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)/../LLD/RTCv1
 
 LDFLAGS += -T$(QHAL_STM32F1XX_DIR)/ld/sections.ld
 
-# ChibiOS hal
-include $(CHIBIOS_DIR)/os/hal/platforms/STM32F1xx/platform.mk
-# Chibios port
-include $(CHIBIOS_DIR)/os/ports/GCC/ARMCMx/STM32F1xx/port.mk
+# ChibiOS
+include $(CHIBIOS_DIR)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f1xx.mk
+include $(CHIBIOS_DIR)/os/hal/ports/STM32/STM32F1xx/platform.mk
 
-include $(QHAL_STM32F1XX_DIR)/../STM32/library.mk
+include $(QHAL_STM32F4XX_DIR)/../library.mk
