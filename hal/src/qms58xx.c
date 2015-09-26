@@ -122,7 +122,7 @@ void ms58xxStart(MS58XXDriver* ms58xxp, const MS58XXConfig* configp)
                 0,
                 ms58xxp->configp->i2c_timeout);
 
-        if (result != RDY_OK)
+        if (result != MSG_OK)
         {
             ms58xxp->state = MS58XX_STOP;
             return;
@@ -147,7 +147,7 @@ void ms58xxStart(MS58XXDriver* ms58xxp, const MS58XXConfig* configp)
                 sizeof(rxbuf),
                 ms58xxp->configp->i2c_timeout);
 
-        if (result != RDY_OK)
+        if (result != MSG_OK)
         {
             ms58xxp->state = MS58XX_STOP;
             return;
@@ -301,7 +301,7 @@ bool ms58xxTemperatureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
             0,
             ms58xxp->configp->i2c_timeout);
 
-    if (result != RDY_OK)
+    if (result != MSG_OK)
         return HAL_FAILED;
 
     return HAL_SUCCESS;
@@ -339,7 +339,7 @@ bool ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
                 sizeof(rxbuf),
                 ms58xxp->configp->i2c_timeout);
 
-        if (result != RDY_OK)
+        if (result != MSG_OK)
         {
             /* Reset driver state. */
             ms58xxp->state = MS58XX_READY;
@@ -412,7 +412,7 @@ bool ms58xxPressureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
             0,
             ms58xxp->configp->i2c_timeout);
 
-    if (result != RDY_OK)
+    if (result != MSG_OK)
         return HAL_FAILED;
 
     return HAL_SUCCESS;
@@ -450,7 +450,7 @@ bool ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp)
                 sizeof(rxbuf),
                 ms58xxp->configp->i2c_timeout);
 
-        if (result != RDY_OK)
+        if (result != MSG_OK)
         {
             /* Reset driver state. */
             ms58xxp->state = MS58XX_READY;

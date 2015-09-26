@@ -86,19 +86,19 @@ static msg_t put(void *ip, uint8_t b)
     NVMStream *nvmsp = ip;
 
     if (nvmsp->size - nvmsp->eos <= 0)
-        return RDY_RESET;
+        return MSG_RESET;
 
     nvmAcquire(nvmsp->nvmdp);
     if (nvmWrite(nvmsp->nvmdp, nvmsp->eos, 1, &b) != HAL_SUCCESS)
     {
         nvmRelease(nvmsp->nvmdp);
-        return RDY_RESET;
+        return MSG_RESET;
     }
     nvmRelease(nvmsp->nvmdp);
 
     nvmsp->eos += 1;
 
-    return RDY_OK;
+    return MSG_OK;
 }
 
 static msg_t get(void *ip)
@@ -107,13 +107,13 @@ static msg_t get(void *ip)
     NVMStream *nvmsp = ip;
 
     if (nvmsp->eos - nvmsp->offset <= 0)
-        return RDY_RESET;
+        return MSG_RESET;
 
     nvmAcquire(nvmsp->nvmdp);
     if (nvmRead(nvmsp->nvmdp, nvmsp->offset, 1, &b) != HAL_SUCCESS)
     {
         nvmRelease(nvmsp->nvmdp);
-        return RDY_RESET;
+        return MSG_RESET;
     }
     nvmRelease(nvmsp->nvmdp);
 

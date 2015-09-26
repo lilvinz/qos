@@ -119,7 +119,7 @@ eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
     if (mustDelay)
     {
         ctp->p_u.ewmask = mask;
-        if (chSchGoSleepTimeoutS(THD_STATE_WTOREVT, future - now) < RDY_OK)
+        if (chSchGoSleepTimeoutS(THD_STATE_WTOREVT, future - now) < MSG_OK)
         {
             chSysUnlock();
             /* Update previous time because of timeout. */
