@@ -582,8 +582,7 @@ void flash_lld_start(FLASHDriver* flashp)
     {
         if (flashp == &FLASHD)
         {
-            nvicEnableVector(STM32_FLASH_NUMBER,
-                    CORTEX_PRIORITY_MASK(STM32_FLASH_IRQ_PRIORITY));
+            nvicEnableVector(STM32_FLASH_NUMBER, STM32_FLASH_IRQ_PRIORITY);
 
             /* Clear all possibly pending flags. */
             flashp->flash->SR = FLASH_SR_PGSERR | FLASH_SR_PGPERR

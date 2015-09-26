@@ -443,43 +443,37 @@ void s485d_lld_start(Serial485Driver *s485dp, const Serial485Config *config) {
 #if STM32_SERIAL_485_USE_USART1
     if (&S485D1 == s485dp) {
       rccEnableUSART1(FALSE);
-      nvicEnableVector(STM32_USART1_NUMBER,
-                       CORTEX_PRIORITY_MASK(STM32_SERIAL_485_USART1_PRIORITY));
+      nvicEnableVector(STM32_USART1_NUMBER, STM32_SERIAL_485_USART1_PRIORITY);
     }
 #endif
 #if STM32_SERIAL_485_USE_USART2
     if (&S485D2 == s485dp) {
       rccEnableUSART2(FALSE);
-      nvicEnableVector(STM32_USART2_NUMBER,
-                       CORTEX_PRIORITY_MASK(STM32_SERIAL_485_USART2_PRIORITY));
+      nvicEnableVector(STM32_USART2_NUMBER, STM32_SERIAL_485_USART2_PRIORITY);
     }
 #endif
 #if STM32_SERIAL_485_USE_USART3
     if (&S485D3 == s485dp) {
       rccEnableUSART3(FALSE);
-      nvicEnableVector(STM32_USART3_NUMBER,
-                       CORTEX_PRIORITY_MASK(STM32_SERIAL_485_USART3_PRIORITY));
+      nvicEnableVector(STM32_USART3_NUMBER, STM32_SERIAL_485_USART3_PRIORITY);
     }
 #endif
 #if STM32_SERIAL_485_USE_UART4
     if (&S485D4 == s485dp) {
       rccEnableUART4(FALSE);
-      nvicEnableVector(STM32_UART4_NUMBER,
-                       CORTEX_PRIORITY_MASK(STM32_SERIAL_485_UART4_PRIORITY));
+      nvicEnableVector(STM32_UART4_NUMBER, STM32_SERIAL_485_UART4_PRIORITY);
     }
 #endif
 #if STM32_SERIAL_485_USE_UART5
     if (&S485D5 == s485dp) {
       rccEnableUART5(FALSE);
-      nvicEnableVector(STM32_UART5_NUMBER,
-                       CORTEX_PRIORITY_MASK(STM32_SERIAL_485_UART5_PRIORITY));
+      nvicEnableVector(STM32_UART5_NUMBER, STM32_SERIAL_485_UART5_PRIORITY);
     }
 #endif
 #if STM32_SERIAL_485_USE_USART6
     if (&S485D6 == s485dp) {
       rccEnableUSART6(FALSE);
-      nvicEnableVector(STM32_USART6_NUMBER,
-                       CORTEX_PRIORITY_MASK(STM32_SERIAL_485_USART6_PRIORITY));
+      nvicEnableVector(STM32_USART6_NUMBER, STM32_SERIAL_485_USART6_PRIORITY);
     }
 #endif
     /* Clear driver enable pad. */
