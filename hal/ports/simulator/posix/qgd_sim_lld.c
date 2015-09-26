@@ -62,7 +62,7 @@ static msg_t gdsim_lld_pump(void* p)
         chSysLock();
         if ((gdsimp->state == GD_STOP))
         {
-            gdsimp->thd_wait = chThdSelf();
+            gdsimp->thd_wait = chThdGetSelfX();
             chSchGoSleepS(THD_STATE_SUSPENDED);
         }
         chSysUnlock();

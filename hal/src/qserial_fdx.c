@@ -213,7 +213,7 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
         {
             /* Nothing to do. Going to sleep. */
             chSysLock();
-            sfdxdp->thd_wait = chThdSelf();
+            sfdxdp->thd_wait = chThdGetSelfX();
             chSchGoSleepS(THD_STATE_SUSPENDED);
             chSysUnlock();
         }

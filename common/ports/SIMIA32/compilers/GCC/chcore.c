@@ -42,9 +42,9 @@
 CH_IRQ_HANDLER(port_tick_signal_handler) {
   CH_IRQ_PROLOGUE();
 
-  chSysLockFromIsr();
+  chSysLockFromISR();
   chSysTimerHandlerI();
-  chSysUnlockFromIsr();
+  chSysUnlockFromISR();
 
   CH_IRQ_EPILOGUE();
 

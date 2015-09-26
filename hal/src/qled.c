@@ -49,21 +49,21 @@ static void blink_timer_on_cb(void *par)
 {
     LedDriver* ledp = (LedDriver*)par;
 
-    chSysLockFromIsr();
+    chSysLockFromISR();
 
     /* Set new timer. */
     chVTSetI(&ledp->blink_vt, ledp->blink_off, blink_timer_off_cb, ledp);
 
     led_off(ledp);
 
-    chSysUnlockFromIsr();
+    chSysUnlockFromISR();
 }
 
 static void blink_timer_off_cb(void *par)
 {
     LedDriver* ledp = (LedDriver*)par;
 
-    chSysLockFromIsr();
+    chSysLockFromISR();
 
     /* Decrement counter. */
     if (ledp->blink_loop > 0)
@@ -77,7 +77,7 @@ static void blink_timer_off_cb(void *par)
         led_on(ledp);
     }
 
-    chSysUnlockFromIsr();
+    chSysUnlockFromISR();
 }
 
 /*===========================================================================*/

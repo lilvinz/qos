@@ -190,7 +190,7 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
     chSysLock();
 
     size_t w = 0;
-    systime_t start = chTimeNowI();
+    systime_t start = chVTGetSystemTimeX();
 
     for (; w < n; ++w)
     {
@@ -198,12 +198,12 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
         systime_t this_timeout = timeout;
         if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
         {
-            if (chTimeElapsedSinceI(start) >= timeout)
+            if (chVTTimeElapsedSinceX(start) >= timeout)
             {
                 chSysUnlock();
                 return w;
             }
-            this_timeout = timeout - chTimeElapsedSinceI(start);
+            this_timeout = timeout - chVTTimeElapsedSinceX(start);
         }
 
         /* Try to write a byte to far queue. */
@@ -231,7 +231,7 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout)
     chSysLock();
 
     size_t r = 0;
-    systime_t start = chTimeNowI();
+    systime_t start = chVTGetSystemTimeX();
 
     for (; r < n; ++r)
     {
@@ -239,12 +239,12 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout)
         systime_t this_timeout = timeout;
         if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
         {
-            if (chTimeElapsedSinceI(start) >= timeout)
+            if (chVTTimeElapsedSinceX(start) >= timeout)
             {
                 chSysUnlock();
                 return r;
             }
-            this_timeout = timeout - chTimeElapsedSinceI(start);
+            this_timeout = timeout - chVTTimeElapsedSinceX(start);
         }
 
         /* Try to get a byte from near queue. */

@@ -267,7 +267,7 @@ size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
 
     chDbgCheck(n > 0);
 
-    systime_t start = chTimeNowI();
+    systime_t start = chVTGetSystemTimeX();
 
     while (TRUE)
     {
@@ -276,9 +276,9 @@ size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
             systime_t this_timeout = timeout;
             if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
             {
-                if (chTimeElapsedSinceI(start) >= timeout)
+                if (chVTTimeElapsedSinceX(start) >= timeout)
                     return r;
-                this_timeout = timeout - chTimeElapsedSinceI(start);
+                this_timeout = timeout - chVTTimeElapsedSinceX(start);
             }
 
             if (qwait_readers((SymmetricQueue*)sqp, this_timeout) != Q_OK)
@@ -474,7 +474,7 @@ size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
 
     chDbgCheck(n > 0);
 
-    systime_t start = chTimeNowI();
+    systime_t start = chVTGetSystemTimeX();
 
     while (TRUE)
     {
@@ -483,9 +483,9 @@ size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
             systime_t this_timeout = timeout;
             if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
             {
-                if (chTimeElapsedSinceI(start) >= timeout)
+                if (chVTTimeElapsedSinceX(start) >= timeout)
                     return w;
-                this_timeout = timeout - chTimeElapsedSinceI(start);
+                this_timeout = timeout - chVTTimeElapsedSinceX(start);
             }
 
             if (qwait_writers((SymmetricQueue*)sqp, this_timeout) != Q_OK)

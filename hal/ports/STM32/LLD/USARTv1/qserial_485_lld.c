@@ -144,14 +144,14 @@ static void serve_interrupt(Serial485Driver *s485dp) {
 
   /* Special case, LIN break detection.*/
   if (sr & USART_SR_LBD) {
-    chSysLockFromIsr();
+    chSysLockFromISR();
     chnAddFlagsI(s485dp, S485D_BREAK_DETECTED);
-    chSysUnlockFromIsr();
+    chSysUnlockFromISR();
     u->SR = ~USART_SR_LBD;
   }
 
   /* Data available.*/
-  chSysLockFromIsr();
+  chSysLockFromISR();
   while (sr & (USART_SR_RXNE | USART_SR_ORE | USART_SR_NE | USART_SR_FE |
                USART_SR_PE)) {
     /* Error condition detection.*/
@@ -175,7 +175,7 @@ static void serve_interrupt(Serial485Driver *s485dp) {
     }
     sr = u->SR;
   }
-  chSysUnlockFromIsr();
+  chSysUnlockFromISR();
 
   /* Physical transmission end.
    * Note: This must be handled before TXE to prevent a startup glitch
@@ -185,18 +185,18 @@ static void serve_interrupt(Serial485Driver *s485dp) {
     /* Clear driver enable pad. */
     if (s485dp->config->ssport != NULL)
       palClearPad(s485dp->config->ssport, s485dp->config->sspad);
-    chSysLockFromIsr();
+    chSysLockFromISR();
     if (chOQIsEmptyI(&s485dp->oqueue))
         chnAddFlagsI(s485dp, CHN_TRANSMISSION_END);
     u->CR1 = (cr1 & ~USART_CR1_TCIE) | USART_CR1_RE;
     u->SR = ~USART_SR_TC;
-    chSysUnlockFromIsr();
+    chSysUnlockFromISR();
   }
 
   /* Transmission buffer empty.*/
   if ((cr1 & USART_CR1_TXEIE) && (sr & USART_SR_TXE)) {
     msg_t b;
-    chSysLockFromIsr();
+    chSysLockFromISR();
     b = chOQGetI(&s485dp->oqueue);
     if (b < Q_OK) {
       chnAddFlagsI(s485dp, CHN_OUTPUT_EMPTY);
@@ -212,7 +212,7 @@ static void serve_interrupt(Serial485Driver *s485dp) {
         palSetPad(s485dp->config->ssport, s485dp->config->sspad);
       u->DR = b;
     }
-    chSysUnlockFromIsr();
+    chSysUnlockFromISR();
   }
 }
 
