@@ -73,7 +73,7 @@ typedef struct
     /* Current configuration data */
     const LedConfig* config;
     /* Blink timer state */
-    VirtualTimer blink_vt;
+    virtual_timer_t blink_vt;
     systime_t blink_on;
     systime_t blink_off;
     int32_t blink_loop;

@@ -98,9 +98,9 @@ typedef struct
 #if GD_SIM_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES || defined(__DOXYGEN__)
     /**
-     * @brief Mutex protecting the device.
+     * @brief mutex_t protecting the device.
      */
-    Mutex mutex;
+    mutex_t mutex;
 #elif CH_CFG_USE_SEMAPHORES
     Semaphore semaphore;
 #endif
