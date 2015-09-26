@@ -83,9 +83,9 @@ void nvmmemoryObjectInit(NVMMemoryDriver* nvmmemoryp)
     nvmmemoryp->config = NULL;
 #if NVM_MEMORY_USE_MUTUAL_EXCLUSION
 #if CH_CFG_USE_MUTEXES
-    chMtxInit(&nvmmemoryp->mutex);
+    chMtxObjectInit(&nvmmemoryp->mutex);
 #else
-    chSemInit(&nvmmemoryp->semaphore, 1);
+    chSemObjectInit(&nvmmemoryp->semaphore, 1);
 #endif
 #endif /* NVM_MEMORY_USE_MUTUAL_EXCLUSION */
 }
@@ -365,7 +365,7 @@ void nvmmemoryReleaseBus(NVMMemoryDriver* nvmmemoryp)
 #if NVM_MEMORY_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
     (void)nvmmemoryp;
-    chMtxUnlock();
+    chMtxUnlock(&nvmmemoryp->mutex);
 #elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&nvmmemoryp->semaphore);
 #endif

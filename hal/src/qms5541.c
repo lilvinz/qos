@@ -127,9 +127,9 @@ void ms5541ObjectInit(MS5541Driver* ms5541p)
     memset(ms5541p->calibration, 0, sizeof(ms5541p->calibration));
 #if MS5541_USE_MUTUAL_EXCLUSION
 #if CH_CFG_USE_MUTEXES
-    chMtxInit(&ms5541p->mutex);
+    chMtxObjectInit(&ms5541p->mutex);
 #else
-    chSemInit(&ms5541p->semaphore, 1);
+    chSemObjectInit(&ms5541p->semaphore, 1);
 #endif
 #endif /* MS5541_USE_MUTUAL_EXCLUSION */
 }
@@ -239,7 +239,7 @@ void ms5541ReleaseBus(MS5541Driver* ms5541p)
 #if MS5541_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
     (void)ms5541p;
-    chMtxUnlock();
+    chMtxUnlock(&ms5541p->mutex);
 #elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&ms5541p->semaphore);
 #endif

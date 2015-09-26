@@ -308,9 +308,9 @@ void nvmmirrorObjectInit(NVMMirrorDriver* nvmmirrorp)
     nvmmirrorp->config = NULL;
 #if NVM_MIRROR_USE_MUTUAL_EXCLUSION
 #if CH_CFG_USE_MUTEXES
-    chMtxInit(&nvmmirrorp->mutex);
+    chMtxObjectInit(&nvmmirrorp->mutex);
 #else
-    chSemInit(&nvmmirrorp->semaphore, 1);
+    chSemObjectInit(&nvmmirrorp->semaphore, 1);
 #endif
 #endif /* NVM_JEDEC_SPI_USE_MUTUAL_EXCLUSION */
     nvmmirrorp->mirror_state = STATE_INVALID;
@@ -726,7 +726,7 @@ void nvmmirrorReleaseBus(NVMMirrorDriver* nvmmirrorp)
 
 #if NVM_MIRROR_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
-    chMtxUnlock();
+    chMtxUnlock(&nvmmirrorp->mutex);
 #elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&nvmmirrorp->semaphore);
 #endif

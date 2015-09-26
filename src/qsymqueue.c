@@ -41,56 +41,8 @@
 #if CH_CFG_USE_QUEUES || defined(__DOXYGEN__)
 
 /**
- * @brief   Puts the invoking thread into the queue's reader threads queue.
- *
- * @param[out] sqp      pointer to an @p SymmetricQueue structure
- * @param[in] time      the number of ticks before the operation timeouts,
- *                      the following special values are allowed:
- *                      - @a TIME_IMMEDIATE immediate timeout.
- *                      - @a TIME_INFINITE no timeout.
- *                      .
- * @return              A message specifying how the invoking thread has been
- *                      released from threads queue.
- * @retval Q_OK         is the normal exit, thread signalled.
- * @retval Q_RESET      if the queue has been reset.
- * @retval Q_TIMEOUT    if the queue operation timed out.
- */
-static msg_t qwait_readers(SymmetricQueue *sqp, systime_t timeout)
-{
-    if (timeout == TIME_IMMEDIATE)
-        return Q_TIMEOUT;
-    currp->p_u.wtobjp = sqp;
-    queue_insert(currp, &sqp->q_readers);
-    return chSchGoSleepTimeoutS(THD_STATE_WTQUEUE, timeout);
-}
-
-/**
- * @brief   Puts the invoking thread into the queue's writer threads queue.
- *
- * @param[out] sqp      pointer to an @p SymmetricQueue structure
- * @param[in] time      the number of ticks before the operation timeouts,
- *                      the following special values are allowed:
- *                      - @a TIME_IMMEDIATE immediate timeout.
- *                      - @a TIME_INFINITE no timeout.
- *                      .
- * @return              A message specifying how the invoking thread has been
- *                      released from threads queue.
- * @retval Q_OK         is the normal exit, thread signalled.
- * @retval Q_RESET      if the queue has been reset.
- * @retval Q_TIMEOUT    if the queue operation timed out.
- */
-static msg_t qwait_writers(SymmetricQueue *sqp, systime_t timeout)
-{
-    if (timeout == TIME_IMMEDIATE)
-        return Q_TIMEOUT;
-    currp->p_u.wtobjp = sqp;
-    queue_insert(currp, &sqp->q_writers);
-    return chSchGoSleepTimeoutS(THD_STATE_WTQUEUE, timeout);
-}
-
-/**
  * @brief   Initializes a symmetric queue.
- * @details A Semaphore is internally initialized and works as a counter of
+ * @details A semaphore is internally initialized and works as a counter of
  *          the bytes contained in the queue.
  * @note    The callback is invoked from within the S-Locked system state,
  *          see @ref system_states.
@@ -127,10 +79,8 @@ void chSymQResetI(SymmetricQueue *sqp)
 
     sqp->q_rdptr = sqp->q_wrptr = sqp->q_buffer;
     sqp->q_counter = 0;
-    while (notempty(&sqp->q_readers))
-        chSchReadyI(fifo_remove(&sqp->q_readers))->p_u.rdymsg = Q_RESET;
-    while (notempty(&sqp->q_writers))
-        chSchReadyI(fifo_remove(&sqp->q_writers))->p_u.rdymsg = Q_RESET;
+    chThdDequeueAllI(&sqp->q_readers, Q_RESET);
+    chThdDequeueAllI(&sqp->q_writers, Q_RESET);
 }
 
 /**
@@ -159,8 +109,7 @@ msg_t chSymQGetI(SymmetricQueue *sqp)
         sqp->q_rdptr = sqp->q_buffer;
 
     /* Wake first eventually pending writer. */
-    if (notempty(&sqp->q_writers))
-        chSchReadyI(fifo_remove(&sqp->q_writers))->p_u.rdymsg = Q_OK;
+    chThdDequeueNextI(&sqp->q_writers, Q_OK);
 
     return b;
 }
@@ -192,7 +141,7 @@ msg_t chSymQGetTimeoutS(SymmetricQueue *sqp, systime_t timeout)
     if (chSymQIsEmptyI(sqp))
     {
         msg_t msg;
-        if ((msg = qwait_readers((SymmetricQueue*)sqp, timeout)) != Q_OK)
+        if ((msg = chThdEnqueueTimeoutS(&sqp->q_readers, timeout)) != Q_OK)
             return msg;
     }
 
@@ -202,8 +151,7 @@ msg_t chSymQGetTimeoutS(SymmetricQueue *sqp, systime_t timeout)
         sqp->q_rdptr = sqp->q_buffer;
 
     /* Wake first eventually pending writer. */
-    if (notempty(&sqp->q_writers))
-        chSchReadyI(fifo_remove(&sqp->q_writers))->p_u.rdymsg = Q_OK;
+    chThdDequeueNextI(&sqp->q_writers, Q_OK);
 
     return b;
 }
@@ -280,7 +228,7 @@ size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
                 this_timeout = timeout - chVTTimeElapsedSinceX(start);
             }
 
-            if (qwait_readers((SymmetricQueue*)sqp, this_timeout) != Q_OK)
+            if (chThdEnqueueTimeoutS(&sqp->q_readers, timeout) != Q_OK)
                 return r;
         }
 
@@ -290,8 +238,7 @@ size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
             sqp->q_rdptr = sqp->q_buffer;
 
         /* Wake first eventually pending writer. */
-        if (notempty(&sqp->q_writers))
-            chSchReadyI(fifo_remove(&sqp->q_writers))->p_u.rdymsg = Q_OK;
+        chThdDequeueNextI(&sqp->q_writers, Q_OK);
 
         chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
         r++;
@@ -363,8 +310,7 @@ msg_t chSymQPutI(SymmetricQueue *sqp, uint8_t b)
         sqp->q_wrptr = sqp->q_buffer;
 
     /* Wake first eventually pending reader. */
-    if (notempty(&sqp->q_readers))
-        chSchReadyI(fifo_remove(&sqp->q_readers))->p_u.rdymsg = Q_OK;
+    chThdDequeueNextI(&sqp->q_readers, Q_OK);
 
     return Q_OK;
 }
@@ -396,8 +342,7 @@ msg_t chSymQPutTimeoutS(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
     if (chSymQIsFullI(sqp))
     {
         msg_t msg;
-
-        if ((msg = qwait_writers((SymmetricQueue*)sqp, timeout)) != Q_OK)
+        if ((msg = chThdEnqueueTimeoutS(&sqp->q_writers, timeout)) != Q_OK)
             return msg;
     }
 
@@ -407,8 +352,7 @@ msg_t chSymQPutTimeoutS(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
         sqp->q_wrptr = sqp->q_buffer;
 
     /* Wake first eventually pending reader. */
-    if (notempty(&sqp->q_readers))
-        chSchReadyI(fifo_remove(&sqp->q_readers))->p_u.rdymsg = Q_OK;
+    chThdDequeueNextI(&sqp->q_readers, Q_OK);
 
     return Q_OK;
 }
@@ -487,7 +431,7 @@ size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
                 this_timeout = timeout - chVTTimeElapsedSinceX(start);
             }
 
-            if (qwait_writers((SymmetricQueue*)sqp, this_timeout) != Q_OK)
+            if (chThdEnqueueTimeoutS(&sqp->q_writers, timeout) != Q_OK)
                 return w;
         }
 
@@ -497,8 +441,7 @@ size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
             sqp->q_wrptr = sqp->q_buffer;
 
         /* Wake first eventually pending reader. */
-        if (notempty(&sqp->q_readers))
-            chSchReadyI(fifo_remove(&sqp->q_readers))->p_u.rdymsg = Q_OK;
+        chThdDequeueNextI(&sqp->q_readers, Q_OK);
 
         chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
         w++;

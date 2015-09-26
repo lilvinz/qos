@@ -79,9 +79,9 @@ void nvmpartObjectInit(NVMPartitionDriver* nvmpartp)
     nvmpartp->config = NULL;
 #if NVM_PARTITION_USE_MUTUAL_EXCLUSION
 #if CH_CFG_USE_MUTEXES
-    chMtxInit(&nvmpartp->mutex);
+    chMtxObjectInit(&nvmpartp->mutex);
 #else
-    chSemInit(&nvmpartp->semaphore, 1);
+    chSemObjectInit(&nvmpartp->semaphore, 1);
 #endif
 #endif /* NVM_PARTITION_USE_MUTUAL_EXCLUSION */
 }
@@ -354,7 +354,7 @@ void nvmpartReleaseBus(NVMPartitionDriver* nvmpartp)
 
 #if NVM_PARTITION_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
-    chMtxUnlock();
+    chMtxUnlock(&nvmpartp->mutex);
 #elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&nvmpartp->semaphore);
 #endif

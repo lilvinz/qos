@@ -94,7 +94,7 @@ eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
 {
     chDbgCheck(period != TIME_INFINITE && previous != NULL);
 
-    Thread *ctp = currp;
+    thread_t *ctp = currp;
     eventmask_t m;
     systime_t future = *previous + period;
 
@@ -119,7 +119,7 @@ eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
     if (mustDelay)
     {
         ctp->p_u.ewmask = mask;
-        if (chSchGoSleepTimeoutS(THD_STATE_WTOREVT, future - now) < MSG_OK)
+        if (chSchGoSleepTimeoutS(CH_STATE_WTOREVT, future - now) < MSG_OK)
         {
             chSysUnlock();
             /* Update previous time because of timeout. */

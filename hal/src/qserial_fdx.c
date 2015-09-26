@@ -304,7 +304,7 @@ void sfdxdInit(void)
 void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
 {
     sfdxdp->vmt = &vmt;
-    chEvtInit(&sfdxdp->event);
+    chEvtObjectInit(&sfdxdp->event);
     sfdxdp->state = SFDXD_STOP;
     sfdxdp->connected = FALSE;
     sfdxdp->thd_ptr = NULL;

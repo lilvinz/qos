@@ -940,9 +940,9 @@ void nvmfeeObjectInit(NVMFeeDriver* nvmfeep)
     nvmfeep->config = NULL;
 #if NVM_FEE_USE_MUTUAL_EXCLUSION
 #if CH_CFG_USE_MUTEXES
-    chMtxInit(&nvmfeep->mutex);
+    chMtxObjectInit(&nvmfeep->mutex);
 #else
-    chSemInit(&nvmfeep->semaphore, 1);
+    chSemObjectInit(&nvmfeep->semaphore, 1);
 #endif
 #endif /* NVM_JEDEC_SPI_USE_MUTUAL_EXCLUSION */
     nvmfeep->arena_active = 0;
@@ -1336,7 +1336,7 @@ void nvmfeeReleaseBus(NVMFeeDriver* nvmfeep)
 
 #if NVM_FEE_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
-    chMtxUnlock();
+    chMtxUnlock(&nvmfeep->mutex);
 #elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&nvmfeep->semaphore);
 #endif

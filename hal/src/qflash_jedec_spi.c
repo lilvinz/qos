@@ -408,9 +408,9 @@ void fjsObjectInit(FlashJedecSPIDriver* fjsp)
     fjsp->config = NULL;
 #if FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION
 #if CH_CFG_USE_MUTEXES
-    chMtxInit(&fjsp->mutex);
+    chMtxObjectInit(&fjsp->mutex);
 #else
-    chSemInit(&fjsp->semaphore, 1);
+    chSemObjectInit(&fjsp->semaphore, 1);
 #endif
 #endif /* FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION */
 }
@@ -785,7 +785,7 @@ void fjsReleaseBus(FlashJedecSPIDriver* fjsp)
 #if FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
     (void)fjsp;
-    chMtxUnlock();
+    chMtxUnlock(&fjsp->mutex);
 #elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&fjsp->semaphore);
 #endif

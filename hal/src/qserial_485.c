@@ -112,10 +112,10 @@ void s485dInit(void) {
 void s485dObjectInit(Serial485Driver *s485dp, qnotify_t inotify, qnotify_t onotify) {
 
   s485dp->vmt = &vmt;
-  chEvtInit(&s485dp->event);
+  chEvtObjectInit(&s485dp->event);
   s485dp->state = S485D_STOP;
-  chIQInit(&s485dp->iqueue, s485dp->ib, SERIAL_BUFFERS_SIZE, inotify, s485dp);
-  chOQInit(&s485dp->oqueue, s485dp->ob, SERIAL_BUFFERS_SIZE, onotify, s485dp);
+  chIQObjectInit(&s485dp->iqueue, s485dp->ib, SERIAL_BUFFERS_SIZE, inotify, s485dp);
+  chOQObjectInit(&s485dp->oqueue, s485dp->ob, SERIAL_BUFFERS_SIZE, onotify, s485dp);
 }
 
 /**

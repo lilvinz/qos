@@ -81,9 +81,9 @@ void flashObjectInit(FLASHDriver* flashp)
     flashp->config = NULL;
 #if FLASH_USE_MUTUAL_EXCLUSION
 #if CH_CFG_USE_MUTEXES
-    chMtxInit(&flashp->mutex);
+    chMtxObjectInit(&flashp->mutex);
 #else
-    chSemInit(&flashp->semaphore, 1);
+    chSemObjectInit(&flashp->semaphore, 1);
 #endif
 #endif /* FLASH_USE_MUTUAL_EXCLUSION */
 }
@@ -377,7 +377,7 @@ void flashReleaseBus(FLASHDriver* flashp)
 #if FLASH_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
     (void)flashp;
-    chMtxUnlock();
+    chMtxUnlock(&flashp->mutex);
 #elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&flashp->semaphore);
 #endif

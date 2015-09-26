@@ -83,9 +83,9 @@ void nvmfileObjectInit(NVMFileDriver* nvmfilep)
     nvmfilep->config = NULL;
 #if NVM_FILE_USE_MUTUAL_EXCLUSION
 #if CH_CFG_USE_MUTEXES
-    chMtxInit(&nvmfilep->mutex);
+    chMtxObjectInit(&nvmfilep->mutex);
 #else
-    chSemInit(&nvmfilep->semaphore, 1);
+    chSemObjectInit(&nvmfilep->semaphore, 1);
 #endif
 #endif /* NVM_FILE_USE_MUTUAL_EXCLUSION */
 }
@@ -430,7 +430,7 @@ void nvmfileReleaseBus(NVMFileDriver* nvmfilep)
 #if NVM_FILE_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
     (void)nvmfilep;
-    chMtxUnlock();
+    chMtxUnlock(&nvmfilep->mutex);
 #elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&nvmfilep->semaphore);
 #endif
