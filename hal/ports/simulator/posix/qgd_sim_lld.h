@@ -102,14 +102,14 @@ typedef struct
      */
     mutex_t mutex;
 #elif CH_CFG_USE_SEMAPHORES
-    Semaphore semaphore;
+    semaphore_t semaphore;
 #endif
 #endif /* GD_SIM_USE_MUTUAL_EXCLUSION */
     /**
      * @brief   Pointer to the thread.
      */
-    Thread* thd_ptr;
-    Thread* thd_wait;
+    thread_t* thd_ptr;
+    thread_t* thd_wait;
     /**
      * @brief   Working area for the dedicated data pump thread;
      */

@@ -116,7 +116,7 @@ struct MS5541Driver
      */
     mutex_t mutex;
 #elif CH_CFG_USE_SEMAPHORES
-    Semaphore semaphore;
+    semaphore_t semaphore;
 #endif
 #endif /* MS5541_USE_MUTUAL_EXCLUSION */
     /**

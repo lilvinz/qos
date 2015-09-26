@@ -213,11 +213,11 @@ struct SerialFdxDriver
     /**
      * @brief   Pointer to the thread.
      */
-    Thread* thd_ptr;
+    thread_t* thd_ptr;
     /**
      * @brief   Pointer to the thread when it is sleeping or @p NULL.
      */
-    Thread* thd_wait;
+    thread_t* thd_wait;
     /**
      * @brief   Working area for the dedicated data pump thread;
      */

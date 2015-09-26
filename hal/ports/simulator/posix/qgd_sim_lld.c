@@ -126,9 +126,9 @@ void gdsim_lld_object_init(GDSimDriver* gdsimp)
     {
         void *wsp = gdsimp->wa_pump;
         _thread_memfill((uint8_t*)wsp,
-                (uint8_t*)wsp + sizeof(Thread),
+                (uint8_t*)wsp + sizeof(thread_t),
                 CH_THREAD_FILL_VALUE);
-        _thread_memfill((uint8_t*)wsp + sizeof(Thread),
+        _thread_memfill((uint8_t*)wsp + sizeof(thread_t),
                 (uint8_t*)wsp + sizeof(gdsimp->wa_pump),
                 CH_STACK_FILL_VALUE);
     }

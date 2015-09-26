@@ -115,7 +115,7 @@ typedef struct
      */
     mutex_t mutex;
 #elif CH_CFG_USE_SEMAPHORES
-    Semaphore semaphore;
+    semaphore_t semaphore;
 #endif
 #endif /* NVM_PARTITION_USE_MUTUAL_EXCLUSION */
 } NVMPartitionDriver;

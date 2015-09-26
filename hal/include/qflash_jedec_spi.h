@@ -155,7 +155,7 @@ typedef struct
      */
     mutex_t mutex;
 #elif CH_CFG_USE_SEMAPHORES
-    Semaphore semaphore;
+    semaphore_t semaphore;
 #endif
 #endif /* FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION */
 } FlashJedecSPIDriver;
