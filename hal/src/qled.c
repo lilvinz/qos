@@ -149,8 +149,7 @@ void ledStop(LedDriver* ledp)
     chSysLock();
 
     /* Reset blink timer in case it is armed. */
-    if (chVTIsArmedI(&ledp->blink_vt))
-        chVTResetI(&ledp->blink_vt);
+    chVTResetI(&ledp->blink_vt);
 
     chDbgAssert((ledp->state == LED_STOP) || (ledp->state == LED_READY),
             "invalid state");
@@ -245,10 +244,6 @@ void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop)
     ledp->blink_on = on;
     ledp->blink_off = off;
     ledp->blink_loop = loop;
-
-    /* Reset timer in case it is already armed. */
-    if (chVTIsArmedI(&ledp->blink_vt))
-        chVTResetI(&ledp->blink_vt);
 
     /* Set new timer. */
     chVTSetI(&ledp->blink_vt, ledp->blink_on, blink_timer_on_cb, ledp);
