@@ -40,8 +40,8 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
-#if !CH_USE_WAITEXIT
-#error "GD_SIM_USE_MUTUAL_EXCLUSION requires CH_USE_WAITEXIT"
+#if !CH_CFG_USE_WAITEXIT
+#error "GD_SIM_USE_MUTUAL_EXCLUSION requires CH_CFG_USE_WAITEXIT"
 #endif
 
 /*===========================================================================*/
@@ -96,12 +96,12 @@ typedef struct
     */
     const GDSimConfig* config;
 #if GD_SIM_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES || defined(__DOXYGEN__)
+#if CH_CFG_USE_MUTEXES || defined(__DOXYGEN__)
     /**
      * @brief Mutex protecting the device.
      */
     Mutex mutex;
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     Semaphore semaphore;
 #endif
 #endif /* GD_SIM_USE_MUTUAL_EXCLUSION */

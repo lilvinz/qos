@@ -79,7 +79,7 @@ void gdsimObjectInit(GDSimDriver* gdsimp)
     gdsimp->state = GD_STOP;
     gdsimp->config = NULL;
 #if GD_SIM_USE_MUTUAL_EXCLUSION
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxInit(&gdsimp->mutex);
 #else
     chSemInit(&gdsimp->semaphore, 1);
@@ -294,9 +294,9 @@ void gdsimAcquireBus(GDSimDriver* gdsimp)
     chDbgCheck(gdsimp != NULL, "gdsimAcquireBus");
 
 #if GD_SIM_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxLock(&gdsimp->mutex);
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemWait(&gdsimp->semaphore);
 #endif
 #endif /* GD_SIM_USE_MUTUAL_EXCLUSION */
@@ -316,10 +316,10 @@ void gdsimReleaseBus(GDSimDriver* gdsimp)
     chDbgCheck(gdsimp != NULL, "gdsimReleaseBus");
 
 #if GD_SIM_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     (void)gdsimp;
     chMtxUnlock();
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&gdsimp->semaphore);
 #endif
 #endif /* GD_SIM_USE_MUTUAL_EXCLUSION */

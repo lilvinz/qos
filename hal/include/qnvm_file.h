@@ -38,9 +38,9 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
-#if NVM_FILE_USE_MUTUAL_EXCLUSION && (!CH_USE_MUTEXES && !CH_USE_SEMAPHORES)
-#error "NVM_FILE_USE_MUTUAL_EXCLUSION requires CH_USE_MUTEXES and/or "
-       "CH_USE_SEMAPHORES"
+#if NVM_FILE_USE_MUTUAL_EXCLUSION && (!CH_CFG_USE_MUTEXES && !CH_CFG_USE_SEMAPHORES)
+#error "NVM_FILE_USE_MUTUAL_EXCLUSION requires CH_CFG_USE_MUTEXES and/or "
+       "CH_CFG_USE_SEMAPHORES"
 #endif
 
 /*===========================================================================*/
@@ -103,12 +103,12 @@ typedef struct
     */
     FILE* file;
 #if NVM_FILE_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES || defined(__DOXYGEN__)
+#if CH_CFG_USE_MUTEXES || defined(__DOXYGEN__)
     /**
      * @brief Mutex protecting the device.
      */
     Mutex mutex;
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     Semaphore semaphore;
 #endif
 #endif /* NVM_FILE_USE_MUTUAL_EXCLUSION */

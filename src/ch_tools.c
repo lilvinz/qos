@@ -70,7 +70,7 @@ void chThdSleepPeriod(systime_t *previous, systime_t period)
     *previous = future;
 }
 
-#if CH_USE_EVENTS || defined(__DOXYGEN__)
+#if CH_CFG_USE_EVENTS || defined(__DOXYGEN__)
 
 /**
  * @brief   Waits for any of the specified events.
@@ -142,4 +142,4 @@ eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
     return (eventmask_t)0;
 }
 
-#endif /* CH_USE_EVENTS || defined(__DOXYGEN__) */
+#endif /* CH_CFG_USE_EVENTS || defined(__DOXYGEN__) */

@@ -77,7 +77,7 @@ void gdili9341ObjectInit(GDILI9341Driver* gdili9341p)
     gdili9341p->state = GD_STOP;
     gdili9341p->config = NULL;
 #if GD_ILI9341_USE_MUTUAL_EXCLUSION
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxInit(&gdili9341p->mutex);
 #else
     chSemInit(&gdili9341p->semaphore, 1);
@@ -388,9 +388,9 @@ void gdili9341AcquireBus(GDILI9341Driver* gdili9341p)
     chDbgCheck(gdili9341p != NULL, "gdili9341AcquireBus");
 
 #if GD_ILI9341_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxLock(&gdili9341p->mutex);
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemWait(&gdili9341p->semaphore);
 #endif
 #endif /* GD_ILI9341_USE_MUTUAL_EXCLUSION */
@@ -410,10 +410,10 @@ void gdili9341ReleaseBus(GDILI9341Driver* gdili9341p)
     chDbgCheck(gdili9341p != NULL, "gdili9341ReleaseBus");
 
 #if GD_ILI9341_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     (void)gdili9341p;
     chMtxUnlock();
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&gdili9341p->semaphore);
 #endif
 #endif /* GD_ILI9341_USE_MUTUAL_EXCLUSION */

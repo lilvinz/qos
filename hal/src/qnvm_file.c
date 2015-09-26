@@ -83,7 +83,7 @@ void nvmfileObjectInit(NVMFileDriver* nvmfilep)
     nvmfilep->state = NVM_STOP;
     nvmfilep->config = NULL;
 #if NVM_FILE_USE_MUTUAL_EXCLUSION
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxInit(&nvmfilep->mutex);
 #else
     chSemInit(&nvmfilep->semaphore, 1);
@@ -414,9 +414,9 @@ void nvmfileAcquireBus(NVMFileDriver* nvmfilep)
     chDbgCheck(nvmfilep != NULL, "nvmfileAcquireBus");
 
 #if NVM_FILE_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxLock(&nvmfilep->mutex);
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemWait(&nvmfilep->semaphore);
 #endif
 #endif /* NVM_FILE_USE_MUTUAL_EXCLUSION */
@@ -436,10 +436,10 @@ void nvmfileReleaseBus(NVMFileDriver* nvmfilep)
     chDbgCheck(nvmfilep != NULL, "nvmfileReleaseBus");
 
 #if NVM_FILE_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     (void)nvmfilep;
     chMtxUnlock();
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&nvmfilep->semaphore);
 #endif
 #endif /* NVM_FILE_USE_MUTUAL_EXCLUSION */

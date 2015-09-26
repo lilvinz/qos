@@ -82,10 +82,10 @@ extern "C"
 {
 #endif
     void chThdSleepPeriod(systime_t *previous, systime_t period);
-#if CH_USE_EVENTS || defined(__DOXYGEN__)
+#if CH_CFG_USE_EVENTS || defined(__DOXYGEN__)
     eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
             systime_t period);
-#endif /* CH_USE_EVENTS || defined(__DOXYGEN__) */
+#endif /* CH_CFG_USE_EVENTS || defined(__DOXYGEN__) */
 #ifdef __cplusplus
 }
 #endif

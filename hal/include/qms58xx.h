@@ -41,9 +41,9 @@
 #error "MS58XX driver requires HAL_USE_I2C"
 #endif
 
-#if MS58XX_USE_MUTUAL_EXCLUSION && !CH_USE_MUTEXES && !CH_USE_SEMAPHORES
-#error "MS58XX_USE_MUTUAL_EXCLUSION requires CH_USE_MUTEXES "
-       "and/or CH_USE_SEMAPHORES"
+#if MS58XX_USE_MUTUAL_EXCLUSION && !CH_CFG_USE_MUTEXES && !CH_CFG_USE_SEMAPHORES
+#error "MS58XX_USE_MUTUAL_EXCLUSION requires CH_CFG_USE_MUTEXES "
+       "and/or CH_CFG_USE_SEMAPHORES"
 #endif
 
 /*===========================================================================*/
@@ -107,12 +107,12 @@ struct MS58XXDriver
     */
     const MS58XXConfig* configp;
 #if MS58XX_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES || defined(__DOXYGEN__)
+#if CH_CFG_USE_MUTEXES || defined(__DOXYGEN__)
     /**
      * @brief Mutex protecting the device.
      */
     Mutex mutex;
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     Semaphore semaphore;
 #endif
 #endif /* MS58XX_USE_MUTUAL_EXCLUSION */

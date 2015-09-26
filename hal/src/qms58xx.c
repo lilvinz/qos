@@ -84,7 +84,7 @@ void ms58xxObjectInit(MS58XXDriver* ms58xxp)
     ms58xxp->last_d2 = 0;
     memset(ms58xxp->calibration, 0, sizeof(ms58xxp->calibration));
 #if MS58XX_USE_MUTUAL_EXCLUSION
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxInit(&ms58xxp->mutex);
 #else
     chSemInit(&ms58xxp->semaphore, 1);
@@ -228,9 +228,9 @@ void ms58xxAcquireBus(MS58XXDriver* ms58xxp)
     chDbgCheck(ms58xxp != NULL, "ms58xxAcquireBus");
 
 #if MS58XX_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxLock(&ms58xxp->mutex);
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemWait(&ms58xxp->semaphore);
 #endif
 
@@ -255,10 +255,10 @@ void ms58xxReleaseBus(MS58XXDriver* ms58xxp)
     chDbgCheck(ms58xxp != NULL, "ms58xxReleaseBus");
 
 #if MS58XX_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     (void)ms58xxp;
     chMtxUnlock();
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&ms58xxp->semaphore);
 #endif
 

@@ -941,7 +941,7 @@ void nvmfeeObjectInit(NVMFeeDriver* nvmfeep)
     nvmfeep->state = NVM_STOP;
     nvmfeep->config = NULL;
 #if NVM_FEE_USE_MUTUAL_EXCLUSION
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxInit(&nvmfeep->mutex);
 #else
     chSemInit(&nvmfeep->semaphore, 1);
@@ -1321,9 +1321,9 @@ void nvmfeeAcquireBus(NVMFeeDriver* nvmfeep)
     chDbgCheck(nvmfeep != NULL, "nvmfeeAcquireBus");
 
 #if NVM_FEE_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxLock(&nvmfeep->mutex);
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemWait(&nvmfeep->semaphore);
 #endif
 
@@ -1346,9 +1346,9 @@ void nvmfeeReleaseBus(NVMFeeDriver* nvmfeep)
     chDbgCheck(nvmfeep != NULL, "nvmfeeReleaseBus");
 
 #if NVM_FEE_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxUnlock();
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&nvmfeep->semaphore);
 #endif
 

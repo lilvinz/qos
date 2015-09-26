@@ -39,9 +39,9 @@
 /*===========================================================================*/
 
 #if GD_SIM_USE_MUTUAL_EXCLUSION &&                                            \
-    (!CH_USE_MUTEXES && !CH_USE_SEMAPHORES)
+    (!CH_CFG_USE_MUTEXES && !CH_CFG_USE_SEMAPHORES)
 #error "GD_SIM_USE_MUTUAL_EXCLUSION requires "                                \
-    "CH_USE_MUTEXES and/or CH_USE_SEMAPHORES"
+    "CH_CFG_USE_MUTEXES and/or CH_CFG_USE_SEMAPHORES"
 #endif
 
 /*===========================================================================*/

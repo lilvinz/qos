@@ -79,7 +79,7 @@ void nvmpartObjectInit(NVMPartitionDriver* nvmpartp)
     nvmpartp->state = NVM_STOP;
     nvmpartp->config = NULL;
 #if NVM_PARTITION_USE_MUTUAL_EXCLUSION
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxInit(&nvmpartp->mutex);
 #else
     chSemInit(&nvmpartp->semaphore, 1);
@@ -340,9 +340,9 @@ void nvmpartAcquireBus(NVMPartitionDriver* nvmpartp)
     chDbgCheck(nvmpartp != NULL, "nvmpartAcquireBus");
 
 #if NVM_PARTITION_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxLock(&nvmpartp->mutex);
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemWait(&nvmpartp->semaphore);
 #endif
 
@@ -365,9 +365,9 @@ void nvmpartReleaseBus(NVMPartitionDriver* nvmpartp)
     chDbgCheck(nvmpartp != NULL, "nvmpartReleaseBus");
 
 #if NVM_PARTITION_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxUnlock();
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&nvmpartp->semaphore);
 #endif
 

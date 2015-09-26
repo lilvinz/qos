@@ -174,12 +174,12 @@ typedef struct
      */
     FLASH_TypeDef* flash;
 #if FLASH_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES || defined(__DOXYGEN__)
+#if CH_CFG_USE_MUTEXES || defined(__DOXYGEN__)
     /**
      * @brief Mutex protecting the device.
      */
     Mutex mutex;
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     Semaphore semaphore;
 #endif
 #endif /* FLASH_USE_MUTUAL_EXCLUSION */

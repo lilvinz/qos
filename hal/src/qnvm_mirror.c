@@ -308,7 +308,7 @@ void nvmmirrorObjectInit(NVMMirrorDriver* nvmmirrorp)
     nvmmirrorp->state = NVM_STOP;
     nvmmirrorp->config = NULL;
 #if NVM_MIRROR_USE_MUTUAL_EXCLUSION
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxInit(&nvmmirrorp->mutex);
 #else
     chSemInit(&nvmmirrorp->semaphore, 1);
@@ -713,9 +713,9 @@ void nvmmirrorAcquireBus(NVMMirrorDriver* nvmmirrorp)
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorAcquireBus");
 
 #if NVM_MIRROR_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxLock(&nvmmirrorp->mutex);
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemWait(&nvmmirrorp->semaphore);
 #endif
 
@@ -738,9 +738,9 @@ void nvmmirrorReleaseBus(NVMMirrorDriver* nvmmirrorp)
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorReleaseBus");
 
 #if NVM_MIRROR_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_USE_MUTEXES
+#if CH_CFG_USE_MUTEXES
     chMtxUnlock();
-#elif CH_USE_SEMAPHORES
+#elif CH_CFG_USE_SEMAPHORES
     chSemSignal(&nvmmirrorp->semaphore);
 #endif
 
