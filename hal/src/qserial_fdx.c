@@ -310,10 +310,10 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
     sfdxdp->thd_ptr = NULL;
     sfdxdp->thd_wait = NULL;
 
-    chSymQInit(&sfdxdp->iqueue, sfdxdp->ib,
+    chSymQObjectInit(&sfdxdp->iqueue, sfdxdp->ib,
             sizeof(sfdxdp->ib));
 
-    chSymQInit(&sfdxdp->oqueue, sfdxdp->ob,
+    chSymQObjectInit(&sfdxdp->oqueue, sfdxdp->ob,
             sizeof(sfdxdp->ob));
 
     /* Filling the thread working area here because the function

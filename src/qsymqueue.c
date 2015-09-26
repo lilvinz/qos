@@ -47,13 +47,13 @@
  * @note    The callback is invoked from within the S-Locked system state,
  *          see @ref system_states.
  *
- * @param[out] sqp      pointer to an @p SymmetricQueue structure
+ * @param[out] sqp      pointer to an @p symmetric_queue_t structure
  * @param[in] bp        pointer to a memory area allocated as queue buffer
  * @param[in] size      size of the queue buffer
  *
  * @init
  */
-void chSymQInit(SymmetricQueue *sqp, uint8_t *bp, size_t size)
+void chSymQObjectInit(symmetric_queue_t *sqp, uint8_t *bp, size_t size)
 {
     queue_init(&sqp->q_readers);
     queue_init(&sqp->q_writers);
@@ -69,11 +69,11 @@ void chSymQInit(SymmetricQueue *sqp, uint8_t *bp, size_t size)
  * @note    A reset operation can be used by a low level driver in order to
  *          obtain immediate attention from the high level layers.
  *
- * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] sqp       pointer to an @p symmetric_queue_t structure
  *
  * @iclass
  */
-void chSymQResetI(SymmetricQueue *sqp)
+void chSymQResetI(symmetric_queue_t *sqp)
 {
     chDbgCheckClassI();
 
@@ -87,14 +87,14 @@ void chSymQResetI(SymmetricQueue *sqp)
  * @brief   Symmetric queue read.
  * @details This function reads a byte value from a symmetric queue.
  *
- * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] sqp       pointer to an @p symmetric_queue_t structure
  *
  * @return              A byte value from the queue.
  * @retval Q_EMPTY      If the queue is empty.
  *
  * @iclass
  */
-msg_t chSymQGetI(SymmetricQueue *sqp)
+msg_t chSymQGetI(symmetric_queue_t *sqp)
 {
     uint8_t b;
 
@@ -120,7 +120,7 @@ msg_t chSymQGetI(SymmetricQueue *sqp)
  *          is empty then the calling thread is suspended until a byte arrives
  *          in the queue or a timeout occurs.
  *
- * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] sqp       pointer to an @p symmetric_queue_t structure
  * @param[in] time      the number of ticks before the operation timeouts,
  *                      the following special values are allowed:
  *                      - @a TIME_IMMEDIATE immediate timeout.
@@ -132,7 +132,7 @@ msg_t chSymQGetI(SymmetricQueue *sqp)
  *
  * @sclass
  */
-msg_t chSymQGetTimeoutS(SymmetricQueue *sqp, systime_t timeout)
+msg_t chSymQGetTimeoutS(symmetric_queue_t *sqp, systime_t timeout)
 {
     uint8_t b;
 
@@ -162,7 +162,7 @@ msg_t chSymQGetTimeoutS(SymmetricQueue *sqp, systime_t timeout)
  *          is empty then the calling thread is suspended until a byte arrives
  *          in the queue or a timeout occurs.
  *
- * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] sqp       pointer to an @p symmetric_queue_t structure
  * @param[in] time      the number of ticks before the operation timeouts,
  *                      the following special values are allowed:
  *                      - @a TIME_IMMEDIATE immediate timeout.
@@ -174,7 +174,7 @@ msg_t chSymQGetTimeoutS(SymmetricQueue *sqp, systime_t timeout)
  *
  * @api
  */
-msg_t chSymQGetTimeout(SymmetricQueue *sqp, systime_t timeout)
+msg_t chSymQGetTimeout(symmetric_queue_t *sqp, systime_t timeout)
 {
     chSysLock();
     msg_t result = chSymQGetTimeoutS(sqp, timeout);
@@ -192,7 +192,7 @@ msg_t chSymQGetTimeout(SymmetricQueue *sqp, systime_t timeout)
  * @note    The function is not atomic, if you need atomicity it is suggested
  *          to use a semaphore or a mutex for mutual exclusion.
  *
- * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] sqp       pointer to an @p symmetric_queue_t structure
  * @param[out] bp       pointer to the data buffer
  * @param[in] n         the maximum amount of data to be transferred, the
  *                      value 0 is reserved
@@ -205,7 +205,7 @@ msg_t chSymQGetTimeout(SymmetricQueue *sqp, systime_t timeout)
  *
  * @sclass
  */
-size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
+size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
                        size_t n, systime_t timeout)
 {
     size_t r = 0;
@@ -261,7 +261,7 @@ size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
  * @note    The function is not atomic, if you need atomicity it is suggested
  *          to use a semaphore or a mutex for mutual exclusion.
  *
- * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] sqp       pointer to an @p symmetric_queue_t structure
  * @param[out] bp       pointer to the data buffer
  * @param[in] n         the maximum amount of data to be transferred, the
  *                      value 0 is reserved
@@ -274,7 +274,7 @@ size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
  *
  * @api
  */
-size_t chSymQReadTimeout(SymmetricQueue *sqp, uint8_t *bp,
+size_t chSymQReadTimeout(symmetric_queue_t *sqp, uint8_t *bp,
                        size_t n, systime_t timeout)
 {
     chSysLock();
@@ -288,7 +288,7 @@ size_t chSymQReadTimeout(SymmetricQueue *sqp, uint8_t *bp,
  * @brief   Symmetric queue write.
  * @details This function writes a byte value to a symmetric queue.
  *
- * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] sqp       pointer to an @p symmetric_queue_t structure
  * @param[in] b         the byte value to be written in the queue
  *                      .
  * @return              The operation status.
@@ -298,7 +298,7 @@ size_t chSymQReadTimeout(SymmetricQueue *sqp, uint8_t *bp,
  *
  * @iclass
  */
-msg_t chSymQPutI(SymmetricQueue *sqp, uint8_t b)
+msg_t chSymQPutI(symmetric_queue_t *sqp, uint8_t b)
 {
     chDbgCheckClassI();
     if (chSymQIsFullI(sqp) == TRUE)
@@ -321,7 +321,7 @@ msg_t chSymQPutI(SymmetricQueue *sqp, uint8_t b)
  *          is full then the calling thread is suspended until there is space
  *          in the queue or a timeout occurs.
  *
- * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] sqp       pointer to an @p symmetric_queue_t structure
  * @param[in] b         the byte value to be written in the queue
  * @param[in] time      the number of ticks before the operation timeouts,
  *                      the following special values are allowed:
@@ -335,7 +335,7 @@ msg_t chSymQPutI(SymmetricQueue *sqp, uint8_t b)
  *
  * @sclass
  */
-msg_t chSymQPutTimeoutS(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
+msg_t chSymQPutTimeoutS(symmetric_queue_t *sqp, uint8_t b, systime_t timeout)
 {
     chDbgCheckClassS();
 
@@ -363,7 +363,7 @@ msg_t chSymQPutTimeoutS(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
  *          is full then the calling thread is suspended until there is space
  *          in the queue or a timeout occurs.
  *
- * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] sqp       pointer to an @p symmetric_queue_t structure
  * @param[in] b         the byte value to be written in the queue
  * @param[in] time      the number of ticks before the operation timeouts,
  *                      the following special values are allowed:
@@ -377,7 +377,7 @@ msg_t chSymQPutTimeoutS(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
  *
  * @api
  */
-msg_t chSymQPutTimeout(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
+msg_t chSymQPutTimeout(symmetric_queue_t *sqp, uint8_t b, systime_t timeout)
 {
     chSysLock();
     msg_t result = chSymQPutTimeoutS(sqp, b, timeout);
@@ -395,7 +395,7 @@ msg_t chSymQPutTimeout(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
  * @note    The function is not atomic, if you need atomicity it is suggested
  *          to use a semaphore or a mutex for mutual exclusion.
  *
- * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] sqp       pointer to an @p symmetric_queue_t structure
  * @param[in] bp        pointer to the data buffer
  * @param[in] n         the maximum amount of data to be transferred, the
  *                      value 0 is reserved
@@ -408,7 +408,7 @@ msg_t chSymQPutTimeout(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
  *
  * @sclass
  */
-size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
+size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
                         size_t n, systime_t timeout)
 {
     size_t w = 0;
@@ -463,7 +463,7 @@ size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
  * @note    The function is not atomic, if you need atomicity it is suggested
  *          to use a semaphore or a mutex for mutual exclusion.
  *
- * @param[in] sqp       pointer to an @p SymmetricQueue structure
+ * @param[in] sqp       pointer to an @p symmetric_queue_t structure
  * @param[in] bp        pointer to the data buffer
  * @param[in] n         the maximum amount of data to be transferred, the
  *                      value 0 is reserved
@@ -476,7 +476,7 @@ size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
  *
  * @api
  */
-size_t chSymQWriteTimeout(SymmetricQueue *sqp, const uint8_t *bp,
+size_t chSymQWriteTimeout(symmetric_queue_t *sqp, const uint8_t *bp,
                         size_t n, systime_t timeout)
 {
     chSysLock();

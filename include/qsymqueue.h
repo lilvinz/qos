@@ -43,13 +43,13 @@
 /**
  * @brief   Type of a generic I/O queue structure.
  */
-typedef struct SymmetricQueue SymmetricQueue;
+typedef struct symmetric_queue symmetric_queue_t;
 
 /**
  * @brief   Symmetric queue structure.
  * @details This structure represents a symmetric queue.
  */
-struct SymmetricQueue {
+struct symmetric_queue {
   threads_queue_t q_readers;   /**< @brief Queue of threads waiting to read. */
   threads_queue_t q_writers;   /**< @brief Queue of threads waiting to write.*/
   size_t q_counter;         /**< @brief Resources counter.                   */
@@ -67,7 +67,7 @@ struct SymmetricQueue {
 /**
  * @brief   Returns the queue's buffer size.
  *
- * @param[in] qp        pointer to a @p SymmetricQueue structure.
+ * @param[in] qp        pointer to a @p symmetric_queue_t structure.
  * @return              The buffer size.
  *
  * @iclass
@@ -78,7 +78,7 @@ struct SymmetricQueue {
  * @brief   Queue space.
  * @details Returns the used space.
  *
- * @param[in] qp        pointer to a @p SymmetricQueue structure.
+ * @param[in] qp        pointer to a @p symmetric_queue_t structure.
  * @return              The used buffer space.
  *
  * @iclass
@@ -88,7 +88,7 @@ struct SymmetricQueue {
 /**
  * @brief   Returns the filled space into a symmetric queue.
  *
- * @param[in] sqp       pointer to a @p SymmetricQueue structure
+ * @param[in] sqp       pointer to a @p symmetric_queue_t structure
  * @return              The number of full bytes in the queue.
  * @retval 0            if the queue is empty.
  *
@@ -99,7 +99,7 @@ struct SymmetricQueue {
 /**
  * @brief   Returns the empty space into a symmetric queue.
  *
- * @param[in] sqp       pointer to a @p SymmetricQueue structure
+ * @param[in] sqp       pointer to a @p symmetric_queue_t structure
  * @return              The number of empty bytes in the queue.
  * @retval 0            if the queue is full.
  *
@@ -110,7 +110,7 @@ struct SymmetricQueue {
 /**
  * @brief   Evaluates to @p TRUE if the specified symmetric queue is empty.
  *
- * @param[in] sqp       pointer to a @p SymmetricQueue structure.
+ * @param[in] sqp       pointer to a @p symmetric_queue_t structure.
  * @return              The queue status.
  * @retval FALSE        if the queue is not empty.
  * @retval TRUE         if the queue is empty.
@@ -122,7 +122,7 @@ struct SymmetricQueue {
 /**
  * @brief   Evaluates to @p TRUE if the specified symmetric queue is full.
  *
- * @param[in] sqp       pointer to a @p SymmetricQueue structure.
+ * @param[in] sqp       pointer to a @p symmetric_queue_t structure.
  * @return              The queue status.
  * @retval FALSE        if the queue is not full.
  * @retval TRUE         if the queue is full.
@@ -137,7 +137,7 @@ struct SymmetricQueue {
  *          is empty then the calling thread is suspended until a byte arrives
  *          in the queue.
  *
- * @param[in] sqp       pointer to a @p SymmetricQueue structure
+ * @param[in] sqp       pointer to a @p symmetric_queue_t structure
  * @return              A byte value from the queue.
  * @retval Q_RESET      if the queue has been reset.
  *
@@ -151,7 +151,7 @@ struct SymmetricQueue {
  *          is full then the calling thread is suspended until there is space
  *          in the queue.
  *
- * @param[in] sqp       pointer to a @p SymmetricQueue structure
+ * @param[in] sqp       pointer to a @p symmetric_queue_t structure
  * @param[in] b         the byte value to be written in the queue
  * @return              The operation status.
  * @retval Q_OK         if the operation succeeded.
@@ -183,33 +183,33 @@ struct SymmetricQueue {
 /**
  * @brief   Static symmetric queue initializer.
  * @details Statically initialized symmetric queues require no explicit
- *          initialization using @p chSymQInit().
+ *          initialization using @p chSymQObjectInit().
  *
  * @param[in] name      the name of the input queue variable
  * @param[in] buffer    pointer to the queue buffer area
  * @param[in] size      size of the queue buffer area
  */
 #define SYMMETRICQUEUE_DECL(name, buffer, size)                             \
-  SymmetricQueue name = _SYMMETRICQUEUE_DATA(name, buffer, size)
+  symmetric_queue_t name = _SYMMETRICQUEUE_DATA(name, buffer, size)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void chSymQInit(SymmetricQueue *sqp, uint8_t *bp, size_t size);
-  void chSymQResetI(SymmetricQueue *sqp);
-  msg_t chSymQGetI(SymmetricQueue *sqp);
-  msg_t chSymQGetTimeoutS(SymmetricQueue *sqp, systime_t timeout);
-  msg_t chSymQGetTimeout(SymmetricQueue *sqp, systime_t timeout);
-  size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
+  void chSymQObjectInit(symmetric_queue_t *sqp, uint8_t *bp, size_t size);
+  void chSymQResetI(symmetric_queue_t *sqp);
+  msg_t chSymQGetI(symmetric_queue_t *sqp);
+  msg_t chSymQGetTimeoutS(symmetric_queue_t *sqp, systime_t timeout);
+  msg_t chSymQGetTimeout(symmetric_queue_t *sqp, systime_t timeout);
+  size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
                          size_t n, systime_t timeout);
-  size_t chSymQReadTimeout(SymmetricQueue *sqp, uint8_t *bp,
+  size_t chSymQReadTimeout(symmetric_queue_t *sqp, uint8_t *bp,
                          size_t n, systime_t timeout);
-  msg_t chSymQPutI(SymmetricQueue *sqp, uint8_t b);
-  msg_t chSymQPutTimeoutS(SymmetricQueue *sqp, uint8_t b, systime_t timeout);
-  msg_t chSymQPutTimeout(SymmetricQueue *sqp, uint8_t b, systime_t timeout);
-  size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
+  msg_t chSymQPutI(symmetric_queue_t *sqp, uint8_t b);
+  msg_t chSymQPutTimeoutS(symmetric_queue_t *sqp, uint8_t b, systime_t timeout);
+  msg_t chSymQPutTimeout(symmetric_queue_t *sqp, uint8_t b, systime_t timeout);
+  size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
                           size_t n, systime_t timeout);
-  size_t chSymQWriteTimeout(SymmetricQueue *sqp, const uint8_t *bp,
+  size_t chSymQWriteTimeout(symmetric_queue_t *sqp, const uint8_t *bp,
                           size_t n, systime_t timeout);
 #ifdef __cplusplus
 }

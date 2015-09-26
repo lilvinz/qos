@@ -170,9 +170,9 @@ typedef struct
     /* Driver state. */                                                   \
     sfdxdstate_t state;                                                   \
     /* Input queue.*/                                                     \
-    SymmetricQueue iqueue;                                                \
+    symmetric_queue_t iqueue;                                             \
     /* Output queue.*/                                                    \
-    SymmetricQueue oqueue;                                                \
+    symmetric_queue_t oqueue;                                             \
     /* Input circular buffer.*/                                           \
     uint8_t ib[SERIAL_FDX_BUFFER_SIZE];                                   \
     /* Output circular buffer.*/                                          \

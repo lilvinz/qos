@@ -302,7 +302,7 @@ void sdvirtualObjectInit(SerialVirtualDriver *sdvirtualp)
     sdvirtualp->vmt = &vmt;
     chEvtObjectInit(&sdvirtualp->event);
     sdvirtualp->state = SDVIRTUAL_STOP;
-    chSymQInit(&sdvirtualp->queue, sdvirtualp->queuebuf,
+    chSymQObjectInit(&sdvirtualp->queue, sdvirtualp->queuebuf,
             sizeof(sdvirtualp->queuebuf));
 }
 

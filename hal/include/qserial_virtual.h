@@ -83,7 +83,7 @@ typedef struct
     /* Driver state. */                                                       \
     sdvirtualstate_t state;                                                   \
     /* Incoming data queue.*/                                                 \
-    SymmetricQueue queue;                                                     \
+    symmetric_queue_t queue;                                                  \
     /* Input buffer.*/                                                        \
     uint8_t queuebuf[SERIAL_VIRTUAL_BUFFER_SIZE];
 
