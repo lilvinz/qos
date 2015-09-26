@@ -6,7 +6,6 @@
  * @{
  */
 
-#include "ch.h"
 #include "qhal.h"
 
 #if HAL_USE_NVM_FILE || defined(__DOXYGEN__)

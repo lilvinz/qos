@@ -6,7 +6,6 @@
  * @{
  */
 
-#include "ch.h"
 #include "qhal.h"
 
 #if HAL_USE_MS5541 || defined(__DOXYGEN__)

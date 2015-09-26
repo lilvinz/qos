@@ -2,7 +2,7 @@
 #ifndef CH_TOOLS_H_
 #define CH_TOOLS_H_
 
-#include "ch.h"
+#include "qhal.h"
 
 /*===========================================================================*/
 /* Constants                                                                 */

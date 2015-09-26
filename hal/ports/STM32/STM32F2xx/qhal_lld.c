@@ -22,7 +22,6 @@
  * @{
  */
 
-#include "ch.h"
 #include "qhal.h"
 
 #include <string.h>

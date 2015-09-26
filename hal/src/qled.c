@@ -6,7 +6,6 @@
  * @{
  */
 
-#include "ch.h"
 #include "qhal.h"
 
 #if HAL_USE_LED || defined(__DOXYGEN__)

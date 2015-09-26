@@ -6,7 +6,6 @@
  * @{
  */
 
-#include "ch.h"
 #include "qhal.h"
 
 #if HAL_USE_SERIAL_485 || defined(__DOXYGEN__)

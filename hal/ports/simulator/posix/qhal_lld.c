@@ -27,7 +27,6 @@
 #include <sys/time.h>
 #include <signal.h>
 
-#include "ch.h"
 #include "qhal.h"
 
 /*===========================================================================*/

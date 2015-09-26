@@ -22,7 +22,6 @@
  * @{
  */
 
-#include "ch.h"
 #include "qhal.h"
 
 #if HAL_USE_RTC || defined(__DOXYGEN__)
