@@ -102,10 +102,10 @@ void ms58xxObjectInit(MS58XXDriver* ms58xxp)
  */
 void ms58xxStart(MS58XXDriver* ms58xxp, const MS58XXConfig* configp)
 {
-    chDbgCheck((ms58xxp != NULL) && (configp != NULL), "ms58xxStart");
+    chDbgCheck((ms58xxp != NULL) && (configp != NULL));
     /* Verify device status. */
     chDbgAssert((ms58xxp->state == MS58XX_STOP) || (ms58xxp->state == MS58XX_READY),
-            "ms58xxStart(), #1", "invalid state");
+            "invalid state");
 
     ms58xxp->configp = configp;
 
@@ -204,10 +204,10 @@ void ms58xxStart(MS58XXDriver* ms58xxp, const MS58XXConfig* configp)
  */
 void ms58xxStop(MS58XXDriver* ms58xxp)
 {
-    chDbgCheck(ms58xxp != NULL, "ms58xxStop");
+    chDbgCheck(ms58xxp != NULL);
     /* Verify device status. */
     chDbgAssert((ms58xxp->state == MS58XX_STOP) || (ms58xxp->state == MS58XX_READY),
-            "ms58xxStop(), #1", "invalid state");
+            "invalid state");
 
     ms58xxp->state = MS58XX_STOP;
 }
@@ -225,7 +225,7 @@ void ms58xxStop(MS58XXDriver* ms58xxp)
  */
 void ms58xxAcquireBus(MS58XXDriver* ms58xxp)
 {
-    chDbgCheck(ms58xxp != NULL, "ms58xxAcquireBus");
+    chDbgCheck(ms58xxp != NULL);
 
 #if MS58XX_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -252,7 +252,7 @@ void ms58xxAcquireBus(MS58XXDriver* ms58xxp)
  */
 void ms58xxReleaseBus(MS58XXDriver* ms58xxp)
 {
-    chDbgCheck(ms58xxp != NULL, "ms58xxReleaseBus");
+    chDbgCheck(ms58xxp != NULL);
 
 #if MS58XX_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -283,10 +283,9 @@ void ms58xxReleaseBus(MS58XXDriver* ms58xxp)
  */
 bool ms58xxTemperatureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
 {
-    chDbgCheck(ms58xxp != NULL, "ms58xxTemperatureStart");
+    chDbgCheck(ms58xxp != NULL);
     /* Verify device status. */
-    chDbgAssert(ms58xxp->state == MS58XX_READY,
-            "ms58xxTemperatureStart(), #1", "invalid stateMS58XXDriver");
+    chDbgAssert(ms58xxp->state == MS58XX_READY, "invalid state");
 
     ms58xxp->state = MS58XX_ACTIVE;
 
@@ -322,10 +321,9 @@ bool ms58xxTemperatureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
  */
 bool ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
 {
-    chDbgCheck(ms58xxp != NULL, "ms58xxTemperatureResult");
+    chDbgCheck(ms58xxp != NULL);
     /* Verify device status. */
-    chDbgAssert(ms58xxp->state == MS58XX_ACTIVE,
-            "ms58xxTemperatureResult(), #1", "invalid state");
+    chDbgAssert(ms58xxp->state == MS58XX_ACTIVE, "invalid state");
 
     /* Read result from chip. */
     {
@@ -396,10 +394,9 @@ bool ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
  */
 bool ms58xxPressureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
 {
-    chDbgCheck(ms58xxp != NULL, "ms58xxPressureStart");
+    chDbgCheck(ms58xxp != NULL);
     /* Verify device status. */
-    chDbgAssert(ms58xxp->state == MS58XX_READY,
-            "ms58xxPressureStart(), #1", "invalid state");
+    chDbgAssert(ms58xxp->state == MS58XX_READY, "invalid state");
 
     ms58xxp->state = MS58XX_ACTIVE;
 
@@ -435,10 +432,9 @@ bool ms58xxPressureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
  */
 bool ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp)
 {
-    chDbgCheck(ms58xxp != NULL, "ms58xxPressureResult");
+    chDbgCheck(ms58xxp != NULL);
     /* Verify device status. */
-    chDbgAssert(ms58xxp->state == MS58XX_ACTIVE,
-            "ms58xxPressureResult(), #1", "invalid state");
+    chDbgAssert(ms58xxp->state == MS58XX_ACTIVE, "invalid state");
 
     /* Read result from chip. */
     {

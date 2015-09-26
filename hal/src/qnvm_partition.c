@@ -98,10 +98,10 @@ void nvmpartObjectInit(NVMPartitionDriver* nvmpartp)
 void nvmpartStart(NVMPartitionDriver* nvmpartp,
         const NVMPartitionConfig* config)
 {
-    chDbgCheck((nvmpartp != NULL) && (config != NULL), "nvmpartStart");
+    chDbgCheck((nvmpartp != NULL) && (config != NULL));
     /* Verify device status. */
     chDbgAssert((nvmpartp->state == NVM_STOP) || (nvmpartp->state == NVM_READY),
-            "nvmpartStart(), #1", "invalid state");
+            "invalid state");
 
     nvmpartp->config = config;
 
@@ -122,10 +122,10 @@ void nvmpartStart(NVMPartitionDriver* nvmpartp,
  */
 void nvmpartStop(NVMPartitionDriver* nvmpartp)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartStop");
+    chDbgCheck(nvmpartp != NULL);
     /* Verify device status. */
     chDbgAssert((nvmpartp->state == NVM_STOP) || (nvmpartp->state == NVM_READY),
-            "nvmpartStop(), #1", "invalid state");
+            "invalid state");
 
     nvmpartp->state = NVM_STOP;
 }
@@ -147,14 +147,11 @@ void nvmpartStop(NVMPartitionDriver* nvmpartp)
 bool nvmpartRead(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
         uint32_t n, uint8_t* buffer)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartRead");
+    chDbgCheck(nvmpartp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartRead(), #1",
-            "invalid state");
+    chDbgAssert(nvmpartp->state >= NVM_READY, "invalid state");
     /* Verify range is within partition size. */
-    chDbgAssert(
-            (startaddr + n <= nvmpartp->part_size),
-            "nvmpartRead(), #2", "invalid parameters");
+    chDbgAssert( (startaddr + n <= nvmpartp->part_size), "invalid parameters");
 
     /* Read operation in progress. */
     nvmpartp->state = NVM_READING;
@@ -188,14 +185,11 @@ bool nvmpartRead(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
 bool nvmpartWrite(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
        uint32_t n, const uint8_t* buffer)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartWrite");
+    chDbgCheck(nvmpartp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartWrite(), #1",
-            "invalid state");
+    chDbgAssert(nvmpartp->state >= NVM_READY, "invalid state");
     /* Verify range is within partition size. */
-    chDbgAssert(
-            (startaddr + n <= nvmpartp->part_size),
-            "nvmpartWrite(), #2", "invalid parameters");
+    chDbgAssert( (startaddr + n <= nvmpartp->part_size), "invalid parameters");
 
     /* Write operation in progress. */
     nvmpartp->state = NVM_WRITING;
@@ -221,13 +215,11 @@ bool nvmpartWrite(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
 bool nvmpartErase(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
         uint32_t n)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartErase");
+    chDbgCheck(nvmpartp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartErase(), #1",
-            "invalid state");
+    chDbgAssert(nvmpartp->state >= NVM_READY, "invalid state");
     /* Verify range is within partition size. */
-    chDbgAssert((startaddr + n <= nvmpartp->part_size),
-            "nvmpartRead(), #2", "invalid parameters");
+    chDbgAssert((startaddr + n <= nvmpartp->part_size), "invalid parameters");
 
     /* Erase operation in progress. */
     nvmpartp->state = NVM_ERASING;
@@ -250,10 +242,9 @@ bool nvmpartErase(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
  */
 bool nvmpartMassErase(NVMPartitionDriver* nvmpartp)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartMassErase");
+    chDbgCheck(nvmpartp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartMassErase(), #1",
-            "invalid state");
+    chDbgAssert(nvmpartp->state >= NVM_READY, "invalid state");
 
     /* Erase operation in progress. */
     nvmpartp->state = NVM_ERASING;
@@ -276,10 +267,9 @@ bool nvmpartMassErase(NVMPartitionDriver* nvmpartp)
  */
 bool nvmpartSync(NVMPartitionDriver* nvmpartp)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartSync");
+    chDbgCheck(nvmpartp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartSync(), #1",
-            "invalid state");
+    chDbgAssert(nvmpartp->state >= NVM_READY, "invalid state");
 
     if (nvmpartp->state == NVM_READY)
         return HAL_SUCCESS;
@@ -308,10 +298,9 @@ bool nvmpartSync(NVMPartitionDriver* nvmpartp)
  */
 bool nvmpartGetInfo(NVMPartitionDriver* nvmpartp, NVMDeviceInfo* nvmdip)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartGetInfo");
+    chDbgCheck(nvmpartp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartGetInfo(), #1",
-            "invalid state");
+    chDbgAssert(nvmpartp->state >= NVM_READY, "invalid state");
 
     nvmdip->sector_num = nvmpartp->config->sector_num;
     nvmdip->sector_size = nvmpartp->llnvmdi.sector_size;
@@ -337,7 +326,7 @@ bool nvmpartGetInfo(NVMPartitionDriver* nvmpartp, NVMDeviceInfo* nvmdip)
  */
 void nvmpartAcquireBus(NVMPartitionDriver* nvmpartp)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartAcquireBus");
+    chDbgCheck(nvmpartp != NULL);
 
 #if NVM_PARTITION_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -362,7 +351,7 @@ void nvmpartAcquireBus(NVMPartitionDriver* nvmpartp)
  */
 void nvmpartReleaseBus(NVMPartitionDriver* nvmpartp)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartReleaseBus");
+    chDbgCheck(nvmpartp != NULL);
 
 #if NVM_PARTITION_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -392,13 +381,11 @@ void nvmpartReleaseBus(NVMPartitionDriver* nvmpartp)
 bool nvmpartWriteProtect(NVMPartitionDriver* nvmpartp,
         uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartWriteProtect");
+    chDbgCheck(nvmpartp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartWriteProtect(), #1",
-            "invalid state");
+    chDbgAssert(nvmpartp->state >= NVM_READY, "invalid state");
     /* Verify range is within partition size. */
-    chDbgAssert((startaddr + n <= nvmpartp->part_size),
-            "nvmpartWriteProtect(), #2", "invalid parameters");
+    chDbgAssert((startaddr + n <= nvmpartp->part_size), "invalid parameters");
 
     return nvmWriteProtect(nvmpartp->config->nvmp,
             nvmpartp->part_org + startaddr,
@@ -418,10 +405,9 @@ bool nvmpartWriteProtect(NVMPartitionDriver* nvmpartp,
  */
 bool nvmpartMassWriteProtect(NVMPartitionDriver* nvmpartp)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartMassWriteProtect");
+    chDbgCheck(nvmpartp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartMassWriteProtect(), #1",
-            "invalid state");
+    chDbgAssert(nvmpartp->state >= NVM_READY, "invalid state");
 
     return nvmWriteProtect(nvmpartp->config->nvmp,
             nvmpartp->part_org,
@@ -444,13 +430,11 @@ bool nvmpartMassWriteProtect(NVMPartitionDriver* nvmpartp)
 bool nvmpartWriteUnprotect(NVMPartitionDriver* nvmpartp,
         uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartWriteUnprotect");
+    chDbgCheck(nvmpartp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartWriteUnprotect(), #1",
-            "invalid state");
+    chDbgAssert(nvmpartp->state >= NVM_READY, "invalid state");
     /* Verify range is within partition size. */
-    chDbgAssert((startaddr + n <= nvmpartp->part_size),
-            "nvmpartWriteUnprotect(), #2", "invalid parameters");
+    chDbgAssert((startaddr + n <= nvmpartp->part_size), "invalid parameters");
 
     return nvmWriteUnprotect(nvmpartp->config->nvmp,
             nvmpartp->part_org + startaddr,
@@ -470,10 +454,9 @@ bool nvmpartWriteUnprotect(NVMPartitionDriver* nvmpartp,
  */
 bool nvmpartMassWriteUnprotect(NVMPartitionDriver* nvmpartp)
 {
-    chDbgCheck(nvmpartp != NULL, "nvmpartMassWriteUnprotect");
+    chDbgCheck(nvmpartp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmpartp->state >= NVM_READY, "nvmpartMassWriteUnprotect(), #1",
-            "invalid state");
+    chDbgAssert(nvmpartp->state >= NVM_READY, "invalid state");
 
     return nvmWriteUnprotect(nvmpartp->config->nvmp,
             nvmpartp->part_org,

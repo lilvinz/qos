@@ -343,11 +343,10 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
  */
 void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
 {
-    chDbgCheck(sfdxdp != NULL, "sfdxdStart");
+    chDbgCheck(sfdxdp != NULL);
 
     chSysLock();
     chDbgAssert((sfdxdp->state == SFDXD_STOP) || (sfdxdp->state == SFDXD_READY),
-            "sfdxdStart(), #1",
             "invalid state");
     sfdxdp->configp = configp;
     sfdxdp->state = SFDXD_READY;
@@ -379,11 +378,10 @@ void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
  */
 void sfdxdStop(SerialFdxDriver* sfdxdp)
 {
-    chDbgCheck(sfdxdp != NULL, "sfdxdStop");
+    chDbgCheck(sfdxdp != NULL);
 
     chSysLock();
     chDbgAssert((sfdxdp->state == SFDXD_STOP) || (sfdxdp->state == SFDXD_READY),
-            "sfdxdStop(), #1",
             "invalid state");
     sfdxdp->state = SFDXD_STOP;
 

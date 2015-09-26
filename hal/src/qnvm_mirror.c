@@ -135,7 +135,7 @@ static const struct NVMMirrorDriverVMT nvm_mirror_vmt =
 
 static bool nvm_mirror_state_init(NVMMirrorDriver* nvmmirrorp)
 {
-    chDbgCheck((nvmmirrorp != NULL), "nvm_mirror_state_init");
+    chDbgCheck((nvmmirrorp != NULL));
 
     const uint32_t header_orig = 0;
     const uint32_t header_size = nvmmirrorp->mirror_a_org;
@@ -193,7 +193,7 @@ static bool nvm_mirror_state_init(NVMMirrorDriver* nvmmirrorp)
 static bool nvm_mirror_state_update(NVMMirrorDriver* nvmmirrorp,
         NVMMirrorState new_state)
 {
-    chDbgCheck((nvmmirrorp != NULL), "nvm_mirror_state_write");
+    chDbgCheck((nvmmirrorp != NULL));
 
     if (new_state == nvmmirrorp->mirror_state)
         return HAL_SUCCESS;
@@ -243,7 +243,7 @@ static bool nvm_mirror_state_update(NVMMirrorDriver* nvmmirrorp,
 static bool nvm_mirror_copy(NVMMirrorDriver* nvmmirrorp, uint32_t src_addr,
         uint32_t dst_addr, size_t n)
 {
-    chDbgCheck((nvmmirrorp != NULL), "nvm_mirror_copy");
+    chDbgCheck((nvmmirrorp != NULL));
 
     uint64_t state_mark;
 
@@ -328,10 +328,10 @@ void nvmmirrorObjectInit(NVMMirrorDriver* nvmmirrorp)
  */
 void nvmmirrorStart(NVMMirrorDriver* nvmmirrorp, const NVMMirrorConfig* config)
 {
-    chDbgCheck((nvmmirrorp != NULL) && (config != NULL), "nvmmirrorStart");
+    chDbgCheck((nvmmirrorp != NULL) && (config != NULL));
     /* Verify device status. */
     chDbgAssert((nvmmirrorp->state == NVM_STOP) || (nvmmirrorp->state == NVM_READY),
-            "nvmmirrorStart(), #1", "invalid state");
+            "invalid state");
 
     nvmmirrorp->config = config;
 
@@ -394,13 +394,12 @@ void nvmmirrorStart(NVMMirrorDriver* nvmmirrorp, const NVMMirrorConfig* config)
  */
 void nvmmirrorStop(NVMMirrorDriver* nvmmirrorp)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorStop");
+    chDbgCheck(nvmmirrorp != NULL);
     /* Verify device status. */
     chDbgAssert((nvmmirrorp->state == NVM_STOP) || (nvmmirrorp->state == NVM_READY),
-            "nvmmirrorStop(), #1", "invalid state");
+            "invalid state");
     /* Verify mirror is in valid sync state. */
-    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorStop(), #2",
-            "invalid mirror state");
+    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "invalid mirror state");
 
     nvmmirrorp->state = NVM_STOP;
 }
@@ -422,16 +421,14 @@ void nvmmirrorStop(NVMMirrorDriver* nvmmirrorp)
 bool nvmmirrorRead(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
         uint32_t n, uint8_t* buffer)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorRead");
+    chDbgCheck(nvmmirrorp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorRead(), #1",
-            "invalid state");
+    chDbgAssert(nvmmirrorp->state >= NVM_READY, "invalid state");
     /* Verify range is within mirror size. */
     chDbgAssert(startaddr + n <= nvmmirrorp->mirror_size,
-            "nvmmirrorRead(), #2", "invalid parameters");
+            "invalid parameters");
     /* Verify mirror is in valid sync state. */
-    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorRead(), #3",
-            "invalid mirror state");
+    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "invalid mirror state");
 
     /* Read operation in progress. */
     nvmmirrorp->state = NVM_READING;
@@ -465,16 +462,14 @@ bool nvmmirrorRead(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
 bool nvmmirrorWrite(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
         uint32_t n, const uint8_t* buffer)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorWrite");
+    chDbgCheck(nvmmirrorp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorWrite(), #1",
-            "invalid state");
+    chDbgAssert(nvmmirrorp->state >= NVM_READY, "invalid state");
     /* Verify range is within mirror size. */
     chDbgAssert(startaddr + n <= nvmmirrorp->mirror_size,
-            "nvmmirrorWrite(), #2", "invalid parameters");
+            "invalid parameters");
     /* Verify mirror is in valid sync state. */
-    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorWrite(), #3",
-            "invalid mirror state");
+    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "invalid mirror state");
 
     /* Write operation in progress. */
     nvmmirrorp->state = NVM_WRITING;
@@ -525,16 +520,14 @@ bool nvmmirrorWrite(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
  */
 bool nvmmirrorErase(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorErase");
+    chDbgCheck(nvmmirrorp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorErase(), #1",
-            "invalid state");
+    chDbgAssert(nvmmirrorp->state >= NVM_READY, "invalid state");
     /* Verify range is within mirror size. */
     chDbgAssert(startaddr + n <= nvmmirrorp->mirror_size,
-            "nvmmirrorErase(), #2", "invalid parameters");
+            "invalid parameters");
     /* Verify mirror is in valid sync state. */
-    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorErase(), #3",
-            "invalid mirror state");
+    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "invalid mirror state");
 
     /* Erase operation in progress. */
     nvmmirrorp->state = NVM_ERASING;
@@ -583,13 +576,11 @@ bool nvmmirrorErase(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr, uint32_t n)
  */
 bool nvmmirrorMassErase(NVMMirrorDriver* nvmmirrorp)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorMassErase");
+    chDbgCheck(nvmmirrorp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorMassErase(), #1",
-            "invalid state");
+    chDbgAssert(nvmmirrorp->state >= NVM_READY, "invalid state");
     /* Verify mirror is in valid sync state. */
-    chDbgAssert(nvmmirrorp->mirror_state != STATE_DIRTY_B, "nvmmirrorMassErase(), #3",
-            "invalid mirror state");
+    chDbgAssert(nvmmirrorp->mirror_state != STATE_DIRTY_B, "invalid mirror state");
     /* Set mirror state to dirty if necessary. */
     if (nvmmirrorp->mirror_state == STATE_SYNCED)
     {
@@ -645,13 +636,11 @@ bool nvmmirrorMassErase(NVMMirrorDriver* nvmmirrorp)
  */
 bool nvmmirrorSync(NVMMirrorDriver* nvmmirrorp)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorSync");
+    chDbgCheck(nvmmirrorp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorSync(), #1",
-            "invalid state");
+    chDbgAssert(nvmmirrorp->state >= NVM_READY, "invalid state");
     /* Verify mirror is in valid sync state. */
-    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "nvmmirrorSync(), #2",
-            "invalid mirror state");
+    chDbgAssert(nvmmirrorp->mirror_state == STATE_SYNCED, "invalid mirror state");
 
     if (nvmmirrorp->state == NVM_READY)
         return HAL_SUCCESS;
@@ -680,10 +669,9 @@ bool nvmmirrorSync(NVMMirrorDriver* nvmmirrorp)
  */
 bool nvmmirrorGetInfo(NVMMirrorDriver* nvmmirrorp, NVMDeviceInfo* nvmdip)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorGetInfo");
+    chDbgCheck(nvmmirrorp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorGetInfo(), #1",
-            "invalid state");
+    chDbgAssert(nvmmirrorp->state >= NVM_READY, "invalid state");
 
     nvmdip->sector_num =
             (nvmmirrorp->llnvmdi.sector_num - nvmmirrorp->config->sector_header_num) / 2;
@@ -710,7 +698,7 @@ bool nvmmirrorGetInfo(NVMMirrorDriver* nvmmirrorp, NVMDeviceInfo* nvmdip)
  */
 void nvmmirrorAcquireBus(NVMMirrorDriver* nvmmirrorp)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorAcquireBus");
+    chDbgCheck(nvmmirrorp != NULL);
 
 #if NVM_MIRROR_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -735,7 +723,7 @@ void nvmmirrorAcquireBus(NVMMirrorDriver* nvmmirrorp)
  */
 void nvmmirrorReleaseBus(NVMMirrorDriver* nvmmirrorp)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorReleaseBus");
+    chDbgCheck(nvmmirrorp != NULL);
 
 #if NVM_MIRROR_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -765,10 +753,9 @@ void nvmmirrorReleaseBus(NVMMirrorDriver* nvmmirrorp)
 bool nvmmirrorWriteProtect(NVMMirrorDriver* nvmmirrorp,
         uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorWriteProtect");
+    chDbgCheck(nvmmirrorp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorWriteProtect(), #1",
-            "invalid state");
+    chDbgAssert(nvmmirrorp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -788,10 +775,9 @@ bool nvmmirrorWriteProtect(NVMMirrorDriver* nvmmirrorp,
  */
 bool nvmmirrorMassWriteProtect(NVMMirrorDriver* nvmmirrorp)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorMassWriteProtect");
+    chDbgCheck(nvmmirrorp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorMassWriteProtect(), #1",
-            "invalid state");
+    chDbgAssert(nvmmirrorp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -814,10 +800,9 @@ bool nvmmirrorMassWriteProtect(NVMMirrorDriver* nvmmirrorp)
 bool nvmmirrorWriteUnprotect(NVMMirrorDriver* nvmmirrorp,
         uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorWriteUnprotect");
+    chDbgCheck(nvmmirrorp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorWriteUnprotect(), #1",
-            "invalid state");
+    chDbgAssert(nvmmirrorp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -837,10 +822,9 @@ bool nvmmirrorWriteUnprotect(NVMMirrorDriver* nvmmirrorp,
  */
 bool nvmmirrorMassWriteUnprotect(NVMMirrorDriver* nvmmirrorp)
 {
-    chDbgCheck(nvmmirrorp != NULL, "nvmmirrorMassWriteUnprotect");
+    chDbgCheck(nvmmirrorp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmirrorp->state >= NVM_READY, "nvmmirrorMassWriteUnprotect(), #1",
-            "invalid state");
+    chDbgAssert(nvmmirrorp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 

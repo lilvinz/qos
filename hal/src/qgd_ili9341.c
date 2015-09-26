@@ -95,10 +95,10 @@ void gdili9341ObjectInit(GDILI9341Driver* gdili9341p)
  */
 void gdili9341Start(GDILI9341Driver* gdili9341p, const GDILI9341Config* config)
 {
-    chDbgCheck((gdili9341p != NULL) && (config != NULL), "gdili9341Start");
+    chDbgCheck((gdili9341p != NULL) && (config != NULL));
     /* Verify device status. */
     chDbgAssert((gdili9341p->state == GD_STOP) || (gdili9341p->state == GD_READY),
-            "gdili9341Start(), #1", "invalid state");
+            "invalid state");
 
     if (gdili9341p->state == GD_READY)
         gdili9341Stop(gdili9341p);
@@ -186,10 +186,10 @@ void gdili9341Start(GDILI9341Driver* gdili9341p, const GDILI9341Config* config)
  */
 void gdili9341Stop(GDILI9341Driver* gdili9341p)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341Stop");
+    chDbgCheck(gdili9341p != NULL);
     /* Verify device status. */
     chDbgAssert((gdili9341p->state == GD_STOP) || (gdili9341p->state == GD_READY),
-            "gdili9341Stop(), #1", "invalid state");
+            "invalid state");
 
     gdili9341AcquireBus(gdili9341p);
     gdili9341Select(gdili9341p);
@@ -215,10 +215,9 @@ void gdili9341Stop(GDILI9341Driver* gdili9341p)
  */
 void gdili9341PixelSet(GDILI9341Driver* gdili9341p, coord_t x, coord_t y, color_t color)
 {
-    chDbgCheck(gdili9341p != NULL, "gdPixelSet");
+    chDbgCheck(gdili9341p != NULL);
     /* Verify device status. */
-    chDbgAssert(gdili9341p->state >= GD_READY, "gdPixelSet(), #1",
-            "invalid state");
+    chDbgAssert(gdili9341p->state >= GD_READY, "invalid state");
 
     gdili9341Select(gdili9341p);
     gdili9341StreamStart(gdili9341p, x, y, 1, 1);
@@ -241,10 +240,9 @@ void gdili9341PixelSet(GDILI9341Driver* gdili9341p, coord_t x, coord_t y, color_
 void gdili9341StreamStart(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
         coord_t width, coord_t height)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341StreamStart");
+    chDbgCheck(gdili9341p != NULL);
     /* Verify device status. */
-    chDbgAssert(gdili9341p->state >= GD_READY, "gdili9341StreamStart(), #1",
-            "invalid state");
+    chDbgAssert(gdili9341p->state >= GD_READY, "invalid state");
 
     gdili9341Select(gdili9341p);
 
@@ -287,10 +285,9 @@ void gdili9341StreamStart(GDILI9341Driver* gdili9341p, coord_t left, coord_t top
 void gdili9341StreamWrite(GDILI9341Driver* gdili9341p, const color_t data[],
         size_t n)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341StreamWrite");
+    chDbgCheck(gdili9341p != NULL);
     /* Verify device status. */
-    chDbgAssert(gdili9341p->state >= GD_ACTIVE, "gdili9341StreamWrite(), #1",
-            "invalid state");
+    chDbgAssert(gdili9341p->state >= GD_ACTIVE, "invalid state");
 
     gdili9341p->config->write_mem_cb(data, n);
 }
@@ -304,10 +301,9 @@ void gdili9341StreamWrite(GDILI9341Driver* gdili9341p, const color_t data[],
  */
 void gdili9341StreamEnd(GDILI9341Driver* gdili9341p)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341StreamEnd");
+    chDbgCheck(gdili9341p != NULL);
     /* Verify device status. */
-    chDbgAssert(gdili9341p->state >= GD_ACTIVE, "gdili9341StreamEnd(), #1",
-            "invalid state");
+    chDbgAssert(gdili9341p->state >= GD_ACTIVE, "invalid state");
 
     gdili9341Unselect(gdili9341p);
 }
@@ -326,10 +322,9 @@ void gdili9341StreamEnd(GDILI9341Driver* gdili9341p)
 void gdili9341RectFill(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
         coord_t width, coord_t height, color_t color)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341RectFill");
+    chDbgCheck(gdili9341p != NULL);
     /* Verify device status. */
-    chDbgAssert(gdili9341p->state >= GD_READY, "gdili9341RectFill(), #1",
-            "invalid state");
+    chDbgAssert(gdili9341p->state >= GD_READY, "invalid state");
 
     gdili9341StreamStart(gdili9341p, left, top, width, height);
 
@@ -361,10 +356,9 @@ void gdili9341RectFill(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
  */
 bool gdili9341GetInfo(GDILI9341Driver* gdili9341p, GDDeviceInfo* gddip)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341GetInfo");
+    chDbgCheck(gdili9341p != NULL);
     /* Verify device status. */
-    chDbgAssert(gdili9341p->state >= GD_READY, "gdili9341GetInfo(), #1",
-            "invalid state");
+    chDbgAssert(gdili9341p->state >= GD_READY, "invalid state");
 
     memcpy(gddip, &gdili9341p->gddi, sizeof(*gddip));
 
@@ -385,7 +379,7 @@ bool gdili9341GetInfo(GDILI9341Driver* gdili9341p, GDDeviceInfo* gddip)
  */
 void gdili9341AcquireBus(GDILI9341Driver* gdili9341p)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341AcquireBus");
+    chDbgCheck(gdili9341p != NULL);
 
 #if GD_ILI9341_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -407,7 +401,7 @@ void gdili9341AcquireBus(GDILI9341Driver* gdili9341p)
  */
 void gdili9341ReleaseBus(GDILI9341Driver* gdili9341p)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341ReleaseBus");
+    chDbgCheck(gdili9341p != NULL);
 
 #if GD_ILI9341_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -429,9 +423,8 @@ void gdili9341ReleaseBus(GDILI9341Driver* gdili9341p)
  */
 void gdili9341Select(GDILI9341Driver* gdili9341p)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341SelectI");
-    chDbgAssert(gdili9341p->state == GD_READY,
-            "gdili9341SelectI(), #1", "invalid state");
+    chDbgCheck(gdili9341p != NULL);
+    chDbgAssert(gdili9341p->state == GD_READY, "invalid state");
 
     gdili9341p->state = GD_ACTIVE;
 
@@ -449,9 +442,8 @@ void gdili9341Select(GDILI9341Driver* gdili9341p)
  */
 void gdili9341Unselect(GDILI9341Driver* gdili9341p)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341Unselect");
-    chDbgAssert(gdili9341p->state == GD_ACTIVE,
-            "gdili9341UnselectI(), #1", "invalid state");
+    chDbgCheck(gdili9341p != NULL);
+    chDbgAssert(gdili9341p->state == GD_ACTIVE, "invalid state");
 
     gdili9341p->config->unselect_cb();
 
@@ -469,9 +461,8 @@ void gdili9341Unselect(GDILI9341Driver* gdili9341p)
  */
 void gdili9341WriteCommand(GDILI9341Driver* gdili9341p, uint8_t cmd)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341WriteCommand");
-    chDbgAssert(gdili9341p->state == GD_ACTIVE,
-            "gdili9341WriteCommand(), #1", "invalid state");
+    chDbgCheck(gdili9341p != NULL);
+    chDbgAssert(gdili9341p->state == GD_ACTIVE, "invalid state");
 
     gdili9341p->config->write_cmd_cb(cmd);
 }
@@ -487,9 +478,8 @@ void gdili9341WriteCommand(GDILI9341Driver* gdili9341p, uint8_t cmd)
  */
 void gdili9341WriteByte(GDILI9341Driver* gdili9341p, uint8_t value)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341WriteByte");
-    chDbgAssert(gdili9341p->state == GD_ACTIVE,
-            "gdili9341WriteByte(), #1", "invalid state");
+    chDbgCheck(gdili9341p != NULL);
+    chDbgAssert(gdili9341p->state == GD_ACTIVE, "invalid state");
 
     gdili9341p->config->write_parm_cb(&value, 1);
 }
@@ -506,9 +496,8 @@ void gdili9341WriteByte(GDILI9341Driver* gdili9341p, uint8_t value)
  */
 uint8_t gdili9341ReadByte(GDILI9341Driver* gdili9341p)
 {
-    chDbgCheck(gdili9341p != NULL, "gdili9341ReadByte");
-    chDbgAssert(gdili9341p->state == GD_ACTIVE,
-            "gdili9341ReadByte(), #1", "invalid state");
+    chDbgCheck(gdili9341p != NULL);
+    chDbgAssert(gdili9341p->state == GD_ACTIVE, "invalid state");
 
     uint8_t result;
     gdili9341p->config->read_parm_cb(&result, 1);

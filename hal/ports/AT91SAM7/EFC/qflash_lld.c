@@ -209,8 +209,7 @@ static bool flash_lld_securitybit_read(FLASHDriver* flashp)
  */
 static void flash_lld_securitybit_write(FLASHDriver* flashp, bool newstate)
 {
-    chDbgAssert(newstate == true,
-            "flash_lld_securitybit_write(), #1", "invalid parameters");
+    chDbgAssert(newstate == true, "invalid parameters");
 
     const bool oldstate = flash_lld_securitybit_read(flashp);
 
@@ -372,10 +371,7 @@ void flash_lld_write(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
         const uint8_t* buffer)
 {
     /* Verify that we are writing an even address and size. */
-    chDbgAssert(
-            (startaddr % 4) == 0 &&
-            (n % 4) == 0,
-            "flash_lld_write(), #1", "invalid parameters");
+    chDbgAssert((startaddr % 4) == 0 && (n % 4) == 0, "invalid parameters");
 
     /* This chip can only write full pages. */
     uint32_t addr = startaddr - (startaddr % AT91C_IFLASH_PAGE_SIZE);
@@ -419,8 +415,7 @@ void flash_lld_erase_sector(FLASHDriver* flashp, uint32_t startaddr)
     FLASHSectorInfo fsi;
     if (flash_lld_addr_to_sector(startaddr, &fsi) != HAL_SUCCESS)
     {
-        chDbgAssert(false,
-               "flash_lld_erase_sector(), #1", "invalid parameters");
+        chDbgAssert(false, "invalid parameters");
         return;
     }
 
@@ -499,8 +494,7 @@ void flash_lld_writeprotect_sector(FLASHDriver* flashp, uint32_t startaddr)
     FLASHSectorInfo fsi;
     if (flash_lld_addr_to_sector(startaddr, &fsi) != HAL_SUCCESS)
     {
-        chDbgAssert(false,
-                "flash_lld_writeprotect_sector(), #1", "invalid parameters");
+        chDbgAssert(false, "invalid parameters");
         return;
     }
 
@@ -536,8 +530,7 @@ void flash_lld_writeunprotect_sector(FLASHDriver* flashp, uint32_t startaddr)
     FLASHSectorInfo fsi;
     if (flash_lld_addr_to_sector(startaddr, &fsi) != HAL_SUCCESS)
     {
-        chDbgAssert(false,
-                "flash_lld_writeunprotect_sector(), #1", "invalid parameters");
+        chDbgAssert(false, "invalid parameters");
         return;
     }
 

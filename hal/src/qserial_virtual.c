@@ -319,11 +319,10 @@ void sdvirtualObjectInit(SerialVirtualDriver *sdvirtualp)
  */
 void sdvirtualStart(SerialVirtualDriver *sdvirtualp, const SerialVirtualConfig *configp)
 {
-    chDbgCheck(sdvirtualp != NULL, "sdvirtualStart");
+    chDbgCheck(sdvirtualp != NULL);
 
     chSysLock();
     chDbgAssert((sdvirtualp->state == SDVIRTUAL_STOP) || (sdvirtualp->state == SDVIRTUAL_READY),
-            "sdvirtualStart(), #1",
             "invalid state");
     sdvirtualp->configp = configp;
     sdvirtualp->state = SDVIRTUAL_READY;
@@ -342,11 +341,10 @@ void sdvirtualStart(SerialVirtualDriver *sdvirtualp, const SerialVirtualConfig *
  */
 void sdvirtualStop(SerialVirtualDriver *sdvirtualp)
 {
-    chDbgCheck(sdvirtualp != NULL, "sdvirtualStop");
+    chDbgCheck(sdvirtualp != NULL);
 
     chSysLock();
     chDbgAssert((sdvirtualp->state == SDVIRTUAL_STOP) || (sdvirtualp->state == SDVIRTUAL_READY),
-                "sdvirtualStop(), #1",
                 "invalid state");
     chnAddFlagsI(sdvirtualp, CHN_DISCONNECTED);
     chSymQResetI(&sdvirtualp->queue);

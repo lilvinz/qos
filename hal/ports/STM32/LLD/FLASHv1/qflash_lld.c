@@ -467,10 +467,7 @@ void flash_lld_write(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
         const uint8_t* buffer)
 {
     /* Verify that we are writing an even address and size. */
-    chDbgAssert(
-            (startaddr & 1) == 0 &&
-            (n & 1) == 0,
-            "flash_lld_write(), #1", "invalid parameters");
+    chDbgAssert((startaddr & 1) == 0 && (n & 1) == 0, "invalid parameters");
 
     uint32_t addr = FLASH_BASE + startaddr;
     uint32_t offset = 0;

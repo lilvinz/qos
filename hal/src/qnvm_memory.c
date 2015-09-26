@@ -101,10 +101,10 @@ void nvmmemoryObjectInit(NVMMemoryDriver* nvmmemoryp)
  */
 void nvmmemoryStart(NVMMemoryDriver* nvmmemoryp, const NVMMemoryConfig* config)
 {
-    chDbgCheck((nvmmemoryp != NULL) && (config != NULL), "nvmmemoryStart");
+    chDbgCheck((nvmmemoryp != NULL) && (config != NULL));
     /* Verify device status. */
     chDbgAssert((nvmmemoryp->state == NVM_STOP) || (nvmmemoryp->state == NVM_READY),
-            "nvmmemoryStart(), #1", "invalid state");
+            "invalid state");
 
     nvmmemoryp->config = config;
     nvmmemoryp->state = NVM_READY;
@@ -119,10 +119,10 @@ void nvmmemoryStart(NVMMemoryDriver* nvmmemoryp, const NVMMemoryConfig* config)
  */
 void nvmmemoryStop(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryStop");
+    chDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
     chDbgAssert((nvmmemoryp->state == NVM_STOP) || (nvmmemoryp->state == NVM_READY),
-            "nvmmemoryStop(), #1", "invalid state");
+            "invalid state");
 
     nvmmemoryp->state = NVM_STOP;
 }
@@ -144,13 +144,12 @@ void nvmmemoryStop(NVMMemoryDriver* nvmmemoryp)
 bool nvmmemoryRead(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n,
         uint8_t* buffer)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryRead");
+    chDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "nvmmemoryRead(), #1",
-            "invalid state");
+    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
     /* Verify range is within chip size. */
     chDbgAssert((startaddr + n <= nvmmemoryp->config->sector_size * nvmmemoryp->config->sector_num),
-            "nvmmemoryRead(), #2", "invalid parameters");
+            "invalid parameters");
 
     if (nvmmemorySync(nvmmemoryp) != HAL_SUCCESS)
         return HAL_FAILED;
@@ -183,13 +182,12 @@ bool nvmmemoryRead(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n,
 bool nvmmemoryWrite(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n,
         const uint8_t* buffer)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryWrite");
+    chDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "nvmmemoryWrite(), #1",
-            "invalid state");
+    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
     /* Verify range is within chip size. */
     chDbgAssert((startaddr + n <= nvmmemoryp->config->sector_size * nvmmemoryp->config->sector_num),
-            "nvmmemoryWrite(), #2", "invalid parameters");
+            "invalid parameters");
 
     if (nvmmemorySync(nvmmemoryp) != HAL_SUCCESS)
         return HAL_FAILED;
@@ -220,13 +218,12 @@ bool nvmmemoryWrite(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n,
  */
 bool nvmmemoryErase(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryErase");
+    chDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "nvmmemoryErase(), #1",
-            "invalid state");
+    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
     /* Verify range is within chip size. */
     chDbgAssert((startaddr + n <= nvmmemoryp->config->sector_size * nvmmemoryp->config->sector_num),
-            "nvmmemoryErase(), #2", "invalid parameters");
+            "invalid parameters");
 
     if (nvmmemorySync(nvmmemoryp) != HAL_SUCCESS)
         return HAL_FAILED;
@@ -255,10 +252,9 @@ bool nvmmemoryErase(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n)
  */
 bool nvmmemoryMassErase(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryMassErase");
+    chDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "nvmmemoryMassErase(), #1",
-            "invalid state");
+    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     if (nvmmemorySync(nvmmemoryp) != HAL_SUCCESS)
         return HAL_FAILED;
@@ -288,10 +284,9 @@ bool nvmmemoryMassErase(NVMMemoryDriver* nvmmemoryp)
  */
 bool nvmmemorySync(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemorySync");
+    chDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "nvmmemorySync(), #1",
-            "invalid state");
+    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     if (nvmmemoryp->state == NVM_READY)
         return HAL_SUCCESS;
@@ -316,10 +311,9 @@ bool nvmmemorySync(NVMMemoryDriver* nvmmemoryp)
  */
 bool nvmmemoryGetInfo(NVMMemoryDriver* nvmmemoryp, NVMDeviceInfo* nvmdip)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryGetInfo");
+    chDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "nvmmemoryGetInfo(), #1",
-            "invalid state");
+    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     nvmdip->sector_num = nvmmemoryp->config->sector_num;
     nvmdip->sector_size = nvmmemoryp->config->sector_size;
@@ -345,7 +339,7 @@ bool nvmmemoryGetInfo(NVMMemoryDriver* nvmmemoryp, NVMDeviceInfo* nvmdip)
  */
 void nvmmemoryAcquireBus(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryAcquireBus");
+    chDbgCheck(nvmmemoryp != NULL);
 
 #if NVM_MEMORY_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -367,7 +361,7 @@ void nvmmemoryAcquireBus(NVMMemoryDriver* nvmmemoryp)
  */
 void nvmmemoryReleaseBus(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryReleaseBus");
+    chDbgCheck(nvmmemoryp != NULL);
 
 #if NVM_MEMORY_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -395,10 +389,9 @@ void nvmmemoryReleaseBus(NVMMemoryDriver* nvmmemoryp)
 bool nvmmemoryWriteProtect(NVMMemoryDriver* nvmmemoryp,
         uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryWriteProtect");
+    chDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "nvmmemoryWriteProtect(), #1",
-            "invalid state");
+    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -418,10 +411,9 @@ bool nvmmemoryWriteProtect(NVMMemoryDriver* nvmmemoryp,
  */
 bool nvmmemoryMassWriteProtect(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryMassWriteProtect");
+    chDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "nvmmemoryMassWriteProtect(), #1",
-            "invalid state");
+    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -444,10 +436,9 @@ bool nvmmemoryMassWriteProtect(NVMMemoryDriver* nvmmemoryp)
 bool nvmmemoryWriteUnprotect(NVMMemoryDriver* nvmmemoryp,
         uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryWriteUnprotect");
+    chDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "nvmmemoryWriteUnprotect(), #1",
-            "invalid state");
+    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -467,10 +458,9 @@ bool nvmmemoryWriteUnprotect(NVMMemoryDriver* nvmmemoryp,
  */
 bool nvmmemoryMassWriteUnprotect(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL, "nvmmemoryMassWriteUnprotect");
+    chDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "nvmmemoryMassWriteUnprotect(), #1",
-            "invalid state");
+    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 

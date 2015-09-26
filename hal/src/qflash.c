@@ -99,10 +99,10 @@ void flashObjectInit(FLASHDriver* flashp)
  */
 void flashStart(FLASHDriver* flashp, const FLASHConfig* config)
 {
-    chDbgCheck((flashp != NULL) && (config != NULL), "flashStart");
+    chDbgCheck((flashp != NULL) && (config != NULL));
     /* Verify device status. */
     chDbgAssert((flashp->state == NVM_STOP) || (flashp->state == NVM_READY),
-            "flashStart(), #1", "invalid state");
+            "invalid state");
 
     flashp->config = config;
 
@@ -122,10 +122,10 @@ void flashStart(FLASHDriver* flashp, const FLASHConfig* config)
  */
 void flashStop(FLASHDriver* flashp)
 {
-    chDbgCheck(flashp != NULL, "flashStop");
+    chDbgCheck(flashp != NULL);
     /* Verify device status. */
     chDbgAssert((flashp->state == NVM_STOP) || (flashp->state == NVM_READY),
-            "flashStop(), #1", "invalid state");
+            "invalid state");
 
     chSysLock();
     flash_lld_stop(flashp);
@@ -151,15 +151,14 @@ void flashStop(FLASHDriver* flashp)
 bool flashRead(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
         uint8_t* buffer)
 {
-    chDbgCheck(flashp != NULL, "flashRead");
+    chDbgCheck(flashp != NULL);
     /* Verify device status. */
-    chDbgAssert(flashp->state >= NVM_READY, "flashRead(), #1",
-            "invalid state");
+    chDbgAssert(flashp->state >= NVM_READY, "invalid state");
     /* Verify range is within chip size. */
     chDbgAssert(
             flash_lld_addr_to_sector(startaddr, NULL) == HAL_SUCCESS
             && flash_lld_addr_to_sector(startaddr + n - 1, NULL) == HAL_SUCCESS,
-            "flashRead(), #2", "invalid parameters");
+            "invalid parameters");
 
     /* Read operation in progress. */
     flashp->state = NVM_READING;
@@ -192,15 +191,14 @@ bool flashRead(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
 bool flashWrite(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
         const uint8_t* buffer)
 {
-    chDbgCheck(flashp != NULL, "flashWrite");
+    chDbgCheck(flashp != NULL);
     /* Verify device status. */
-    chDbgAssert(flashp->state >= NVM_READY, "flashWrite(), #1",
-            "invalid state");
+    chDbgAssert(flashp->state >= NVM_READY, "invalid state");
     /* Verify range is within chip size. */
     chDbgAssert(
             flash_lld_addr_to_sector(startaddr, NULL) == HAL_SUCCESS
             && flash_lld_addr_to_sector(startaddr + n - 1, NULL) == HAL_SUCCESS,
-            "flashWrite(), #2", "invalid parameters");
+            "invalid parameters");
 
     /* Write operation in progress. */
     flashp->state = NVM_WRITING;
@@ -228,15 +226,14 @@ bool flashWrite(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
  */
 bool flashErase(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(flashp != NULL, "flashErase");
+    chDbgCheck(flashp != NULL);
     /* Verify device status. */
-    chDbgAssert(flashp->state >= NVM_READY, "flashErase(), #1",
-            "invalid state");
+    chDbgAssert(flashp->state >= NVM_READY, "invalid state");
     /* Verify range is within chip size. */
     chDbgAssert(
             flash_lld_addr_to_sector(startaddr, NULL) == HAL_SUCCESS
             && flash_lld_addr_to_sector(startaddr + n - 1, NULL) == HAL_SUCCESS,
-            "flashErase(), #2", "invalid parameters");
+            "invalid parameters");
 
     /* Erase operation in progress. */
     flashp->state = NVM_ERASING;
@@ -272,10 +269,9 @@ bool flashErase(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
  */
 bool flashMassErase(FLASHDriver* flashp)
 {
-    chDbgCheck(flashp != NULL, "flashMassErase");
+    chDbgCheck(flashp != NULL);
     /* Verify device status. */
-    chDbgAssert(flashp->state >= NVM_READY, "flashMassErase(), #1",
-            "invalid state");
+    chDbgAssert(flashp->state >= NVM_READY, "invalid state");
 
     /* Erase operation in progress. */
     flashp->state = NVM_ERASING;
@@ -301,10 +297,9 @@ bool flashMassErase(FLASHDriver* flashp)
  */
 bool flashSync(FLASHDriver* flashp)
 {
-    chDbgCheck(flashp != NULL, "flashSync");
+    chDbgCheck(flashp != NULL);
     /* Verify device status. */
-    chDbgAssert(flashp->state >= NVM_READY, "flashSync(), #1",
-            "invalid state");
+    chDbgAssert(flashp->state >= NVM_READY, "invalid state");
 
     if (flashp->state == NVM_READY)
         return HAL_SUCCESS;
@@ -332,10 +327,9 @@ bool flashSync(FLASHDriver* flashp)
  */
 bool flashGetInfo(FLASHDriver* flashp, NVMDeviceInfo* nvmdip)
 {
-    chDbgCheck(flashp != NULL, "flashGetInfo");
+    chDbgCheck(flashp != NULL);
     /* Verify device status. */
-    chDbgAssert(flashp->state >= NVM_READY, "flashGetInfo(), #1",
-            "invalid state");
+    chDbgAssert(flashp->state >= NVM_READY, "invalid state");
 
     chSysLock();
     flash_lld_get_info(flashp, nvmdip);
@@ -357,7 +351,7 @@ bool flashGetInfo(FLASHDriver* flashp, NVMDeviceInfo* nvmdip)
  */
 void flashAcquireBus(FLASHDriver* flashp)
 {
-    chDbgCheck(flashp != NULL, "flashAcquireBus");
+    chDbgCheck(flashp != NULL);
 
 #if FLASH_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -379,7 +373,7 @@ void flashAcquireBus(FLASHDriver* flashp)
  */
 void flashReleaseBus(FLASHDriver* flashp)
 {
-    chDbgCheck(flashp != NULL, "flashReleaseBus");
+    chDbgCheck(flashp != NULL);
 
 #if FLASH_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -406,15 +400,14 @@ void flashReleaseBus(FLASHDriver* flashp)
  */
 bool flashWriteProtect(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(flashp != NULL, "flashWriteProtect");
+    chDbgCheck(flashp != NULL);
     /* Verify device status. */
-    chDbgAssert(flashp->state >= NVM_READY, "flashWriteProtect(), #1",
-            "invalid state");
+    chDbgAssert(flashp->state >= NVM_READY, "invalid state");
     /* Verify range is within chip size. */
     chDbgAssert(
             flash_lld_addr_to_sector(startaddr, NULL) == HAL_SUCCESS
             && flash_lld_addr_to_sector(startaddr + n - 1, NULL) == HAL_SUCCESS,
-            "flashWriteProtect(), #2", "invalid parameters");
+            "invalid parameters");
 
     FLASHSectorInfo sector;
 
@@ -447,10 +440,9 @@ bool flashWriteProtect(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
  */
 bool flashMassWriteProtect(FLASHDriver* flashp)
 {
-    chDbgCheck(flashp != NULL, "flashMassWriteProtect");
+    chDbgCheck(flashp != NULL);
     /* Verify device status. */
-    chDbgAssert(flashp->state >= NVM_READY, "flashMassWriteProtect(), #1",
-            "invalid state");
+    chDbgAssert(flashp->state >= NVM_READY, "invalid state");
 
     chSysLock();
     flash_lld_sync(flashp);
@@ -475,15 +467,14 @@ bool flashMassWriteProtect(FLASHDriver* flashp)
  */
 bool flashWriteUnprotect(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(flashp != NULL, "flashWriteUnprotect");
+    chDbgCheck(flashp != NULL);
     /* Verify device status. */
-    chDbgAssert(flashp->state >= NVM_READY, "flashWriteUnprotect(), #1",
-            "invalid state");
+    chDbgAssert(flashp->state >= NVM_READY, "invalid state");
     /* Verify range is within chip size. */
     chDbgAssert(
             flash_lld_addr_to_sector(startaddr, NULL) == HAL_SUCCESS
             && flash_lld_addr_to_sector(startaddr + n - 1, NULL) == HAL_SUCCESS,
-            "flashWriteUnprotect(), #2", "invalid parameters");
+            "invalid parameters");
 
     FLASHSectorInfo sector;
 
@@ -516,10 +507,9 @@ bool flashWriteUnprotect(FLASHDriver* flashp, uint32_t startaddr, uint32_t n)
  */
 bool flashMassWriteUnprotect(FLASHDriver* flashp)
 {
-    chDbgCheck(flashp != NULL, "flashMassWriteUnprotect");
+    chDbgCheck(flashp != NULL);
     /* Verify device status. */
-    chDbgAssert(flashp->state >= NVM_READY, "flashMassWriteUnprotect(), #1",
-            "invalid state");
+    chDbgAssert(flashp->state >= NVM_READY, "invalid state");
 
     chSysLock();
     flash_lld_sync(flashp);

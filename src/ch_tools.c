@@ -48,8 +48,7 @@
  */
 void chThdSleepPeriod(systime_t *previous, systime_t period)
 {
-    chDbgCheck(period != TIME_INFINITE &&
-            previous != NULL, "chThdSleepPeriod");
+    chDbgCheck(period != TIME_INFINITE && previous != NULL);
 
     systime_t future = *previous + period;
 
@@ -93,8 +92,7 @@ void chThdSleepPeriod(systime_t *previous, systime_t period)
 eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
         systime_t period)
 {
-    chDbgCheck(period != TIME_INFINITE &&
-            previous != NULL, "chEvtWaitAnyPeriod");
+    chDbgCheck(period != TIME_INFINITE && previous != NULL);
 
     Thread *ctp = currp;
     eventmask_t m;

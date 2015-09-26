@@ -165,8 +165,7 @@ void nvmsObjectInit(NVMStream *nvmsp, BaseNVMDevice *nvmdp, size_t eos)
     }
 
     /* Verify device status. */
-    chDbgAssert(nvmsp->size > 0,
-            "nvmsObjectInit(), #1", "invalid size");
+    chDbgAssert(nvmsp->size > 0, "invalid size");
 }
 
 /** @} */

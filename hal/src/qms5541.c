@@ -145,10 +145,10 @@ void ms5541ObjectInit(MS5541Driver* ms5541p)
  */
 void ms5541Start(MS5541Driver* ms5541p, const MS5541Config* config)
 {
-    chDbgCheck((ms5541p != NULL) && (config != NULL), "ms5541Start");
+    chDbgCheck((ms5541p != NULL) && (config != NULL));
     /* Verify device status. */
     chDbgAssert((ms5541p->state == MS5541_STOP) || (ms5541p->state == MS5541_READY),
-            "ms5541Start(), #1", "invalid state");
+            "invalid state");
 
     ms5541p->config = config;
 
@@ -187,10 +187,10 @@ void ms5541Start(MS5541Driver* ms5541p, const MS5541Config* config)
  */
 void ms5541Stop(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL, "ms5541Stop");
+    chDbgCheck(ms5541p != NULL);
     /* Verify device status. */
     chDbgAssert((ms5541p->state == MS5541_STOP) || (ms5541p->state == MS5541_READY),
-            "ms5541Stop(), #1", "invalid state");
+            "invalid state");
 
     ms5541p->state = MS5541_STOP;
 }
@@ -208,7 +208,7 @@ void ms5541Stop(MS5541Driver* ms5541p)
  */
 void ms5541AcquireBus(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL, "ms5541AcquireBus");
+    chDbgCheck(ms5541p != NULL);
 
 #if MS5541_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -235,7 +235,7 @@ void ms5541AcquireBus(MS5541Driver* ms5541p)
  */
 void ms5541ReleaseBus(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL, "ms5541ReleaseBus");
+    chDbgCheck(ms5541p != NULL);
 
 #if MS5541_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_CFG_USE_MUTEXES
@@ -261,10 +261,9 @@ void ms5541ReleaseBus(MS5541Driver* ms5541p)
  */
 void ms5541TemperatureStart(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL, "ms5541TemperatureStart");
+    chDbgCheck(ms5541p != NULL);
     /* Verify device status. */
-    chDbgAssert(ms5541p->state == MS5541_READY,
-            "ms5541TemperatureStart(), #1", "invalid stateMS5541Driver");
+    chDbgAssert(ms5541p->state == MS5541_READY, "invalid state");
 
     ms5541p->state = MS5541_ACTIVE;
 
@@ -287,10 +286,9 @@ void ms5541TemperatureStart(MS5541Driver* ms5541p)
  */
 int16_t ms5541TemperatureResult(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL, "ms5541TemperatureResult");
+    chDbgCheck(ms5541p != NULL);
     /* Verify device status. */
-    chDbgAssert(ms5541p->state == MS5541_ACTIVE,
-            "ms5541TemperatureResult(), #1", "invalid state");
+    chDbgAssert(ms5541p->state == MS5541_ACTIVE, "invalid state");
 
     /* Disable clock output if configured. */
     if (ms5541p->config->mclk_cb != NULL)
@@ -327,10 +325,9 @@ int16_t ms5541TemperatureResult(MS5541Driver* ms5541p)
  */
 void ms5541PressureStart(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL, "ms5541PressureStart");
+    chDbgCheck(ms5541p != NULL);
     /* Verify device status. */
-    chDbgAssert(ms5541p->state == MS5541_READY,
-            "ms5541PressureStart(), #1", "invalid state");
+    chDbgAssert(ms5541p->state == MS5541_READY, "invalid state");
 
     ms5541p->state = MS5541_ACTIVE;
 
@@ -353,10 +350,9 @@ void ms5541PressureStart(MS5541Driver* ms5541p)
  */
 uint16_t ms5541PressureResult(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL, "ms5541PressureResult");
+    chDbgCheck(ms5541p != NULL);
     /* Verify device status. */
-    chDbgAssert(ms5541p->state == MS5541_ACTIVE,
-            "ms5541PressureResult(), #1", "invalid state");
+    chDbgAssert(ms5541p->state == MS5541_ACTIVE, "invalid state");
 
     /* Disable clock output if configured. */
     if (ms5541p->config->mclk_cb != NULL)

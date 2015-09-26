@@ -265,7 +265,7 @@ size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
 
     chDbgCheckClassS();
 
-    chDbgCheck(n > 0, "chSymQReadTimeout");
+    chDbgCheck(n > 0);
 
     systime_t start = chTimeNowI();
 
@@ -472,7 +472,7 @@ size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
 
     chDbgCheckClassS();
 
-    chDbgCheck(n > 0, "chSymQWriteTimeout");
+    chDbgCheck(n > 0);
 
     systime_t start = chTimeNowI();
 
