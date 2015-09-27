@@ -58,12 +58,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result);
-  void rtcTM2RTCTime(const struct tm *timespec, RTCTime *result);
-#if RTC_HAS_PERIODIC_WAKEUPS
+#if STM32_RTC_HAS_PERIODIC_WAKEUPS
   bool rtcGetPeriodicWakeupFlag_v2(RTCDriver *rtcp);
   void rtcClearPeriodicWakeupFlag_v2(RTCDriver *rtcp);
-#endif /* RTC_HAS_PERIODIC_WAKEUPS */
+#endif /* STM32_RTC_HAS_PERIODIC_WAKEUPS */
 #ifdef __cplusplus
 }
 #endif

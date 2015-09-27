@@ -50,32 +50,6 @@
 /* Driver exported functions.                                                */
 /*===========================================================================*/
 
-/**
- * @brief   Convert from RTCTime to struct tm.
- *
- * @param[in] timespec      pointer to RTCTime structure
- * @param[out] result       pointer to tm structure
- *
- * @api
- */
-void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result)
-{
-    gmtime_r((time_t *)&(timespec->tv_sec), result);
-}
-
-/**
- * @brief   Convert from struct tm to RTCTime.
- *
- * @param[in] result        pointer to tm structure
- * @param[out] timespec     pointer to RTCTime structure
- *
- * @api
- */
-void rtcTM2RTCTime(struct tm *timespec, RTCTime *result)
-{
-    result->tv_sec = mktime(timespec);
-}
-
 #endif /* HAL_USE_RTC */
 
 /** @} */
