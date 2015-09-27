@@ -20,7 +20,7 @@
 /*
  * FLASH unit.
  */
-#define STM32_FLASH_HANDLER         FLASH_IRQHandler
+#define STM32_FLASH_HANDLER         Vector50
 
 #define STM32_FLASH_NUMBER          FLASH_IRQn
 /** @} */
