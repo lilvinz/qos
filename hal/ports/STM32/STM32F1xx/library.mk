@@ -17,8 +17,6 @@ EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)/../LLD/WDGv1
 EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)/../LLD/USARTv1
 EXTRAINCDIRS += $(QHAL_STM32F1XX_DIR)/../LLD/RTCv1
 
-LDFLAGS += -T$(QHAL_STM32F1XX_DIR)/ld/sections.ld
-
 # ChibiOS
 include $(CHIBIOS_DIR)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f1xx.mk
 include $(CHIBIOS_DIR)/os/hal/ports/STM32/STM32F1xx/platform.mk
