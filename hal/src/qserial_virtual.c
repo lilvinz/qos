@@ -189,7 +189,7 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
     osalSysLock();
 
     size_t w = 0;
-    systime_t start = chVTGetSystemTimeX();
+    systime_t start = osalOsGetSystemTimeX();
 
     for (; w < n; ++w)
     {
@@ -230,7 +230,7 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout)
     osalSysLock();
 
     size_t r = 0;
-    systime_t start = chVTGetSystemTimeX();
+    systime_t start = osalOsGetSystemTimeX();
 
     for (; r < n; ++r)
     {
