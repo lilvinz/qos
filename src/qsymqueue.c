@@ -215,7 +215,7 @@ size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
 
     osalDbgCheck(n > 0);
 
-    systime_t start = chVTGetSystemTimeX();
+    systime_t start = osalOsGetSystemTimeX();
 
     while (TRUE)
     {
@@ -418,7 +418,7 @@ size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
 
     osalDbgCheck(n > 0);
 
-    systime_t start = chVTGetSystemTimeX();
+    systime_t start = osalOsGetSystemTimeX();
 
     while (TRUE)
     {
