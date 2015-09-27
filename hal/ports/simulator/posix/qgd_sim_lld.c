@@ -48,7 +48,15 @@ static uint32_t convert_color(color_t color)
 /* Driver interrupt handlers and threads.                                    */
 /*===========================================================================*/
 
-static msg_t gdsim_lld_pump(void* p)
+/**
+ * @brief   Drivers pump thread function.
+ *
+ * @param[in] parameters    pointer to a @p GDSimDriver object
+ *
+ * @notapi
+ */
+__attribute__((noreturn))
+static void gdsim_lld_pump(void* p)
 {
     GDSimDriver* gdsimp = (GDSimDriver*)p;
     chRegSetThreadName("gdsim_lld_pump");
@@ -57,13 +65,9 @@ static msg_t gdsim_lld_pump(void* p)
     {
         xcb_generic_event_t* e;
 
-        /* Nothing to do, going to sleep.*/
+        /* Nothing to do. Going to sleep. */
         chSysLock();
-        if ((gdsimp->state == GD_STOP))
-        {
-            gdsimp->thd_wait = chThdGetSelfX();
-            chSchGoSleepS(THD_STATE_SUSPENDED);
-        }
+        chThdSuspendS(&gdsimp->wait);
         chSysUnlock();
 
         while ((e = xcb_poll_for_event(gdsimp->xcb_connection)) != NULL)
@@ -93,8 +97,6 @@ static msg_t gdsim_lld_pump(void* p)
 
         chThdSleepMilliseconds(10);
     }
-
-    return 0;
 }
 
 /*===========================================================================*/
@@ -117,11 +119,10 @@ void gdsim_lld_init(void)
  */
 void gdsim_lld_object_init(GDSimDriver* gdsimp)
 {
-    gdsimp->thd_ptr = NULL;
-    gdsimp->thd_wait = NULL;
-
+#if defined(_CHIBIOS_RT_)
+    gdsimp->tr = NULL;
     /* Filling the thread working area here because the function
-       @p chThdCreateI() does not do it. */
+       @p chThdCreateI() does not do it.*/
 #if CH_DBG_FILL_THREADS
     {
         void *wsp = gdsimp->wa_pump;
@@ -133,6 +134,7 @@ void gdsim_lld_object_init(GDSimDriver* gdsimp)
                 CH_STACK_FILL_VALUE);
     }
 #endif
+#endif /* defined(_CHIBIOS_RT_) */
 }
 
 /**
@@ -225,17 +227,16 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
                 0,
                 NULL);
 
-        /* Creates the data pump thread in a suspended state. */
-        if (gdsimp->thd_ptr == NULL)
-            gdsimp->thd_ptr = gdsimp->thd_wait =
-                    chThdCreateI(gdsimp->wa_pump, sizeof(gdsimp->wa_pump),
-                            GD_SIM_THREAD_PRIO, gdsim_lld_pump, gdsimp);
-
-        if (gdsimp->thd_wait != NULL)
+#if defined(_CHIBIOS_RT_)
+        /* Creates the data pump thread. Note, it is created only once.*/
+        if (gdsimp->tr == NULL)
         {
-            chThdResumeI(gdsimp->thd_wait);
-            gdsimp->thd_wait = NULL;
+            gdsimp->tr = chThdCreateI(gdsimp->wa_pump, sizeof(gdsimp->wa_pump),
+                    GD_SIM_THREAD_PRIO, gdsimp_lld_pump, gdsimp);
+            chThdStartI(gdsimp->tr);
+            chSchRescheduleS();
         }
+#endif
     }
 }
 

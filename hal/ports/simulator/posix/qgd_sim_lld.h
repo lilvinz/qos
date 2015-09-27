@@ -106,14 +106,19 @@ typedef struct
 #endif
 #endif /* GD_SIM_USE_MUTUAL_EXCLUSION */
     /**
+     * @brief   Pointer to the thread when it is sleeping or @p NULL.
+     */
+    thread_reference_t            wait;
+#if defined(_CHIBIOS_RT_)
+    /**
      * @brief   Pointer to the thread.
      */
-    thread_t* thd_ptr;
-    thread_t* thd_wait;
+    thread_reference_t            tr;
     /**
      * @brief   Working area for the dedicated data pump thread;
      */
-    WORKING_AREA(wa_pump, GD_SIM_THREAD_STACK_SIZE);
+    THD_WORKING_AREA(wa_pump, GD_SIM_THREAD_STACK_SIZE);
+#endif
     /**
      * @brief   xcb stuff
      */
