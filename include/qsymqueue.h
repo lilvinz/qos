@@ -36,8 +36,6 @@
 #ifndef _QSYMQUEUES_H_
 #define _QSYMQUEUES_H_
 
-#include "qhal.h"
-
 #if CH_CFG_USE_QUEUES || defined(__DOXYGEN__)
 
 /**

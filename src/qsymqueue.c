@@ -36,6 +36,7 @@
  * @{
  */
 
+#include "qhal.h"
 #include "qsymqueue.h"
 
 #if CH_CFG_USE_QUEUES || defined(__DOXYGEN__)
