@@ -158,13 +158,14 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
  *
  * @notapi
  */
-__attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
+__attribute__((noreturn))
+static void sfdxd_pump(void* parameters)
 {
     SerialFdxDriver* sfdxdp = (SerialFdxDriver*)parameters;
     chRegSetThreadName("sfdxd_pump");
 
     msg_t receiveResult = 0;
-    while (TRUE)
+    while (true)
     {
         if (sfdxdp->state == SFDXD_READY)
         {
@@ -212,8 +213,7 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
         {
             /* Nothing to do. Going to sleep. */
             chSysLock();
-            sfdxdp->thd_wait = chThdGetSelfX();
-            chSchGoSleepS(THD_STATE_SUSPENDED);
+            chThdSuspendS(&sfdxdp->wait);
             chSysUnlock();
         }
     }
@@ -307,8 +307,7 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
     chEvtObjectInit(&sfdxdp->event);
     sfdxdp->state = SFDXD_STOP;
     sfdxdp->connected = FALSE;
-    sfdxdp->thd_ptr = NULL;
-    sfdxdp->thd_wait = NULL;
+    sfdxdp->wait = NULL;
 
     chSymQObjectInit(&sfdxdp->iqueue, sfdxdp->ib,
             sizeof(sfdxdp->ib));
@@ -316,8 +315,10 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
     chSymQObjectInit(&sfdxdp->oqueue, sfdxdp->ob,
             sizeof(sfdxdp->ob));
 
+#if defined(_CHIBIOS_RT_)
+    sfdxdp->tr = NULL;
     /* Filling the thread working area here because the function
-     @p chThdCreateI() does not do it. */
+       @p chThdCreateI() does not do it.*/
 #if CH_DBG_FILL_THREADS
     {
         void *wsp = sfdxdp->wa_pump;
@@ -329,6 +330,7 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
                 CH_STACK_FILL_VALUE);
     }
 #endif
+#endif /* defined(_CHIBIOS_RT_) */
 }
 
 /**
@@ -351,17 +353,16 @@ void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
     sfdxdp->state = SFDXD_READY;
     sfdxdp->connected = FALSE;
 
-    if (sfdxdp->thd_ptr == NULL)
-        sfdxdp->thd_ptr = sfdxdp->thd_wait = chThdCreateI(sfdxdp->wa_pump,
-            sizeof sfdxdp->wa_pump,
-            SERIAL_FDX_THREAD_PRIO,
-            sfdxd_pump,
-            sfdxdp);
-    if (sfdxdp->thd_wait != NULL)
+#if defined(_CHIBIOS_RT_)
+    /* Creates the data pump thread. Note, it is created only once.*/
+    if (sfdxdp->tr == NULL)
     {
-        chThdResumeI(sfdxdp->thd_wait);
-        sfdxdp->thd_wait = NULL;
+        sfdxdp->tr = chThdCreateI(sfdxdp->wa_pump, sizeof sfdxdp->wa_pump,
+                SERIAL_FDX_THREAD_PRIO, sfdxd_pump, sfdxdp);
+        chThdStartI(sfdxdp->tr);
+        chSchRescheduleS();
     }
+#endif
 
     chSysUnlock();
 }

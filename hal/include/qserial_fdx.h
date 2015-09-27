@@ -211,17 +211,19 @@ struct SerialFdxDriver
     _serial_fdx_driver_data
     const SerialFdxConfig* configp;
     /**
-     * @brief   Pointer to the thread.
-     */
-    thread_t* thd_ptr;
-    /**
      * @brief   Pointer to the thread when it is sleeping or @p NULL.
      */
-    thread_t* thd_wait;
+    thread_reference_t            wait;
+#if defined(_CHIBIOS_RT_)
+    /**
+     * @brief   Pointer to the thread.
+     */
+    thread_reference_t            tr;
     /**
      * @brief   Working area for the dedicated data pump thread;
      */
-    WORKING_AREA(wa_pump, SERIAL_FDX_THREAD_STACK_SIZE);
+    THD_WORKING_AREA(wa_pump, SERIAL_FDX_THREAD_STACK_SIZE);
+#endif
 };
 
 /*===========================================================================*/
