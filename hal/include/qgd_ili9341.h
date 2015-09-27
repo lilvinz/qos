@@ -249,7 +249,7 @@ extern "C" {
     void gdili9341StreamEnd(GDILI9341Driver* gdili9341p);
     void gdili9341RectFill(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
             coord_t width, coord_t height, color_t color);
-    bool_t gdili9341GetInfo(GDILI9341Driver* gdili9341p, GDDeviceInfo* gddip);
+    bool gdili9341GetInfo(GDILI9341Driver* gdili9341p, GDDeviceInfo* gddip);
     void gdili9341AcquireBus(GDILI9341Driver* gdili9341p);
     void gdili9341ReleaseBus(GDILI9341Driver* gdili9341p);
     void gdili9341Select(GDILI9341Driver* gdili9341p);

@@ -40,7 +40,7 @@ static const struct GDILI9341DriverVMT gd_sim_vmt =
     .stream_end = (void (*)(void*))gdili9341StreamEnd,
     .rect_fill = (void (*)(void*, coord_t, coord_t, coord_t, coord_t, color_t))
             gdili9341RectFill,
-    .get_info = (bool_t (*)(void*, GDDeviceInfo*))gdili9341GetInfo,
+    .get_info = (bool (*)(void*, GDDeviceInfo*))gdili9341GetInfo,
     .acquire = (void (*)(void*))gdili9341AcquireBus,
     .release = (void (*)(void*))gdili9341ReleaseBus,
 };
@@ -354,12 +354,12 @@ void gdili9341RectFill(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
  * @param[out] gddip        pointer to a @p GDDeviceInfo structure
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t gdili9341GetInfo(GDILI9341Driver* gdili9341p, GDDeviceInfo* gddip)
+bool gdili9341GetInfo(GDILI9341Driver* gdili9341p, GDDeviceInfo* gddip)
 {
     chDbgCheck(gdili9341p != NULL, "gdili9341GetInfo");
     /* Verify device status. */
@@ -368,7 +368,7 @@ bool_t gdili9341GetInfo(GDILI9341Driver* gdili9341p, GDDeviceInfo* gddip)
 
     memcpy(gddip, &gdili9341p->gddi, sizeof(*gddip));
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**

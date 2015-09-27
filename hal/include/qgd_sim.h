@@ -74,7 +74,7 @@ extern "C" {
     void gdsimStreamEnd(GDSimDriver* gdsimp);
     void gdsimRectFill(GDSimDriver* gdsimp, coord_t left, coord_t top,
             coord_t width, coord_t height, color_t color);
-    bool_t gdsimGetInfo(GDSimDriver* gdsimp, GDDeviceInfo* gddip);
+    bool gdsimGetInfo(GDSimDriver* gdsimp, GDDeviceInfo* gddip);
     void gdsimAcquireBus(GDSimDriver* gdsimp);
     void gdsimReleaseBus(GDSimDriver* gdsimp);
 #ifdef __cplusplus

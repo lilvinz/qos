@@ -298,17 +298,17 @@ void gdsim_lld_rect_fill(GDSimDriver* gdsimp, coord_t left, coord_t top,
  * @param[out] gddip        pointer to a @p GDDeviceInfo structure
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t gdsim_lld_get_info(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
+bool gdsim_lld_get_info(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
 {
     gddip->size_x = gdsimp->config->size_x;
     gddip->size_y = gdsimp->config->size_y;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**

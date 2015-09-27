@@ -633,12 +633,12 @@ void flash_lld_stop(FLASHDriver* flashp)
  * @param[out] sinfo    pointer to variable receiving sector info or NULL
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @notapi
  */
-bool_t flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo)
+bool flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo)
 {
     FLASHSectorInfo info =
     {
@@ -661,16 +661,16 @@ bool_t flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo)
                 sinfo->origin = info.origin;
                 sinfo->size = info.size;
             }
-            return CH_SUCCESS;
+            return HAL_SUCCESS;
         }
         info.origin += info.size;
 
         /* Test against total flash size. */
         if (info.origin >=
                 (uint32_t)(*((__I uint32_t*)FLASH_SIZE_REGISTER_ADDRESS)) * 1024)
-            return CH_FAILED;
+            return HAL_FAILED;
     }
-    return CH_FAILED;
+    return HAL_FAILED;
 }
 
 /**

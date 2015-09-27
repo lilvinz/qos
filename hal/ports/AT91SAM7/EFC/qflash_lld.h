@@ -126,7 +126,7 @@ extern "C" {
     void flash_lld_init(void);
     void flash_lld_start(FLASHDriver* flashp);
     void flash_lld_stop(FLASHDriver* flashp);
-    bool_t flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo);
+    bool flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo);
     void flash_lld_read(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
             uint8_t* buffer);
     void flash_lld_write(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,

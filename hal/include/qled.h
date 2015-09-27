@@ -99,7 +99,7 @@ extern "C"
     void ledOff(LedDriver* ledp);
     void ledToggle(LedDriver* ledp);
     void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop);
-    bool_t ledIsLedOn(LedDriver* ledp);
+    bool ledIsLedOn(LedDriver* ledp);
 #ifdef __cplusplus
 }
 #endif

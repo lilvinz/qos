@@ -41,7 +41,7 @@ static const struct GDSimDriverVMT gd_sim_vmt =
     .stream_end = (void (*)(void*))gdsimStreamEnd,
     .rect_fill = (void (*)(void*, coord_t, coord_t, coord_t, coord_t, color_t))
             gdsimRectFill,
-    .get_info = (bool_t (*)(void*, GDDeviceInfo*))gdsimGetInfo,
+    .get_info = (bool (*)(void*, GDDeviceInfo*))gdsimGetInfo,
     .acquire = (void (*)(void*))gdsimAcquireBus,
     .release = (void (*)(void*))gdsimReleaseBus,
 };
@@ -258,12 +258,12 @@ void gdsimRectFill(GDSimDriver* gdsimp, coord_t left, coord_t top,
  * @param[out] gddip        pointer to a @p GDDeviceInfo structure
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t gdsimGetInfo(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
+bool gdsimGetInfo(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
 {
     chDbgCheck(gdsimp != NULL, "gdsimGetInfo");
     /* Verify device status. */
@@ -274,7 +274,7 @@ bool_t gdsimGetInfo(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
     gdsim_lld_get_info(gdsimp, gddip);
     chSysUnlock();
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**

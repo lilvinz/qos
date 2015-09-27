@@ -61,7 +61,7 @@ extern "C" {
   void rtcRTCTime2TM(const RTCTime *timespec, struct tm *result);
   void rtcTM2RTCTime(const struct tm *timespec, RTCTime *result);
 #if RTC_HAS_PERIODIC_WAKEUPS
-  bool_t rtcGetPeriodicWakeupFlag_v2(RTCDriver *rtcp);
+  bool rtcGetPeriodicWakeupFlag_v2(RTCDriver *rtcp);
   void rtcClearPeriodicWakeupFlag_v2(RTCDriver *rtcp);
 #endif /* RTC_HAS_PERIODIC_WAKEUPS */
 #ifdef __cplusplus

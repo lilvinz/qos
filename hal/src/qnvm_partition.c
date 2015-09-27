@@ -32,19 +32,19 @@
  */
 static const struct NVMPartitionDriverVMT nvm_partition_vmt =
 {
-    .read = (bool_t (*)(void*, uint32_t, uint32_t, uint8_t*))nvmpartRead,
-    .write = (bool_t (*)(void*, uint32_t, uint32_t, const uint8_t*))nvmpartWrite,
-    .erase = (bool_t (*)(void*, uint32_t, uint32_t))nvmpartErase,
-    .mass_erase = (bool_t (*)(void*))nvmpartMassErase,
-    .sync = (bool_t (*)(void*))nvmpartSync,
-    .get_info = (bool_t (*)(void*, NVMDeviceInfo*))nvmpartGetInfo,
+    .read = (bool (*)(void*, uint32_t, uint32_t, uint8_t*))nvmpartRead,
+    .write = (bool (*)(void*, uint32_t, uint32_t, const uint8_t*))nvmpartWrite,
+    .erase = (bool (*)(void*, uint32_t, uint32_t))nvmpartErase,
+    .mass_erase = (bool (*)(void*))nvmpartMassErase,
+    .sync = (bool (*)(void*))nvmpartSync,
+    .get_info = (bool (*)(void*, NVMDeviceInfo*))nvmpartGetInfo,
     /* End of mandatory functions. */
     .acquire = (void (*)(void*))nvmpartAcquireBus,
     .release = (void (*)(void*))nvmpartReleaseBus,
-    .writeprotect = (bool_t (*)(void*, uint32_t, uint32_t))nvmpartWriteProtect,
-    .mass_writeprotect = (bool_t (*)(void*))nvmpartMassWriteProtect,
-    .writeunprotect = (bool_t (*)(void*, uint32_t, uint32_t))nvmpartWriteUnprotect,
-    .mass_writeunprotect = (bool_t (*)(void*))nvmpartMassWriteUnprotect,
+    .writeprotect = (bool (*)(void*, uint32_t, uint32_t))nvmpartWriteProtect,
+    .mass_writeprotect = (bool (*)(void*))nvmpartMassWriteProtect,
+    .writeunprotect = (bool (*)(void*, uint32_t, uint32_t))nvmpartWriteUnprotect,
+    .mass_writeunprotect = (bool (*)(void*))nvmpartMassWriteUnprotect,
 };
 
 /*===========================================================================*/
@@ -139,12 +139,12 @@ void nvmpartStop(NVMPartitionDriver* nvmpartp)
  * @param[in] buffer        pointer to data buffer
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmpartRead(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
+bool nvmpartRead(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
         uint32_t n, uint8_t* buffer)
 {
     chDbgCheck(nvmpartp != NULL, "nvmpartRead");
@@ -159,16 +159,16 @@ bool_t nvmpartRead(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
     /* Read operation in progress. */
     nvmpartp->state = NVM_READING;
 
-    bool_t result = nvmRead(nvmpartp->config->nvmp,
+    bool result = nvmRead(nvmpartp->config->nvmp,
             nvmpartp->part_org + startaddr,
             n, buffer);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Read operation finished. */
     nvmpartp->state = NVM_READY;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -180,12 +180,12 @@ bool_t nvmpartRead(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
  * @param[in] buffer        pointer to data buffer
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmpartWrite(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
+bool nvmpartWrite(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
        uint32_t n, const uint8_t* buffer)
 {
     chDbgCheck(nvmpartp != NULL, "nvmpartWrite");
@@ -213,12 +213,12 @@ bool_t nvmpartWrite(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
  * @param[in] n             number of bytes to erase
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmpartErase(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
+bool nvmpartErase(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
         uint32_t n)
 {
     chDbgCheck(nvmpartp != NULL, "nvmpartErase");
@@ -243,12 +243,12 @@ bool_t nvmpartErase(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
  * @param[in] nvmpartp      pointer to the @p NVMPartitionDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmpartMassErase(NVMPartitionDriver* nvmpartp)
+bool nvmpartMassErase(NVMPartitionDriver* nvmpartp)
 {
     chDbgCheck(nvmpartp != NULL, "nvmpartMassErase");
     /* Verify device status. */
@@ -269,12 +269,12 @@ bool_t nvmpartMassErase(NVMPartitionDriver* nvmpartp)
  * @param[in] nvmpartp      pointer to the @p NVMPartitionDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmpartSync(NVMPartitionDriver* nvmpartp)
+bool nvmpartSync(NVMPartitionDriver* nvmpartp)
 {
     chDbgCheck(nvmpartp != NULL, "nvmpartSync");
     /* Verify device status. */
@@ -282,16 +282,16 @@ bool_t nvmpartSync(NVMPartitionDriver* nvmpartp)
             "invalid state");
 
     if (nvmpartp->state == NVM_READY)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
-    bool_t result = nvmSync(nvmpartp->config->nvmp);
-    if (result != CH_SUCCESS)
+    bool result = nvmSync(nvmpartp->config->nvmp);
+    if (result != HAL_SUCCESS)
         return result;
 
     /* No more operation in progress. */
     nvmpartp->state = NVM_READY;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -301,12 +301,12 @@ bool_t nvmpartSync(NVMPartitionDriver* nvmpartp)
  * @param[out] nvmdip       pointer to a @p NVMDeviceInfo structure
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmpartGetInfo(NVMPartitionDriver* nvmpartp, NVMDeviceInfo* nvmdip)
+bool nvmpartGetInfo(NVMPartitionDriver* nvmpartp, NVMDeviceInfo* nvmdip)
 {
     chDbgCheck(nvmpartp != NULL, "nvmpartGetInfo");
     /* Verify device status. */
@@ -320,7 +320,7 @@ bool_t nvmpartGetInfo(NVMPartitionDriver* nvmpartp, NVMDeviceInfo* nvmdip)
     nvmdip->write_alignment =
             nvmpartp->llnvmdi.write_alignment;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -384,12 +384,12 @@ void nvmpartReleaseBus(NVMPartitionDriver* nvmpartp)
  * @param[in] n             number of bytes to protect
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmpartWriteProtect(NVMPartitionDriver* nvmpartp,
+bool nvmpartWriteProtect(NVMPartitionDriver* nvmpartp,
         uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(nvmpartp != NULL, "nvmpartWriteProtect");
@@ -411,12 +411,12 @@ bool_t nvmpartWriteProtect(NVMPartitionDriver* nvmpartp,
  * @param[in] nvmpartp      pointer to the @p NVMPartitionDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmpartMassWriteProtect(NVMPartitionDriver* nvmpartp)
+bool nvmpartMassWriteProtect(NVMPartitionDriver* nvmpartp)
 {
     chDbgCheck(nvmpartp != NULL, "nvmpartMassWriteProtect");
     /* Verify device status. */
@@ -436,12 +436,12 @@ bool_t nvmpartMassWriteProtect(NVMPartitionDriver* nvmpartp)
  * @param[in] n             number of bytes to unprotect
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmpartWriteUnprotect(NVMPartitionDriver* nvmpartp,
+bool nvmpartWriteUnprotect(NVMPartitionDriver* nvmpartp,
         uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(nvmpartp != NULL, "nvmpartWriteUnprotect");
@@ -463,12 +463,12 @@ bool_t nvmpartWriteUnprotect(NVMPartitionDriver* nvmpartp,
  * @param[in] nvmpartp      pointer to the @p NVMPartitionDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmpartMassWriteUnprotect(NVMPartitionDriver* nvmpartp)
+bool nvmpartMassWriteUnprotect(NVMPartitionDriver* nvmpartp)
 {
     chDbgCheck(nvmpartp != NULL, "nvmpartMassWriteUnprotect");
     /* Verify device status. */

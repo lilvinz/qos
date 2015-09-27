@@ -127,24 +127,24 @@ extern "C" {
     void nvmmemoryStart(NVMMemoryDriver* nvmmemoryp,
             const NVMMemoryConfig* config);
     void nvmmemoryStop(NVMMemoryDriver* nvmmemoryp);
-    bool_t nvmmemoryRead(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr,
+    bool nvmmemoryRead(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr,
             uint32_t n, uint8_t* buffer);
-    bool_t nvmmemoryWrite(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr,
+    bool nvmmemoryWrite(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr,
             uint32_t n, const uint8_t* buffer);
-    bool_t nvmmemoryErase(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr,
+    bool nvmmemoryErase(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr,
             uint32_t n);
-    bool_t nvmmemoryMassErase(NVMMemoryDriver* nvmmemoryp);
-    bool_t nvmmemorySync(NVMMemoryDriver* nvmmemoryp);
-    bool_t nvmmemoryGetInfo(NVMMemoryDriver* nvmmemoryp,
+    bool nvmmemoryMassErase(NVMMemoryDriver* nvmmemoryp);
+    bool nvmmemorySync(NVMMemoryDriver* nvmmemoryp);
+    bool nvmmemoryGetInfo(NVMMemoryDriver* nvmmemoryp,
             NVMDeviceInfo* nvmdip);
     void nvmmemoryAcquireBus(NVMMemoryDriver* nvmmemoryp);
     void nvmmemoryReleaseBus(NVMMemoryDriver* nvmmemoryp);
-    bool_t nvmmemoryWriteProtect(NVMMemoryDriver* nvmmemoryp,
+    bool nvmmemoryWriteProtect(NVMMemoryDriver* nvmmemoryp,
             uint32_t startaddr, uint32_t n);
-    bool_t nvmmemoryMassWriteProtect(NVMMemoryDriver* nvmmemoryp);
-    bool_t nvmmemoryWriteUnprotect(NVMMemoryDriver* nvmmemoryp,
+    bool nvmmemoryMassWriteProtect(NVMMemoryDriver* nvmmemoryp);
+    bool nvmmemoryWriteUnprotect(NVMMemoryDriver* nvmmemoryp,
             uint32_t startaddr, uint32_t n);
-    bool_t nvmmemoryMassWriteUnprotect(NVMMemoryDriver* nvmmemoryp);
+    bool nvmmemoryMassWriteUnprotect(NVMMemoryDriver* nvmmemoryp);
 #ifdef __cplusplus
 }
 #endif

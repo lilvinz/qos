@@ -115,7 +115,7 @@ struct SymmetricQueue {
  *
  * @iclass
  */
-#define chSymQIsEmptyI(sqp) ((bool_t)(chSymQSpaceI(sqp) == 0))
+#define chSymQIsEmptyI(sqp) ((bool)(chSymQSpaceI(sqp) == 0))
 
 /**
  * @brief   Evaluates to @p TRUE if the specified symmetric queue is full.
@@ -127,7 +127,7 @@ struct SymmetricQueue {
  *
  * @iclass
  */
-#define chSymQIsFullI(sqp) ((bool_t)(chSymQGetEmptyI(sqp) == 0))
+#define chSymQIsFullI(sqp) ((bool)(chSymQGetEmptyI(sqp) == 0))
 
 /**
  * @brief   Symmetric queue read.

@@ -131,23 +131,23 @@ extern "C" {
     void nvmfileObjectInit(NVMFileDriver* nvmfilep);
     void nvmfileStart(NVMFileDriver* nvmfilep, const NVMFileConfig* config);
     void nvmfileStop(NVMFileDriver* nvmfilep);
-    bool_t nvmfileRead(NVMFileDriver* nvmfilep, uint32_t startaddr,
+    bool nvmfileRead(NVMFileDriver* nvmfilep, uint32_t startaddr,
             uint32_t n, uint8_t* buffer);
-    bool_t nvmfileWrite(NVMFileDriver* nvmfilep, uint32_t startaddr,
+    bool nvmfileWrite(NVMFileDriver* nvmfilep, uint32_t startaddr,
             uint32_t n, const uint8_t* buffer);
-    bool_t nvmfileErase(NVMFileDriver* nvmfilep, uint32_t startaddr,
+    bool nvmfileErase(NVMFileDriver* nvmfilep, uint32_t startaddr,
             uint32_t n);
-    bool_t nvmfileMassErase(NVMFileDriver* nvmfilep);
-    bool_t nvmfileSync(NVMFileDriver* nvmfilep);
-    bool_t nvmfileGetInfo(NVMFileDriver* nvmfilep, NVMDeviceInfo* nvmdip);
+    bool nvmfileMassErase(NVMFileDriver* nvmfilep);
+    bool nvmfileSync(NVMFileDriver* nvmfilep);
+    bool nvmfileGetInfo(NVMFileDriver* nvmfilep, NVMDeviceInfo* nvmdip);
     void nvmfileAcquireBus(NVMFileDriver* nvmfilep);
     void nvmfileReleaseBus(NVMFileDriver* nvmfilep);
-    bool_t nvmfileWriteProtect(NVMFileDriver* nvmfilep,
+    bool nvmfileWriteProtect(NVMFileDriver* nvmfilep,
             uint32_t startaddr, uint32_t n);
-    bool_t nvmfileMassWriteProtect(NVMFileDriver* nvmfilep);
-    bool_t nvmfileWriteUnprotect(NVMFileDriver* nvmfilep,
+    bool nvmfileMassWriteProtect(NVMFileDriver* nvmfilep);
+    bool nvmfileWriteUnprotect(NVMFileDriver* nvmfilep,
             uint32_t startaddr, uint32_t n);
-    bool_t nvmfileMassWriteUnprotect(NVMFileDriver* nvmfilep);
+    bool nvmfileMassWriteUnprotect(NVMFileDriver* nvmfilep);
 #ifdef __cplusplus
 }
 #endif

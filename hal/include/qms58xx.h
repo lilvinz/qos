@@ -146,10 +146,10 @@ extern "C" {
     void ms58xxStop(MS58XXDriver* ms58xxp);
     void ms58xxAcquireBus(MS58XXDriver* ms58xxp);
     void ms58xxReleaseBus(MS58XXDriver* ms58xxp);
-    bool_t ms58xxTemperatureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr);
-    bool_t ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp);
-    bool_t ms58xxPressureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr);
-    bool_t ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp);
+    bool ms58xxTemperatureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr);
+    bool ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp);
+    bool ms58xxPressureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr);
+    bool ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp);
 #ifdef __cplusplus
 }
 #endif

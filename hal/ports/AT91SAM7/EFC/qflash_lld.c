@@ -320,16 +320,16 @@ void flash_lld_stop(FLASHDriver* flashp)
  * @param[out] sinfo    pointer to variable receiving sector info or NULL
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @notapi
  */
-bool_t flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo)
+bool flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo)
 {
     /* Test against total flash size. */
     if (addr >= AT91C_IFLASH_SIZE)
-        return CH_FAILED;
+        return HAL_FAILED;
 
     if (sinfo != NULL)
     {
@@ -339,7 +339,7 @@ bool_t flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo)
         sinfo->lock_bit =sinfo->origin / AT91C_IFLASH_LOCK_REGION_SIZE;
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -417,7 +417,7 @@ void flash_lld_write(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
 void flash_lld_erase_sector(FLASHDriver* flashp, uint32_t startaddr)
 {
     FLASHSectorInfo fsi;
-    if (flash_lld_addr_to_sector(startaddr, &fsi) != CH_SUCCESS)
+    if (flash_lld_addr_to_sector(startaddr, &fsi) != HAL_SUCCESS)
     {
         chDbgAssert(false,
                "flash_lld_erase_sector(), #1", "invalid parameters");
@@ -497,7 +497,7 @@ void flash_lld_writeprotect_sector(FLASHDriver* flashp, uint32_t startaddr)
     const uint16_t oldbits = flash_lld_lockbits_read(flashp);
 
     FLASHSectorInfo fsi;
-    if (flash_lld_addr_to_sector(startaddr, &fsi) != CH_SUCCESS)
+    if (flash_lld_addr_to_sector(startaddr, &fsi) != HAL_SUCCESS)
     {
         chDbgAssert(false,
                 "flash_lld_writeprotect_sector(), #1", "invalid parameters");
@@ -534,7 +534,7 @@ void flash_lld_writeunprotect_sector(FLASHDriver* flashp, uint32_t startaddr)
     const uint16_t oldbits = flash_lld_lockbits_read(flashp);
 
     FLASHSectorInfo fsi;
-    if (flash_lld_addr_to_sector(startaddr, &fsi) != CH_SUCCESS)
+    if (flash_lld_addr_to_sector(startaddr, &fsi) != HAL_SUCCESS)
     {
         chDbgAssert(false,
                 "flash_lld_writeunprotect_sector(), #1", "invalid parameters");

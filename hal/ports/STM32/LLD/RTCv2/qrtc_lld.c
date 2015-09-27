@@ -161,7 +161,7 @@ void rtcTM2RTCTime(const struct tm *timespec, RTCTime *result)
  * @api
  */
 #if RTC_HAS_PERIODIC_WAKEUPS
-bool_t rtcGetPeriodicWakeupFlag_v2(RTCDriver *rtcp)
+bool rtcGetPeriodicWakeupFlag_v2(RTCDriver *rtcp)
 {
     if ((rtcp->id_rtc->ISR & RTC_ISR_WUTF) != 0)
         return TRUE;

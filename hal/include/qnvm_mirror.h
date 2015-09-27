@@ -158,24 +158,24 @@ extern "C" {
     void nvmmirrorStart(NVMMirrorDriver* nvmmirrorp,
             const NVMMirrorConfig* config);
     void nvmmirrorStop(NVMMirrorDriver* nvmmirrorp);
-    bool_t nvmmirrorRead(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
+    bool nvmmirrorRead(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
             uint32_t n, uint8_t* buffer);
-    bool_t nvmmirrorWrite(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
+    bool nvmmirrorWrite(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
             uint32_t n, const uint8_t* buffer);
-    bool_t nvmmirrorErase(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
+    bool nvmmirrorErase(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
             uint32_t n);
-    bool_t nvmmirrorMassErase(NVMMirrorDriver* nvmmirrorp);
-    bool_t nvmmirrorSync(NVMMirrorDriver* nvmmirrorp);
-    bool_t nvmmirrorGetInfo(NVMMirrorDriver* nvmmirrorp,
+    bool nvmmirrorMassErase(NVMMirrorDriver* nvmmirrorp);
+    bool nvmmirrorSync(NVMMirrorDriver* nvmmirrorp);
+    bool nvmmirrorGetInfo(NVMMirrorDriver* nvmmirrorp,
             NVMDeviceInfo* nvmdip);
     void nvmmirrorAcquireBus(NVMMirrorDriver* nvmmirrorp);
     void nvmmirrorReleaseBus(NVMMirrorDriver* nvmmirrorp);
-    bool_t nvmmirrorWriteProtect(NVMMirrorDriver* nvmmirrorp,
+    bool nvmmirrorWriteProtect(NVMMirrorDriver* nvmmirrorp,
             uint32_t startaddr, uint32_t n);
-    bool_t nvmmirrorMassWriteProtect(NVMMirrorDriver* nvmmirrorp);
-    bool_t nvmmirrorWriteUnprotect(NVMMirrorDriver* nvmmirrorp,
+    bool nvmmirrorMassWriteProtect(NVMMirrorDriver* nvmmirrorp);
+    bool nvmmirrorWriteUnprotect(NVMMirrorDriver* nvmmirrorp,
             uint32_t startaddr, uint32_t n);
-    bool_t nvmmirrorMassWriteUnprotect(NVMMirrorDriver* nvmmirrorp);
+    bool nvmmirrorMassWriteUnprotect(NVMMirrorDriver* nvmmirrorp);
 #ifdef __cplusplus
 }
 #endif

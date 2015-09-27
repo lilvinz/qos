@@ -37,18 +37,18 @@
  */
 static const struct NVMFileDriverVMT nvm_file_vmt =
 {
-    .read = (bool_t (*)(void*, uint32_t, uint32_t, uint8_t*))nvmfileRead,
-    .write = (bool_t (*)(void*, uint32_t, uint32_t, const uint8_t*))nvmfileWrite,
-    .erase = (bool_t (*)(void*, uint32_t, uint32_t))nvmfileErase,
-    .mass_erase = (bool_t (*)(void*))nvmfileMassErase,
-    .sync = (bool_t (*)(void*))nvmfileSync,
-    .get_info = (bool_t (*)(void*, NVMDeviceInfo*))nvmfileGetInfo,
+    .read = (bool (*)(void*, uint32_t, uint32_t, uint8_t*))nvmfileRead,
+    .write = (bool (*)(void*, uint32_t, uint32_t, const uint8_t*))nvmfileWrite,
+    .erase = (bool (*)(void*, uint32_t, uint32_t))nvmfileErase,
+    .mass_erase = (bool (*)(void*))nvmfileMassErase,
+    .sync = (bool (*)(void*))nvmfileSync,
+    .get_info = (bool (*)(void*, NVMDeviceInfo*))nvmfileGetInfo,
     .acquire = (void (*)(void*))nvmfileAcquireBus,
     .release = (void (*)(void*))nvmfileReleaseBus,
-    .writeprotect = (bool_t (*)(void*, uint32_t, uint32_t))nvmfileWriteProtect,
-    .mass_writeprotect = (bool_t (*)(void*))nvmfileMassWriteProtect,
-    .writeunprotect = (bool_t (*)(void*, uint32_t, uint32_t))nvmfileWriteUnprotect,
-    .mass_writeunprotect = (bool_t (*)(void*))nvmfileMassWriteUnprotect,
+    .writeprotect = (bool (*)(void*, uint32_t, uint32_t))nvmfileWriteProtect,
+    .mass_writeprotect = (bool (*)(void*))nvmfileMassWriteProtect,
+    .writeunprotect = (bool (*)(void*, uint32_t, uint32_t))nvmfileWriteUnprotect,
+    .mass_writeunprotect = (bool (*)(void*))nvmfileMassWriteUnprotect,
 };
 
 /*===========================================================================*/
@@ -176,12 +176,12 @@ void nvmfileStop(NVMFileDriver* nvmfilep)
  * @param[in] buffer        pointer to data buffer
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfileRead(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n,
+bool nvmfileRead(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n,
         uint8_t* buffer)
 {
     chDbgCheck(nvmfilep != NULL, "nvmfileRead");
@@ -192,22 +192,22 @@ bool_t nvmfileRead(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n,
     chDbgAssert((startaddr + n <= nvmfilep->config->sector_size * nvmfilep->config->sector_num),
             "nvmfileRead(), #2", "invalid parameters");
 
-    if (nvmfileSync(nvmfilep) != CH_SUCCESS)
-        return CH_FAILED;
+    if (nvmfileSync(nvmfilep) != HAL_SUCCESS)
+        return HAL_FAILED;
 
     /* Read operation in progress. */
     nvmfilep->state = NVM_READING;
 
     if (fseek(nvmfilep->file, startaddr, SEEK_SET) != 0)
-        return CH_FAILED;
+        return HAL_FAILED;
 
     if (fread(buffer, 1, n, nvmfilep->file) != n)
-        return CH_FAILED;
+        return HAL_FAILED;
 
     /* Read operation finished. */
     nvmfilep->state = NVM_READY;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -219,12 +219,12 @@ bool_t nvmfileRead(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n,
  * @param[in] buffer        pointer to data buffer
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfileWrite(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n,
+bool nvmfileWrite(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n,
         const uint8_t* buffer)
 {
     chDbgCheck(nvmfilep != NULL, "nvmfileWrite");
@@ -235,19 +235,19 @@ bool_t nvmfileWrite(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n,
     chDbgAssert((startaddr + n <= nvmfilep->config->sector_size * nvmfilep->config->sector_num),
             "nvmfileWrite(), #2", "invalid parameters");
 
-    if (nvmfileSync(nvmfilep) != CH_SUCCESS)
-        return CH_FAILED;
+    if (nvmfileSync(nvmfilep) != HAL_SUCCESS)
+        return HAL_FAILED;
 
     /* Write operation in progress. */
     nvmfilep->state = NVM_WRITING;
 
     if (fseek(nvmfilep->file, startaddr, SEEK_SET) != 0)
-        return CH_FAILED;
+        return HAL_FAILED;
 
     if (fwrite(buffer, 1, n, nvmfilep->file) != n)
-        return CH_FAILED;
+        return HAL_FAILED;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -258,12 +258,12 @@ bool_t nvmfileWrite(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n,
  * @param[in] n             number of bytes to erase
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfileErase(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n)
+bool nvmfileErase(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(nvmfilep != NULL, "nvmfileErase");
     /* Verify device status. */
@@ -273,8 +273,8 @@ bool_t nvmfileErase(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n)
     chDbgAssert((startaddr + n <= nvmfilep->config->sector_size * nvmfilep->config->sector_num),
             "nvmfileErase(), #2", "invalid parameters");
 
-    if (nvmfileSync(nvmfilep) != CH_SUCCESS)
-        return CH_FAILED;
+    if (nvmfileSync(nvmfilep) != HAL_SUCCESS)
+        return HAL_FAILED;
 
     /* Erase operation in progress. */
     nvmfilep->state = NVM_ERASING;
@@ -283,7 +283,7 @@ bool_t nvmfileErase(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n)
             startaddr - (startaddr % nvmfilep->config->sector_size);
 
     if (fseek(nvmfilep->file, first_sector_addr, SEEK_SET) != 0)
-        return CH_FAILED;
+        return HAL_FAILED;
 
     for (uint32_t addr = first_sector_addr;
             addr < startaddr + n;
@@ -292,10 +292,10 @@ bool_t nvmfileErase(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n)
         static const uint8_t erased = 0xff;
         for (size_t i = 0; i < nvmfilep->config->sector_size; ++i)
             if (fwrite(&erased, 1, sizeof(erased), nvmfilep->file) != sizeof(erased))
-                return CH_FAILED;
+                return HAL_FAILED;
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -304,20 +304,20 @@ bool_t nvmfileErase(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n)
  * @param[in] nvmfilep      pointer to the @p NVMFileDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfileMassErase(NVMFileDriver* nvmfilep)
+bool nvmfileMassErase(NVMFileDriver* nvmfilep)
 {
     chDbgCheck(nvmfilep != NULL, "nvmfileMassErase");
     /* Verify device status. */
     chDbgAssert(nvmfilep->state >= NVM_READY, "nvmfileMassErase(), #1",
             "invalid state");
 
-    if (nvmfileSync(nvmfilep) != CH_SUCCESS)
-        return CH_FAILED;
+    if (nvmfileSync(nvmfilep) != HAL_SUCCESS)
+        return HAL_FAILED;
 
     /* Erase operation in progress. */
     nvmfilep->state = NVM_ERASING;
@@ -327,15 +327,15 @@ bool_t nvmfileMassErase(NVMFileDriver* nvmfilep)
             addr += nvmfilep->config->sector_size)
     {
         if (fseek(nvmfilep->file, addr, SEEK_SET) != 0)
-            return CH_FAILED;
+            return HAL_FAILED;
 
         static const uint8_t erased = 0xff;
         for (size_t i = 0; i < nvmfilep->config->sector_size; ++i)
             if (fwrite(&erased, 1, sizeof(erased), nvmfilep->file) != sizeof(erased))
-                return CH_FAILED;
+                return HAL_FAILED;
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -344,12 +344,12 @@ bool_t nvmfileMassErase(NVMFileDriver* nvmfilep)
  * @param[in] nvmfilep      pointer to the @p NVMFileDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfileSync(NVMFileDriver* nvmfilep)
+bool nvmfileSync(NVMFileDriver* nvmfilep)
 {
     chDbgCheck(nvmfilep != NULL, "nvmfileSync");
     /* Verify device status. */
@@ -357,15 +357,15 @@ bool_t nvmfileSync(NVMFileDriver* nvmfilep)
             "invalid state");
 
     if (nvmfilep->state == NVM_READY)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
     if (fflush(nvmfilep->file) != 0)
-        return CH_FAILED;
+        return HAL_FAILED;
 
     /* No more operation in progress. */
     nvmfilep->state = NVM_READY;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -375,12 +375,12 @@ bool_t nvmfileSync(NVMFileDriver* nvmfilep)
  * @param[out] nvmdip       pointer to a @p NVMDeviceInfo structure
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfileGetInfo(NVMFileDriver* nvmfilep, NVMDeviceInfo* nvmdip)
+bool nvmfileGetInfo(NVMFileDriver* nvmfilep, NVMDeviceInfo* nvmdip)
 {
     chDbgCheck(nvmfilep != NULL, "nvmfileGetInfo");
     /* Verify device status. */
@@ -395,7 +395,7 @@ bool_t nvmfileGetInfo(NVMFileDriver* nvmfilep, NVMDeviceInfo* nvmdip)
     /* Note: The virtual address room can be written byte wise */
     nvmdip->write_alignment = 0;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -453,12 +453,12 @@ void nvmfileReleaseBus(NVMFileDriver* nvmfilep)
  * @param[in] n             number of bytes to protect
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfileWriteProtect(NVMFileDriver* nvmfilep,
+bool nvmfileWriteProtect(NVMFileDriver* nvmfilep,
         uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(nvmfilep != NULL, "nvmfileWriteProtect");
@@ -468,7 +468,7 @@ bool_t nvmfileWriteProtect(NVMFileDriver* nvmfilep,
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -477,12 +477,12 @@ bool_t nvmfileWriteProtect(NVMFileDriver* nvmfilep,
  * @param[in] nvmfilep      pointer to the @p NVMFileDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfileMassWriteProtect(NVMFileDriver* nvmfilep)
+bool nvmfileMassWriteProtect(NVMFileDriver* nvmfilep)
 {
     chDbgCheck(nvmfilep != NULL, "nvmfileMassWriteProtect");
     /* Verify device status. */
@@ -491,7 +491,7 @@ bool_t nvmfileMassWriteProtect(NVMFileDriver* nvmfilep)
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -502,12 +502,12 @@ bool_t nvmfileMassWriteProtect(NVMFileDriver* nvmfilep)
  * @param[in] n             number of bytes to unprotect
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfileWriteUnprotect(NVMFileDriver* nvmfilep,
+bool nvmfileWriteUnprotect(NVMFileDriver* nvmfilep,
         uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(nvmfilep != NULL, "nvmfileWriteUnprotect");
@@ -517,7 +517,7 @@ bool_t nvmfileWriteUnprotect(NVMFileDriver* nvmfilep,
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -526,12 +526,12 @@ bool_t nvmfileWriteUnprotect(NVMFileDriver* nvmfilep,
  * @param[in] nvmfilep      pointer to the @p NVMFileDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfileMassWriteUnprotect(NVMFileDriver* nvmfilep)
+bool nvmfileMassWriteUnprotect(NVMFileDriver* nvmfilep)
 {
     chDbgCheck(nvmfilep != NULL, "nvmfileMassWriteUnprotect");
     /* Verify device status. */
@@ -540,7 +540,7 @@ bool_t nvmfileMassWriteUnprotect(NVMFileDriver* nvmfilep)
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 #endif /* HAL_USE_NVM_FILE */

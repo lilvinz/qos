@@ -138,23 +138,23 @@ extern "C" {
     void nvmpartStart(NVMPartitionDriver* nvmpartp,
             const NVMPartitionConfig* config);
     void nvmpartStop(NVMPartitionDriver* nvmpartp);
-    bool_t nvmpartRead(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
+    bool nvmpartRead(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
             uint32_t n, uint8_t* buffer);
-    bool_t nvmpartWrite(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
+    bool nvmpartWrite(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
             uint32_t n, const uint8_t* buffer);
-    bool_t nvmpartErase(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
+    bool nvmpartErase(NVMPartitionDriver* nvmpartp, uint32_t startaddr,
             uint32_t n);
-    bool_t nvmpartMassErase(NVMPartitionDriver* nvmpartp);
-    bool_t nvmpartSync(NVMPartitionDriver* nvmpartp);
-    bool_t nvmpartGetInfo(NVMPartitionDriver* nvmpartp, NVMDeviceInfo* nvmdip);
+    bool nvmpartMassErase(NVMPartitionDriver* nvmpartp);
+    bool nvmpartSync(NVMPartitionDriver* nvmpartp);
+    bool nvmpartGetInfo(NVMPartitionDriver* nvmpartp, NVMDeviceInfo* nvmdip);
     void nvmpartAcquireBus(NVMPartitionDriver* nvmpartp);
     void nvmpartReleaseBus(NVMPartitionDriver* nvmpartp);
-    bool_t nvmpartWriteProtect(NVMPartitionDriver* nvmpartp,
+    bool nvmpartWriteProtect(NVMPartitionDriver* nvmpartp,
             uint32_t startaddr, uint32_t n);
-    bool_t nvmpartMassWriteProtect(NVMPartitionDriver* nvmpartp);
-    bool_t nvmpartWriteUnprotect(NVMPartitionDriver* nvmpartp,
+    bool nvmpartMassWriteProtect(NVMPartitionDriver* nvmpartp);
+    bool nvmpartWriteUnprotect(NVMPartitionDriver* nvmpartp,
             uint32_t startaddr, uint32_t n);
-    bool_t nvmpartMassWriteUnprotect(NVMPartitionDriver* nvmpartp);
+    bool nvmpartMassWriteUnprotect(NVMPartitionDriver* nvmpartp);
 #ifdef __cplusplus
 }
 #endif

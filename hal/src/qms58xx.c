@@ -276,12 +276,12 @@ void ms58xxReleaseBus(MS58XXDriver* ms58xxp)
  * @param[in] osr       oversampling
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t ms58xxTemperatureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
+bool ms58xxTemperatureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
 {
     chDbgCheck(ms58xxp != NULL, "ms58xxTemperatureStart");
     /* Verify device status. */
@@ -303,9 +303,9 @@ bool_t ms58xxTemperatureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
             ms58xxp->configp->i2c_timeout);
 
     if (result != RDY_OK)
-        return CH_FAILED;
+        return HAL_FAILED;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -315,12 +315,12 @@ bool_t ms58xxTemperatureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
  * @param[out] resultp  pointer to temperature result in degree C
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
+bool ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
 {
     chDbgCheck(ms58xxp != NULL, "ms58xxTemperatureResult");
     /* Verify device status. */
@@ -346,7 +346,7 @@ bool_t ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
             /* Reset driver state. */
             ms58xxp->state = MS58XX_READY;
 
-            return CH_FAILED;
+            return HAL_FAILED;
         }
 
         ms58xxp->last_d2 = (rxbuf[0] << 16) | (rxbuf[1] << 8) | (rxbuf[2] << 0);
@@ -379,7 +379,7 @@ bool_t ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
     if (resultp != NULL)
         *resultp = TEMP / 100.0f;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -389,12 +389,12 @@ bool_t ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
  * @param[in] osr       oversampling
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t ms58xxPressureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
+bool ms58xxPressureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
 {
     chDbgCheck(ms58xxp != NULL, "ms58xxPressureStart");
     /* Verify device status. */
@@ -416,9 +416,9 @@ bool_t ms58xxPressureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
             ms58xxp->configp->i2c_timeout);
 
     if (result != RDY_OK)
-        return CH_FAILED;
+        return HAL_FAILED;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -428,12 +428,12 @@ bool_t ms58xxPressureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
  * @param[out] resultp  pointer to pressure result in bar
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp)
+bool ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp)
 {
     chDbgCheck(ms58xxp != NULL, "ms58xxPressureResult");
     /* Verify device status. */
@@ -459,7 +459,7 @@ bool_t ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp)
             /* Reset driver state. */
             ms58xxp->state = MS58XX_READY;
 
-            return CH_FAILED;
+            return HAL_FAILED;
         }
 
         ms58xxp->last_d1 = (rxbuf[0] << 16) | (rxbuf[1] << 8) | (rxbuf[2] << 0);
@@ -513,7 +513,7 @@ bool_t ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp)
     if (resultp != NULL)
         *resultp = P / 10000.0f;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 #endif /* HAL_USE_MS58XX */

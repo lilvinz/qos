@@ -149,24 +149,24 @@ extern "C" {
     void nvmfeeStart(NVMFeeDriver* nvmfeep,
             const NVMFeeConfig* config);
     void nvmfeeStop(NVMFeeDriver* nvmfeep);
-    bool_t nvmfeeRead(NVMFeeDriver* nvmfeep, uint32_t startaddr,
+    bool nvmfeeRead(NVMFeeDriver* nvmfeep, uint32_t startaddr,
             uint32_t n, uint8_t* buffer);
-    bool_t nvmfeeWrite(NVMFeeDriver* nvmfeep, uint32_t startaddr,
+    bool nvmfeeWrite(NVMFeeDriver* nvmfeep, uint32_t startaddr,
             uint32_t n, const uint8_t* buffer);
-    bool_t nvmfeeErase(NVMFeeDriver* nvmfeep, uint32_t startaddr,
+    bool nvmfeeErase(NVMFeeDriver* nvmfeep, uint32_t startaddr,
             uint32_t n);
-    bool_t nvmfeeMassErase(NVMFeeDriver* nvmfeep);
-    bool_t nvmfeeSync(NVMFeeDriver* nvmfeep);
-    bool_t nvmfeeGetInfo(NVMFeeDriver* nvmfeep,
+    bool nvmfeeMassErase(NVMFeeDriver* nvmfeep);
+    bool nvmfeeSync(NVMFeeDriver* nvmfeep);
+    bool nvmfeeGetInfo(NVMFeeDriver* nvmfeep,
             NVMDeviceInfo* nvmdip);
     void nvmfeeAcquireBus(NVMFeeDriver* nvmfeep);
     void nvmfeeReleaseBus(NVMFeeDriver* nvmfeep);
-    bool_t nvmfeeWriteProtect(NVMFeeDriver* nvmfeep,
+    bool nvmfeeWriteProtect(NVMFeeDriver* nvmfeep,
             uint32_t startaddr, uint32_t n);
-    bool_t nvmfeeMassWriteProtect(NVMFeeDriver* nvmfeep);
-    bool_t nvmfeeWriteUnprotect(NVMFeeDriver* nvmfeep,
+    bool nvmfeeMassWriteProtect(NVMFeeDriver* nvmfeep);
+    bool nvmfeeWriteUnprotect(NVMFeeDriver* nvmfeep,
             uint32_t startaddr, uint32_t n);
-    bool_t nvmfeeMassWriteUnprotect(NVMFeeDriver* nvmfeep);
+    bool nvmfeeMassWriteUnprotect(NVMFeeDriver* nvmfeep);
 #ifdef __cplusplus
 }
 #endif

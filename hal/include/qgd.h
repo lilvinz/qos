@@ -106,7 +106,7 @@ typedef struct
     void (*stream_end)(void *instance);                                       \
     void (*rect_fill)(void *instance, coord_t left, coord_t top,              \
             coord_t width, coord_t height, color_t color);                    \
-    bool_t (*get_info)(void *instance, GDDeviceInfo *gddip);                  \
+    bool (*get_info)(void *instance, GDDeviceInfo *gddip);                  \
     /* End of mandatory functions. */                                         \
     /* Acquire device if supported by underlying driver.*/                    \
     void (*acquire)(void *instance);                                          \
@@ -229,8 +229,8 @@ typedef struct
  * @param[out] gddip    pointer to a @p GDDeviceInfo structure
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   operation succeeded.
- * @retval CH_FAILED    operation failed.
+ * @retval HAL_SUCCESS  operation succeeded.
+ * @retval HAL_FAILED   operation failed.
  *
  * @api
  */

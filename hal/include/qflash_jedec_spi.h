@@ -178,20 +178,20 @@ extern "C" {
     void fjsStart(FlashJedecSPIDriver* fjsp,
             const FlashJedecSPIConfig* config);
     void fjsStop(FlashJedecSPIDriver* fjsp);
-    bool_t fjsRead(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
+    bool fjsRead(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
             uint8_t* buffer);
-    bool_t fjsWrite(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
+    bool fjsWrite(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
             const uint8_t* buffer);
-    bool_t fjsErase(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n);
-    bool_t fjsMassErase(FlashJedecSPIDriver* fjsp);
-    bool_t fjsSync(FlashJedecSPIDriver* fjsp);
-    bool_t fjsGetInfo(FlashJedecSPIDriver* fjsp, NVMDeviceInfo* nvmdip);
+    bool fjsErase(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n);
+    bool fjsMassErase(FlashJedecSPIDriver* fjsp);
+    bool fjsSync(FlashJedecSPIDriver* fjsp);
+    bool fjsGetInfo(FlashJedecSPIDriver* fjsp, NVMDeviceInfo* nvmdip);
     void fjsAcquireBus(FlashJedecSPIDriver* fjsp);
     void fjsReleaseBus(FlashJedecSPIDriver* fjsp);
-    bool_t fjsWriteProtect(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n);
-    bool_t fjsMassWriteProtect(FlashJedecSPIDriver* fjsp);
-    bool_t fjsWriteUnprotect(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n);
-    bool_t fjsMassWriteUnprotect(FlashJedecSPIDriver* fjsp);
+    bool fjsWriteProtect(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n);
+    bool fjsMassWriteProtect(FlashJedecSPIDriver* fjsp);
+    bool fjsWriteUnprotect(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n);
+    bool fjsMassWriteUnprotect(FlashJedecSPIDriver* fjsp);
 #ifdef __cplusplus
 }
 #endif

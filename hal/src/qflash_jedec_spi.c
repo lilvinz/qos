@@ -56,19 +56,19 @@
  */
 static const struct FlashJedecSPIDriverVMT flash_jedec_spi_vmt =
 {
-    .read = (bool_t (*)(void*, uint32_t, uint32_t, uint8_t*))fjsRead,
-    .write = (bool_t (*)(void*, uint32_t, uint32_t, const uint8_t*))fjsWrite,
-    .erase = (bool_t (*)(void*, uint32_t, uint32_t))fjsErase,
-    .mass_erase = (bool_t (*)(void*))fjsMassErase,
-    .sync = (bool_t (*)(void*))fjsSync,
-    .get_info = (bool_t (*)(void*, NVMDeviceInfo*))fjsGetInfo,
+    .read = (bool (*)(void*, uint32_t, uint32_t, uint8_t*))fjsRead,
+    .write = (bool (*)(void*, uint32_t, uint32_t, const uint8_t*))fjsWrite,
+    .erase = (bool (*)(void*, uint32_t, uint32_t))fjsErase,
+    .mass_erase = (bool (*)(void*))fjsMassErase,
+    .sync = (bool (*)(void*))fjsSync,
+    .get_info = (bool (*)(void*, NVMDeviceInfo*))fjsGetInfo,
     /* End of mandatory functions. */
     .acquire = (void (*)(void*))fjsAcquireBus,
     .release = (void (*)(void*))fjsReleaseBus,
-    .writeprotect = (bool_t (*)(void*, uint32_t, uint32_t))fjsWriteProtect,
-    .mass_writeprotect = (bool_t (*)(void*))fjsMassWriteProtect,
-    .writeunprotect = (bool_t (*)(void*, uint32_t, uint32_t))fjsWriteUnprotect,
-    .mass_writeunprotect = (bool_t (*)(void*))fjsMassWriteUnprotect,
+    .writeprotect = (bool (*)(void*, uint32_t, uint32_t))fjsWriteProtect,
+    .mass_writeprotect = (bool (*)(void*))fjsMassWriteProtect,
+    .writeunprotect = (bool (*)(void*, uint32_t, uint32_t))fjsWriteUnprotect,
+    .mass_writeunprotect = (bool (*)(void*))fjsMassWriteUnprotect,
 };
 
 /*===========================================================================*/
@@ -474,12 +474,12 @@ void fjsStop(FlashJedecSPIDriver* fjsp)
  * @param[in] buffer    pointer to data buffer
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t fjsRead(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
+bool fjsRead(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
         uint8_t* buffer)
 {
     chDbgCheck(fjsp != NULL, "fjsRead");
@@ -490,8 +490,8 @@ bool_t fjsRead(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
     chDbgAssert((startaddr + n <= fjsp->config->sector_size * fjsp->config->sector_num),
             "fjsRead(), #2", "invalid parameters");
 
-    if (fjsSync(fjsp) != CH_SUCCESS)
-        return CH_FAILED;
+    if (fjsSync(fjsp) != HAL_SUCCESS)
+        return HAL_FAILED;
 
     /* Read operation in progress. */
     fjsp->state = NVM_READING;
@@ -529,7 +529,7 @@ bool_t fjsRead(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
     /* Read operation finished. */
     fjsp->state = NVM_READY;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -541,12 +541,12 @@ bool_t fjsRead(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
  * @param[in] buffer    pointer to data buffer
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t fjsWrite(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
+bool fjsWrite(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
         const uint8_t* buffer)
 {
     chDbgCheck(fjsp != NULL, "fjsWrite");
@@ -575,7 +575,7 @@ bool_t fjsWrite(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
         written += n_chunk;
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -586,12 +586,12 @@ bool_t fjsWrite(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
  * @param[in] n         number of bytes to erase
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t fjsErase(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n)
+bool fjsErase(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(fjsp != NULL, "fjsErase");
     /* Verify device status. */
@@ -629,7 +629,7 @@ bool_t fjsErase(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n)
         }
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -638,12 +638,12 @@ bool_t fjsErase(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n)
  * @param[in] fjsp      pointer to the @p FlashJedecSPIDriver object
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t fjsMassErase(FlashJedecSPIDriver* fjsp)
+bool fjsMassErase(FlashJedecSPIDriver* fjsp)
 {
     chDbgCheck(fjsp != NULL, "fjsMassErase");
     /* Verify device status. */
@@ -666,7 +666,7 @@ bool_t fjsMassErase(FlashJedecSPIDriver* fjsp)
                 fjsp->config->sector_size * fjsp->config->sector_num);
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -675,12 +675,12 @@ bool_t fjsMassErase(FlashJedecSPIDriver* fjsp)
  * @param[in] fjsp      pointer to the @p FlashJedecSPIDriver object
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t fjsSync(FlashJedecSPIDriver* fjsp)
+bool fjsSync(FlashJedecSPIDriver* fjsp)
 {
     chDbgCheck(fjsp != NULL, "fjsSync");
     /* Verify device status. */
@@ -688,14 +688,14 @@ bool_t fjsSync(FlashJedecSPIDriver* fjsp)
             "invalid state");
 
     if (fjsp->state == NVM_READY)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
     flash_jedec_spi_wait_busy(fjsp);
 
     /* No more operation in progress. */
     fjsp->state = NVM_READY;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -705,12 +705,12 @@ bool_t fjsSync(FlashJedecSPIDriver* fjsp)
  * @param[out] nvmdip     pointer to a @p NVMDeviceInfo structure
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t fjsGetInfo(FlashJedecSPIDriver* fjsp, NVMDeviceInfo* nvmdip)
+bool fjsGetInfo(FlashJedecSPIDriver* fjsp, NVMDeviceInfo* nvmdip)
 {
     chDbgCheck(fjsp != NULL, "fjsGetInfo");
     /* Verify device status. */
@@ -744,7 +744,7 @@ bool_t fjsGetInfo(FlashJedecSPIDriver* fjsp, NVMDeviceInfo* nvmdip)
 
     spiUnselect(fjsp->config->spip);
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -812,12 +812,12 @@ void fjsReleaseBus(FlashJedecSPIDriver* fjsp)
  * @param[in] n         number of bytes to protect
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t fjsWriteProtect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
+bool fjsWriteProtect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
         uint32_t n)
 {
     chDbgCheck(fjsp != NULL, "fjsWriteProtect");
@@ -830,7 +830,7 @@ bool_t fjsWriteProtect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
 
     /* Check if chip supports write protection. */
     if (fjsp->config->bpbits_num == 0)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
     /* Protect as little of our address space as possible to
      satisfy request. */
@@ -844,7 +844,7 @@ bool_t fjsWriteProtect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
             flash_jedec_spi_bp_to_address(fjsp, bp);
 
     if (first_protected_addr <= startaddr)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
     while (bp < bp_mask)
     {
@@ -853,11 +853,11 @@ bool_t fjsWriteProtect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
         if (first_protected_addr <= startaddr)
         {
             flash_jedec_spi_sr_write(fjsp, bp << 2);
-            return CH_SUCCESS;
+            return HAL_SUCCESS;
         }
     }
 
-    return CH_FAILED;
+    return HAL_FAILED;
 }
 
 /**
@@ -866,12 +866,12 @@ bool_t fjsWriteProtect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
  * @param[in] fjsp      pointer to the @p FlashJedecSPIDriver object
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t fjsMassWriteProtect(FlashJedecSPIDriver* fjsp)
+bool fjsMassWriteProtect(FlashJedecSPIDriver* fjsp)
 {
     chDbgCheck(fjsp != NULL, "fjsMassWriteProtect");
     /* Verify device status. */
@@ -880,12 +880,12 @@ bool_t fjsMassWriteProtect(FlashJedecSPIDriver* fjsp)
 
     /* Check if chip supports write protection. */
     if (fjsp->config->bpbits_num == 0)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
     /* set BP3 ... BP0 */
     flash_jedec_spi_sr_write(fjsp, 0x07 << 2);
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -896,12 +896,12 @@ bool_t fjsMassWriteProtect(FlashJedecSPIDriver* fjsp)
  * @param[in] n         number of bytes to unprotect
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t fjsWriteUnprotect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
+bool fjsWriteUnprotect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
         uint32_t n)
 {
     chDbgCheck(fjsp != NULL, "fjsWriteUnprotect");
@@ -914,7 +914,7 @@ bool_t fjsWriteUnprotect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
 
     /* Check if chip supports write protection. */
     if (fjsp->config->bpbits_num == 0)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
     /* Unprotect as little of our address space as possible to
      satisfy request. */
@@ -928,7 +928,7 @@ bool_t fjsWriteUnprotect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
             flash_jedec_spi_bp_to_address(fjsp, bp);
 
     if (first_protected_addr >= startaddr + n)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
     while (bp > 0)
     {
@@ -937,11 +937,11 @@ bool_t fjsWriteUnprotect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
         if (first_protected_addr >= startaddr + n)
         {
             flash_jedec_spi_sr_write(fjsp, bp << 2);
-            return CH_SUCCESS;
+            return HAL_SUCCESS;
         }
     }
 
-    return CH_FAILED;
+    return HAL_FAILED;
 }
 
 /**
@@ -950,12 +950,12 @@ bool_t fjsWriteUnprotect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
  * @param[in] fjsp      pointer to the @p FlashJedecSPIDriver object
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   the operation succeeded.
- * @retval CH_FAILED    the operation failed.
+ * @retval HAL_SUCCESS  the operation succeeded.
+ * @retval HAL_FAILED   the operation failed.
  *
  * @api
  */
-bool_t fjsMassWriteUnprotect(FlashJedecSPIDriver* fjsp)
+bool fjsMassWriteUnprotect(FlashJedecSPIDriver* fjsp)
 {
     chDbgCheck(fjsp != NULL, "fjsMassWriteUnprotect");
     /* Verify device status. */
@@ -964,11 +964,11 @@ bool_t fjsMassWriteUnprotect(FlashJedecSPIDriver* fjsp)
 
     /* Check if chip supports write protection. */
     if (fjsp->config->bpbits_num == 0)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
     flash_jedec_spi_sr_write(fjsp, 0x00);
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 #endif /* HAL_USE_FLASH_JEDEC_SPI */

@@ -114,26 +114,26 @@ STATIC_ASSERT(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__);
  */
 static const struct NVMMirrorDriverVMT nvm_mirror_vmt =
 {
-    .read = (bool_t (*)(void*, uint32_t, uint32_t, uint8_t*))nvmmirrorRead,
-    .write = (bool_t (*)(void*, uint32_t, uint32_t, const uint8_t*))nvmmirrorWrite,
-    .erase = (bool_t (*)(void*, uint32_t, uint32_t))nvmmirrorErase,
-    .mass_erase = (bool_t (*)(void*))nvmmirrorMassErase,
-    .sync = (bool_t (*)(void*))nvmmirrorSync,
-    .get_info = (bool_t (*)(void*, NVMDeviceInfo*))nvmmirrorGetInfo,
+    .read = (bool (*)(void*, uint32_t, uint32_t, uint8_t*))nvmmirrorRead,
+    .write = (bool (*)(void*, uint32_t, uint32_t, const uint8_t*))nvmmirrorWrite,
+    .erase = (bool (*)(void*, uint32_t, uint32_t))nvmmirrorErase,
+    .mass_erase = (bool (*)(void*))nvmmirrorMassErase,
+    .sync = (bool (*)(void*))nvmmirrorSync,
+    .get_info = (bool (*)(void*, NVMDeviceInfo*))nvmmirrorGetInfo,
     /* End of mandatory functions. */
     .acquire = (void (*)(void*))nvmmirrorAcquireBus,
     .release = (void (*)(void*))nvmmirrorReleaseBus,
-    .writeprotect = (bool_t (*)(void*, uint32_t, uint32_t))nvmmirrorWriteProtect,
-    .mass_writeprotect = (bool_t (*)(void*))nvmmirrorMassWriteProtect,
-    .writeunprotect = (bool_t (*)(void*, uint32_t, uint32_t))nvmmirrorWriteUnprotect,
-    .mass_writeunprotect = (bool_t (*)(void*))nvmmirrorMassWriteUnprotect,
+    .writeprotect = (bool (*)(void*, uint32_t, uint32_t))nvmmirrorWriteProtect,
+    .mass_writeprotect = (bool (*)(void*))nvmmirrorMassWriteProtect,
+    .writeunprotect = (bool (*)(void*, uint32_t, uint32_t))nvmmirrorWriteUnprotect,
+    .mass_writeunprotect = (bool (*)(void*))nvmmirrorMassWriteUnprotect,
 };
 
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-static bool_t nvm_mirror_state_init(NVMMirrorDriver* nvmmirrorp)
+static bool nvm_mirror_state_init(NVMMirrorDriver* nvmmirrorp)
 {
     chDbgCheck((nvmmirrorp != NULL), "nvm_mirror_state_init");
 
@@ -149,11 +149,11 @@ static bool_t nvm_mirror_state_init(NVMMirrorDriver* nvmmirrorp)
             i < header_orig + header_size;
             i += sizeof(state_mark))
     {
-        bool_t result = nvmRead(nvmmirrorp->config->nvmp,
+        bool result = nvmRead(nvmmirrorp->config->nvmp,
                 i,
                 sizeof(state_mark),
                 (uint8_t*)&state_mark);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
 
         if (state_mark == nvm_mirror_state_mark_table[STATE_SYNCED])
@@ -180,23 +180,23 @@ static bool_t nvm_mirror_state_init(NVMMirrorDriver* nvmmirrorp)
             /* invalid, force header reinit */
             new_state = STATE_INVALID;
             new_state_addr = 0;
-            return CH_SUCCESS;
+            return HAL_SUCCESS;
         }
     }
 
     nvmmirrorp->mirror_state = new_state;
     nvmmirrorp->mirror_state_addr = new_state_addr;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
-static bool_t nvm_mirror_state_update(NVMMirrorDriver* nvmmirrorp,
+static bool nvm_mirror_state_update(NVMMirrorDriver* nvmmirrorp,
         NVMMirrorState new_state)
 {
     chDbgCheck((nvmmirrorp != NULL), "nvm_mirror_state_write");
 
     if (new_state == nvmmirrorp->mirror_state)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
     const uint32_t header_orig = 0;
     const uint32_t header_size = nvmmirrorp->mirror_a_org;
@@ -213,34 +213,34 @@ static bool_t nvm_mirror_state_update(NVMMirrorDriver* nvmmirrorp,
             nvmmirrorp->mirror_state == STATE_INVALID)
     {
         new_state_addr = 0;
-        bool_t result = nvmErase(nvmmirrorp->config->nvmp, header_orig,
+        bool result = nvmErase(nvmmirrorp->config->nvmp, header_orig,
                 header_size);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
     }
 
     /* Write updated state entry. */
     {
-        bool_t result = nvmWrite(nvmmirrorp->config->nvmp, new_state_addr,
+        bool result = nvmWrite(nvmmirrorp->config->nvmp, new_state_addr,
                 sizeof(new_state_mark), (uint8_t*)&new_state_mark);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
     }
 
     /* Sync lower level driver. */
     {
-        bool_t result = nvmSync(nvmmirrorp->config->nvmp);
-        if (result != CH_SUCCESS)
+        bool result = nvmSync(nvmmirrorp->config->nvmp);
+        if (result != HAL_SUCCESS)
             return result;
     }
 
     nvmmirrorp->mirror_state = new_state;
     nvmmirrorp->mirror_state_addr = new_state_addr;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
-static bool_t nvm_mirror_copy(NVMMirrorDriver* nvmmirrorp, uint32_t src_addr,
+static bool nvm_mirror_copy(NVMMirrorDriver* nvmmirrorp, uint32_t src_addr,
         uint32_t dst_addr, size_t n)
 {
     chDbgCheck((nvmmirrorp != NULL), "nvm_mirror_copy");
@@ -252,32 +252,32 @@ static bool_t nvm_mirror_copy(NVMMirrorDriver* nvmmirrorp, uint32_t src_addr,
         /* Detect start of a new sector and erase destination accordingly. */
         if ((offset % nvmmirrorp->llnvmdi.sector_size) == 0)
         {
-            bool_t result = nvmErase(nvmmirrorp->config->nvmp,
+            bool result = nvmErase(nvmmirrorp->config->nvmp,
                     dst_addr + offset, nvmmirrorp->llnvmdi.sector_size);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
         }
 
         /* Read mark into temporary buffer. */
         {
-            bool_t result = nvmRead(nvmmirrorp->config->nvmp,
+            bool result = nvmRead(nvmmirrorp->config->nvmp,
                     src_addr + offset, sizeof(state_mark),
                     (uint8_t*)&state_mark);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
         }
 
         /* Write mark to destination. */
         {
-            bool_t result = nvmWrite(nvmmirrorp->config->nvmp,
+            bool result = nvmWrite(nvmmirrorp->config->nvmp,
                     dst_addr + offset, sizeof(state_mark),
                     (uint8_t*)&state_mark);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
         }
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /*===========================================================================*/
@@ -353,13 +353,13 @@ void nvmmirrorStart(NVMMirrorDriver* nvmmirrorp, const NVMMirrorConfig* config)
         case STATE_DIRTY_A:
             /* Copy mirror b to mirror a erasing pages as required. */
             if (nvm_mirror_copy(nvmmirrorp, nvmmirrorp->mirror_b_org,
-                    nvmmirrorp->mirror_a_org, nvmmirrorp->mirror_size) != CH_SUCCESS)
+                    nvmmirrorp->mirror_a_org, nvmmirrorp->mirror_size) != HAL_SUCCESS)
                 return;
             /* Set state to synced. */
-            if (nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED) != CH_SUCCESS)
+            if (nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED) != HAL_SUCCESS)
                 return;
             /* Execute sync of lower level driver. */
-            if (nvmSync(nvmmirrorp->config->nvmp) != CH_SUCCESS)
+            if (nvmSync(nvmmirrorp->config->nvmp) != HAL_SUCCESS)
                 return;
             break;
         case STATE_INVALID:
@@ -367,13 +367,13 @@ void nvmmirrorStart(NVMMirrorDriver* nvmmirrorp, const NVMMirrorConfig* config)
         case STATE_DIRTY_B:
             /* Copy mirror a to mirror b erasing pages as required. */
             if (nvm_mirror_copy(nvmmirrorp, nvmmirrorp->mirror_a_org,
-                    nvmmirrorp->mirror_b_org, nvmmirrorp->mirror_size) != CH_SUCCESS)
+                    nvmmirrorp->mirror_b_org, nvmmirrorp->mirror_size) != HAL_SUCCESS)
                 return;
             /* Set state to synced. */
-            if (nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED) != CH_SUCCESS)
+            if (nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED) != HAL_SUCCESS)
                 return;
             /* Execute sync of lower level driver. */
-            if (nvmSync(nvmmirrorp->config->nvmp) != CH_SUCCESS)
+            if (nvmSync(nvmmirrorp->config->nvmp) != HAL_SUCCESS)
                 return;
             break;
         case STATE_SYNCED:
@@ -414,12 +414,12 @@ void nvmmirrorStop(NVMMirrorDriver* nvmmirrorp)
  * @param[in] buffer        pointer to data buffer
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmmirrorRead(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
+bool nvmmirrorRead(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
         uint32_t n, uint8_t* buffer)
 {
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorRead");
@@ -436,16 +436,16 @@ bool_t nvmmirrorRead(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
     /* Read operation in progress. */
     nvmmirrorp->state = NVM_READING;
 
-    bool_t result = nvmRead(nvmmirrorp->config->nvmp,
+    bool result = nvmRead(nvmmirrorp->config->nvmp,
             nvmmirrorp->mirror_a_org + startaddr,
             n, buffer);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Read operation finished. */
     nvmmirrorp->state = NVM_READY;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -457,12 +457,12 @@ bool_t nvmmirrorRead(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
  * @param[in] buffer        pointer to data buffer
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmmirrorWrite(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
+bool nvmmirrorWrite(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
         uint32_t n, const uint8_t* buffer)
 {
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorWrite");
@@ -479,35 +479,35 @@ bool_t nvmmirrorWrite(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
     /* Write operation in progress. */
     nvmmirrorp->state = NVM_WRITING;
 
-    bool_t result;
+    bool result;
     /* Set state to mirror a dirty before changing contents. */
     result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_A);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Apply write to mirror a. */
     result = nvmWrite(nvmmirrorp->config->nvmp,
             nvmmirrorp->mirror_a_org + startaddr, n, buffer);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Advance state to mirror b dirty. */
     result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_B);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Apply write to mirror b. */
     result = nvmWrite(nvmmirrorp->config->nvmp,
             nvmmirrorp->mirror_b_org + startaddr, n, buffer);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Advance state to synced. */
     result = nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -518,12 +518,12 @@ bool_t nvmmirrorWrite(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr,
  * @param[in] n             number of bytes to erase
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmmirrorErase(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr, uint32_t n)
+bool nvmmirrorErase(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorErase");
     /* Verify device status. */
@@ -539,35 +539,35 @@ bool_t nvmmirrorErase(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr, uint32_t 
     /* Erase operation in progress. */
     nvmmirrorp->state = NVM_ERASING;
 
-    bool_t result;
+    bool result;
     /* Set state to mirror a dirty before changing contents. */
     result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_A);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Apply erase to mirror a. */
     result = nvmErase(nvmmirrorp->config->nvmp,
             nvmmirrorp->mirror_a_org + startaddr, n);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Advance state to mirror b dirty. */
     result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_B);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Apply erase to mirror b. */
     result = nvmErase(nvmmirrorp->config->nvmp,
             nvmmirrorp->mirror_b_org + startaddr, n);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Advance state to synced. */
     result = nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -576,12 +576,12 @@ bool_t nvmmirrorErase(NVMMirrorDriver* nvmmirrorp, uint32_t startaddr, uint32_t 
  * @param[in] nvmmirrorp    pointer to the @p NVMMirrorDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmmirrorMassErase(NVMMirrorDriver* nvmmirrorp)
+bool nvmmirrorMassErase(NVMMirrorDriver* nvmmirrorp)
 {
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorMassErase");
     /* Verify device status. */
@@ -593,43 +593,43 @@ bool_t nvmmirrorMassErase(NVMMirrorDriver* nvmmirrorp)
     /* Set mirror state to dirty if necessary. */
     if (nvmmirrorp->mirror_state == STATE_SYNCED)
     {
-        bool_t result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_A);
-        if (result != CH_SUCCESS)
+        bool result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_A);
+        if (result != HAL_SUCCESS)
             return result;
     }
 
     /* Erase operation in progress. */
     nvmmirrorp->state = NVM_ERASING;
 
-    bool_t result;
+    bool result;
     /* Set state to mirror a dirty before changing contents. */
     result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_A);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Apply erase to mirror a. */
     result = nvmErase(nvmmirrorp->config->nvmp,
             nvmmirrorp->mirror_a_org, nvmmirrorp->mirror_size);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Advance state to mirror b dirty. */
     result = nvm_mirror_state_update(nvmmirrorp, STATE_DIRTY_B);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Apply erase to mirror b. */
     result = nvmErase(nvmmirrorp->config->nvmp,
             nvmmirrorp->mirror_b_org, nvmmirrorp->mirror_size);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Advance state to synced. */
     result = nvm_mirror_state_update(nvmmirrorp, STATE_SYNCED);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -638,12 +638,12 @@ bool_t nvmmirrorMassErase(NVMMirrorDriver* nvmmirrorp)
  * @param[in] nvmmirrorp    pointer to the @p NVMMirrorDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmmirrorSync(NVMMirrorDriver* nvmmirrorp)
+bool nvmmirrorSync(NVMMirrorDriver* nvmmirrorp)
 {
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorSync");
     /* Verify device status. */
@@ -654,16 +654,16 @@ bool_t nvmmirrorSync(NVMMirrorDriver* nvmmirrorp)
             "invalid mirror state");
 
     if (nvmmirrorp->state == NVM_READY)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
-    bool_t result = nvmSync(nvmmirrorp->config->nvmp);
-    if (result != CH_SUCCESS)
+    bool result = nvmSync(nvmmirrorp->config->nvmp);
+    if (result != HAL_SUCCESS)
         return result;
 
     /* No more operation in progress. */
     nvmmirrorp->state = NVM_READY;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -673,12 +673,12 @@ bool_t nvmmirrorSync(NVMMirrorDriver* nvmmirrorp)
  * @param[out] nvmdip       pointer to a @p NVMDeviceInfo structure
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmmirrorGetInfo(NVMMirrorDriver* nvmmirrorp, NVMDeviceInfo* nvmdip)
+bool nvmmirrorGetInfo(NVMMirrorDriver* nvmmirrorp, NVMDeviceInfo* nvmdip)
 {
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorGetInfo");
     /* Verify device status. */
@@ -694,7 +694,7 @@ bool_t nvmmirrorGetInfo(NVMMirrorDriver* nvmmirrorp, NVMDeviceInfo* nvmdip)
     nvmdip->write_alignment =
             nvmmirrorp->llnvmdi.write_alignment;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -757,12 +757,12 @@ void nvmmirrorReleaseBus(NVMMirrorDriver* nvmmirrorp)
  * @param[in] n             number of bytes to protect
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmmirrorWriteProtect(NVMMirrorDriver* nvmmirrorp,
+bool nvmmirrorWriteProtect(NVMMirrorDriver* nvmmirrorp,
         uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorWriteProtect");
@@ -772,7 +772,7 @@ bool_t nvmmirrorWriteProtect(NVMMirrorDriver* nvmmirrorp,
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -781,12 +781,12 @@ bool_t nvmmirrorWriteProtect(NVMMirrorDriver* nvmmirrorp,
  * @param[in] nvmmirrorp    pointer to the @p NVMMirrorDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmmirrorMassWriteProtect(NVMMirrorDriver* nvmmirrorp)
+bool nvmmirrorMassWriteProtect(NVMMirrorDriver* nvmmirrorp)
 {
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorMassWriteProtect");
     /* Verify device status. */
@@ -795,7 +795,7 @@ bool_t nvmmirrorMassWriteProtect(NVMMirrorDriver* nvmmirrorp)
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -806,12 +806,12 @@ bool_t nvmmirrorMassWriteProtect(NVMMirrorDriver* nvmmirrorp)
  * @param[in] n             number of bytes to unprotect
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmmirrorWriteUnprotect(NVMMirrorDriver* nvmmirrorp,
+bool nvmmirrorWriteUnprotect(NVMMirrorDriver* nvmmirrorp,
         uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorWriteUnprotect");
@@ -821,7 +821,7 @@ bool_t nvmmirrorWriteUnprotect(NVMMirrorDriver* nvmmirrorp,
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -830,12 +830,12 @@ bool_t nvmmirrorWriteUnprotect(NVMMirrorDriver* nvmmirrorp,
  * @param[in] nvmmirrorp    pointer to the @p NVMMirrorDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmmirrorMassWriteUnprotect(NVMMirrorDriver* nvmmirrorp)
+bool nvmmirrorMassWriteUnprotect(NVMMirrorDriver* nvmmirrorp)
 {
     chDbgCheck(nvmmirrorp != NULL, "nvmmirrorMassWriteUnprotect");
     /* Verify device status. */
@@ -844,7 +844,7 @@ bool_t nvmmirrorMassWriteUnprotect(NVMMirrorDriver* nvmmirrorp)
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 #endif /* HAL_USE_NVM_MIRROR */

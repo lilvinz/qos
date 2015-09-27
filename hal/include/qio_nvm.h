@@ -47,35 +47,35 @@ typedef struct
  */
 #define _base_nvm_device_methods                                              \
     /* Reads one or more bytes crossing sectors when required.*/              \
-    bool_t (*read)(void *instance, uint32_t startaddr,                        \
+    bool (*read)(void *instance, uint32_t startaddr,                        \
             uint32_t n, uint8_t *buffer);                                     \
     /* Writes one or more bytes crossing sectors when required.*/             \
-    bool_t (*write)(void *instance, uint32_t startaddr,                       \
+    bool (*write)(void *instance, uint32_t startaddr,                       \
             uint32_t n, const uint8_t *buffer);                               \
     /* Erase one or more sectors.*/                                           \
-    bool_t (*erase)(void *instance, uint32_t startaddr,                       \
+    bool (*erase)(void *instance, uint32_t startaddr,                       \
             uint32_t n);                                                      \
     /* Erase all sectors.*/                                                   \
-    bool_t (*mass_erase)(void *instance);                                     \
+    bool (*mass_erase)(void *instance);                                     \
     /* Write / erase operations synchronization.*/                            \
-    bool_t (*sync)(void *instance);                                           \
+    bool (*sync)(void *instance);                                           \
     /* Obtains info about the media.*/                                        \
-    bool_t (*get_info)(void *instance, NVMDeviceInfo *nvmdip);                \
+    bool (*get_info)(void *instance, NVMDeviceInfo *nvmdip);                \
     /* End of mandatory functions. */                                         \
     /* Acquire device if supported by underlying driver.*/                    \
     void (*acquire)(void *instance);                                          \
     /* Release device if supported by underlying driver.*/                    \
     void (*release)(void *instance);                                          \
     /* Write protect one or more sectors crossing sectors when required. */   \
-    bool_t (*writeprotect)(void *instance, uint32_t startaddr,                \
+    bool (*writeprotect)(void *instance, uint32_t startaddr,                \
             uint32_t n);                                                      \
     /* Write protect whole device. */                                         \
-    bool_t (*mass_writeprotect)(void *instance);                              \
+    bool (*mass_writeprotect)(void *instance);                              \
     /* Write unprotect one or more sectors crossing sectors when required. */ \
-    bool_t (*writeunprotect)(void *instance, uint32_t startaddr,              \
+    bool (*writeunprotect)(void *instance, uint32_t startaddr,              \
             uint32_t n);                                                      \
     /* Write unprotect whole device. */                                       \
-    bool_t (*mass_writeunprotect)(void *instance);
+    bool (*mass_writeunprotect)(void *instance);
 
 /**
  * @brief   @p BaseNVMDevice specific data.
@@ -144,8 +144,8 @@ typedef struct
  * @param[out] buffer   pointer to the read buffer
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   operation succeeded.
- * @retval CH_FAILED    operation failed.
+ * @retval HAL_SUCCESS  operation succeeded.
+ * @retval HAL_FAILED   operation failed.
  *
  * @api
  */
@@ -161,8 +161,8 @@ typedef struct
  * @param[out] buffer   pointer to the write buffer
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   operation succeeded.
- * @retval CH_FAILED    operation failed.
+ * @retval HAL_SUCCESS  operation succeeded.
+ * @retval HAL_FAILED   operation failed.
  *
  * @api
  */
@@ -177,8 +177,8 @@ typedef struct
  * @param[in] n         number of bytes to erase
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   operation succeeded.
- * @retval CH_FAILED    operation failed.
+ * @retval HAL_SUCCESS  operation succeeded.
+ * @retval HAL_FAILED   operation failed.
  *
  * @api
  */
@@ -191,8 +191,8 @@ typedef struct
  * @param[in] ip        pointer to a @p BaseNVMDevice or derived class
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   operation succeeded.
- * @retval CH_FAILED    operation failed.
+ * @retval HAL_SUCCESS  operation succeeded.
+ * @retval HAL_FAILED   operation failed.
  *
  * @api
  */
@@ -205,8 +205,8 @@ typedef struct
  * @param[in] ip        pointer to a @p BaseNVMDevice or derived class
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   operation succeeded.
- * @retval CH_FAILED    operation failed.
+ * @retval HAL_SUCCESS  operation succeeded.
+ * @retval HAL_FAILED   operation failed.
  *
  * @api
  */
@@ -219,8 +219,8 @@ typedef struct
  * @param[out] nvmdip   pointer to a @p NVMDeviceInfo structure
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   operation succeeded.
- * @retval CH_FAILED    operation failed.
+ * @retval HAL_SUCCESS  operation succeeded.
+ * @retval HAL_FAILED   operation failed.
  *
  * @api
  */
@@ -252,8 +252,8 @@ typedef struct
  * @param[in] n         number of bytes to protect
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   operation succeeded or not implemented.
- * @retval CH_FAILED    operation failed.
+ * @retval HAL_SUCCESS  operation succeeded or not implemented.
+ * @retval HAL_FAILED   operation failed.
  *
  * @api
  */
@@ -266,8 +266,8 @@ typedef struct
  * @param[in] ip        pointer to a @p BaseNVMDevice or derived class
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   operation succeeded or not implemented.
- * @retval CH_FAILED    operation failed.
+ * @retval HAL_SUCCESS  operation succeeded or not implemented.
+ * @retval HAL_FAILED   operation failed.
  *
  * @api
  */
@@ -282,8 +282,8 @@ typedef struct
  * @param[in] n         number of bytes to unprotect
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   operation succeeded or not implemented.
- * @retval CH_FAILED    operation failed.
+ * @retval HAL_SUCCESS  operation succeeded or not implemented.
+ * @retval HAL_FAILED   operation failed.
  *
  * @api
  */
@@ -296,8 +296,8 @@ typedef struct
  * @param[in] ip        pointer to a @p BaseNVMDevice or derived class
  *
  * @return              The operation status.
- * @retval CH_SUCCESS   operation succeeded or not implemented.
- * @retval CH_FAILED    operation failed.
+ * @retval HAL_SUCCESS  operation succeeded or not implemented.
+ * @retval HAL_FAILED   operation failed.
  *
  * @api
  */

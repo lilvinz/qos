@@ -26,10 +26,10 @@ int nvmcmp(BaseNVMDevice* devap, BaseNVMDevice* devbp, uint32_t n)
     for (uint32_t i = 0; i < n; ++i)
     {
         uint8_t bytea;
-        if (nvmRead(devap, i, 1, &bytea) != CH_SUCCESS)
+        if (nvmRead(devap, i, 1, &bytea) != HAL_SUCCESS)
             return -1;
         uint8_t byteb;
-        if (nvmRead(devbp, i, 1, &byteb) != CH_SUCCESS)
+        if (nvmRead(devbp, i, 1, &byteb) != HAL_SUCCESS)
             return -1;
 
         if (bytea != byteb)
@@ -55,7 +55,7 @@ bool nvmcpy(BaseNVMDevice* dstp, BaseNVMDevice* srcp, uint32_t n)
 {
     NVMDeviceInfo di;
 
-    if (nvmGetInfo(dstp, &di) != CH_SUCCESS)
+    if (nvmGetInfo(dstp, &di) != HAL_SUCCESS)
         return false;
 
     chDbgAssert(di.write_alignment <= 4, "nvmcpy(), #1",
@@ -72,11 +72,11 @@ bool nvmcpy(BaseNVMDevice* dstp, BaseNVMDevice* srcp, uint32_t n)
         if (n - i < di.write_alignment)
             chunk_n = n - i;
 
-        if (nvmRead(srcp, i, chunk_n, temp) != CH_SUCCESS)
+        if (nvmRead(srcp, i, chunk_n, temp) != HAL_SUCCESS)
             return false;
 
         /* Note: Possibly remaining bytes are filled with 0xff. */
-        if (nvmWrite(dstp, i, di.write_alignment, temp) != CH_SUCCESS)
+        if (nvmWrite(dstp, i, di.write_alignment, temp) != HAL_SUCCESS)
             return false;
     }
     return true;
@@ -99,7 +99,7 @@ bool nvmset(BaseNVMDevice* dstp, uint8_t pattern, uint32_t n)
 {
     NVMDeviceInfo di;
 
-    if (nvmGetInfo(dstp, &di) == CH_SUCCESS)
+    if (nvmGetInfo(dstp, &di) == HAL_SUCCESS)
         return false;
 
     chDbgAssert(di.write_alignment <= 4, "nvmset(), #1",
@@ -109,7 +109,7 @@ bool nvmset(BaseNVMDevice* dstp, uint8_t pattern, uint32_t n)
 
     for (uint32_t i = 0; i < n; i += di.write_alignment)
     {
-        if (nvmWrite(dstp, i, di.write_alignment, temp) != CH_SUCCESS)
+        if (nvmWrite(dstp, i, di.write_alignment, temp) != HAL_SUCCESS)
             return false;
     }
     return true;

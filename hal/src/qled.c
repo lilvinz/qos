@@ -275,7 +275,7 @@ void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop)
  *
  * @api
  */
-bool_t ledIsLedOn(LedDriver* ledp)
+bool ledIsLedOn(LedDriver* ledp)
 {
     chDbgCheck(ledp != NULL, "ledIsLedOn");
     /* Verify device status. */

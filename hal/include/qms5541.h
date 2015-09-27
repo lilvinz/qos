@@ -72,7 +72,7 @@ typedef struct MS5541Driver MS5541Driver;
  * @param[in] ms5541p   pointer to the @p MS5541Driver object triggering the
  *                      callback
  */
-typedef void (*ms5541callback_t)(MS5541Driver* ms5541p, bool_t enable);
+typedef void (*ms5541callback_t)(MS5541Driver* ms5541p, bool enable);
 
 /**
  * @brief   MS5541 over SPI driver configuration structure.

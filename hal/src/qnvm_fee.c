@@ -56,19 +56,19 @@ static const uint32_t nvm_fee_magic = 0x86618c51 + NVM_FEE_SLOT_PAYLOAD_SIZE;
  */
 static const struct NVMFeeDriverVMT nvm_fee_vmt =
 {
-    .read = (bool_t (*)(void*, uint32_t, uint32_t, uint8_t*))nvmfeeRead,
-    .write = (bool_t (*)(void*, uint32_t, uint32_t, const uint8_t*))nvmfeeWrite,
-    .erase = (bool_t (*)(void*, uint32_t, uint32_t))nvmfeeErase,
-    .mass_erase = (bool_t (*)(void*))nvmfeeMassErase,
-    .sync = (bool_t (*)(void*))nvmfeeSync,
-    .get_info = (bool_t (*)(void*, NVMDeviceInfo*))nvmfeeGetInfo,
+    .read = (bool (*)(void*, uint32_t, uint32_t, uint8_t*))nvmfeeRead,
+    .write = (bool (*)(void*, uint32_t, uint32_t, const uint8_t*))nvmfeeWrite,
+    .erase = (bool (*)(void*, uint32_t, uint32_t))nvmfeeErase,
+    .mass_erase = (bool (*)(void*))nvmfeeMassErase,
+    .sync = (bool (*)(void*))nvmfeeSync,
+    .get_info = (bool (*)(void*, NVMDeviceInfo*))nvmfeeGetInfo,
     /* End of mandatory functions. */
     .acquire = (void (*)(void*))nvmfeeAcquireBus,
     .release = (void (*)(void*))nvmfeeReleaseBus,
-    .writeprotect = (bool_t (*)(void*, uint32_t, uint32_t))nvmfeeWriteProtect,
-    .mass_writeprotect = (bool_t (*)(void*))nvmfeeMassWriteProtect,
-    .writeunprotect = (bool_t (*)(void*, uint32_t, uint32_t))nvmfeeWriteUnprotect,
-    .mass_writeunprotect = (bool_t (*)(void*))nvmfeeMassWriteUnprotect,
+    .writeprotect = (bool (*)(void*, uint32_t, uint32_t))nvmfeeWriteProtect,
+    .mass_writeprotect = (bool (*)(void*))nvmfeeMassWriteProtect,
+    .writeunprotect = (bool (*)(void*, uint32_t, uint32_t))nvmfeeWriteUnprotect,
+    .mass_writeunprotect = (bool (*)(void*))nvmfeeMassWriteUnprotect,
 };
 
 /**
@@ -152,7 +152,7 @@ static enum slot_state nvm_fee_mark_2_slot_state(uint32_t mark)
     return SLOT_STATE_UNKNOWN;
 }
 
-static bool_t nvm_fee_slot_read(NVMFeeDriver* nvmfeep, uint32_t arena,
+static bool nvm_fee_slot_read(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t slot, struct slot* slotp)
 {
     chDbgCheck((nvmfeep != NULL), "nvm_fee_slot_read");
@@ -161,15 +161,15 @@ static bool_t nvm_fee_slot_read(NVMFeeDriver* nvmfeep, uint32_t arena,
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size +
             sizeof(struct arena_header) + slot * sizeof(struct slot);
 
-    bool_t result = nvmRead(nvmfeep->config->nvmp, addr,
+    bool result = nvmRead(nvmfeep->config->nvmp, addr,
             sizeof(*slotp), (uint8_t*)slotp);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
-static bool_t nvm_fee_slot_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
+static bool nvm_fee_slot_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t slot, enum slot_state state)
 {
     chDbgCheck((nvmfeep != NULL), "nvm_fee_slot_state_update");
@@ -183,15 +183,15 @@ static bool_t nvm_fee_slot_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
         .state_mark = nvm_fee_slot_state_2_mark(state),
     };
 
-    bool_t result = nvmWrite(nvmfeep->config->nvmp, addr,
+    bool result = nvmWrite(nvmfeep->config->nvmp, addr,
             sizeof(temp_slot.state_mark), (uint8_t*)&temp_slot.state_mark);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
-static bool_t nvm_fee_slot_write(NVMFeeDriver* nvmfeep, uint32_t arena,
+static bool nvm_fee_slot_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t slot, const struct slot* slotp)
 {
     chDbgCheck((nvmfeep != NULL), "nvm_fee_slot_write");
@@ -204,24 +204,24 @@ static bool_t nvm_fee_slot_write(NVMFeeDriver* nvmfeep, uint32_t arena,
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size +
             sizeof(struct arena_header) + slot * sizeof(struct slot);
 
-    bool_t result;
+    bool result;
 
     /* Set slot to dirty.*/
     result = nvm_fee_slot_state_update(nvmfeep, arena,
             slot, SLOT_STATE_DIRTY);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Write new slot. */
     result = nvmWrite(nvmfeep->config->nvmp, addr,
             sizeof(*slotp), (uint8_t*)slotp);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
-static bool_t nvm_fee_slot_lookup(NVMFeeDriver* nvmfeep, uint32_t arena,
+static bool nvm_fee_slot_lookup(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t address, uint32_t* slotp, bool* foundp)
 {
     chDbgCheck((nvmfeep != NULL), "nvm_fee_slot_lookup");
@@ -234,11 +234,11 @@ static bool_t nvm_fee_slot_lookup(NVMFeeDriver* nvmfeep, uint32_t arena,
             ++slot)
     {
         struct slot temp_slot;
-        bool_t result;
+        bool result;
 
         /* Read slot. */
         result = nvm_fee_slot_read(nvmfeep, arena, slot, &temp_slot);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
 
         /* Skip if slot is not in valid state. */
@@ -253,7 +253,7 @@ static bool_t nvm_fee_slot_lookup(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 static uint32_t nvm_fee_arena_state_2_mark(enum arena_state state)
@@ -283,9 +283,9 @@ static enum arena_state nvm_fee_arena_state_get(NVMFeeDriver* nvmfeep,
 
     struct arena_header header;
 
-    bool_t result = nvmRead(nvmfeep->config->nvmp, addr,
+    bool result = nvmRead(nvmfeep->config->nvmp, addr,
             sizeof(header), (uint8_t*)&header);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return ARENA_STATE_UNKNOWN;
 
     if (header.magic != nvm_fee_magic)
@@ -294,7 +294,7 @@ static enum arena_state nvm_fee_arena_state_get(NVMFeeDriver* nvmfeep,
     return nvm_fee_mark_2_arena_state(header.state_mark);
 }
 
-static bool_t nvm_fee_arena_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
+static bool nvm_fee_arena_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
         enum arena_state state)
 {
     chDbgCheck((nvmfeep != NULL), "nvm_fee_arena_state_update");
@@ -307,22 +307,22 @@ static bool_t nvm_fee_arena_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
         .state_mark = nvm_fee_arena_state_2_mark(state),
     };
 
-    bool_t result = nvmWrite(nvmfeep->config->nvmp,
+    bool result = nvmWrite(nvmfeep->config->nvmp,
             addr + offsetof(struct arena_header, state_mark),
             sizeof(header.state_mark), (uint8_t*)&header.state_mark);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
-static bool_t nvm_fee_arena_load(NVMFeeDriver* nvmfeep, uint32_t arena)
+static bool nvm_fee_arena_load(NVMFeeDriver* nvmfeep, uint32_t arena)
 {
     chDbgCheck((nvmfeep != NULL), "nvm_fee_arena_load");
 
     nvmfeep->arena_slots[arena] = 0;
 
-    bool_t result;
+    bool result;
 
     /* Walk through active slots. */
     for (uint32_t slot = 0;
@@ -333,7 +333,7 @@ static bool_t nvm_fee_arena_load(NVMFeeDriver* nvmfeep, uint32_t arena)
 
         /* Read slot. */
         result = nvm_fee_slot_read(nvmfeep, arena, slot, &temp_slot);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
 
         if (nvm_fee_mark_2_slot_state(temp_slot.state_mark) !=
@@ -343,22 +343,22 @@ static bool_t nvm_fee_arena_load(NVMFeeDriver* nvmfeep, uint32_t arena)
         }
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
-static bool_t nvm_fee_arena_erase(NVMFeeDriver* nvmfeep, uint32_t arena)
+static bool nvm_fee_arena_erase(NVMFeeDriver* nvmfeep, uint32_t arena)
 {
     chDbgCheck((nvmfeep != NULL), "nvm_fee_arena_erase");
 
     const uint32_t addr = arena *
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size;
 
-    bool_t result;
+    bool result;
 
     /* Mass erase underlying nvm device. */
     result = nvmErase(nvmfeep->config->nvmp, addr,
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Set magic. */
@@ -370,15 +370,15 @@ static bool_t nvm_fee_arena_erase(NVMFeeDriver* nvmfeep, uint32_t arena)
 
     result = nvmWrite(nvmfeep->config->nvmp, addr,
             sizeof(header), (uint8_t*)&header);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     nvmfeep->arena_slots[arena] = 0;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
-static bool_t nvm_fee_gc(NVMFeeDriver* nvmfeep, uint32_t omit_addr)
+static bool nvm_fee_gc(NVMFeeDriver* nvmfeep, uint32_t omit_addr)
 {
     chDbgCheck((nvmfeep != NULL), "nvm_fee_gc");
 
@@ -398,11 +398,11 @@ static bool_t nvm_fee_gc(NVMFeeDriver* nvmfeep, uint32_t omit_addr)
 
     nvmfeep->arena_slots[dst_arena] = 0;
 
-    bool_t result;
+    bool result;
 
     /* stage 1: Freeze source arena. */
     result = nvm_fee_arena_state_update(nvmfeep, src_arena, ARENA_STATE_FROZEN);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* stage 2: Copy active slots to destination arena. */
@@ -419,7 +419,7 @@ static bool_t nvm_fee_gc(NVMFeeDriver* nvmfeep, uint32_t omit_addr)
         uint32_t slot;
 
         result = nvm_fee_slot_lookup(nvmfeep, src_arena, addr, &slot, &found);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
 
         if (found)
@@ -427,13 +427,13 @@ static bool_t nvm_fee_gc(NVMFeeDriver* nvmfeep, uint32_t omit_addr)
             /* Read slot. */
             struct slot temp_slot;
             result = nvm_fee_slot_read(nvmfeep, src_arena, slot, &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
 
             /* Write new slot. */
             result = nvm_fee_slot_write(nvmfeep, dst_arena,
                     nvmfeep->arena_slots[dst_arena], &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
 
             ++nvmfeep->arena_slots[dst_arena];
@@ -442,21 +442,21 @@ static bool_t nvm_fee_gc(NVMFeeDriver* nvmfeep, uint32_t omit_addr)
 
     /* stage 3: Activate destination arena. */
     result = nvm_fee_arena_state_update(nvmfeep, dst_arena, ARENA_STATE_ACTIVE);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* stage 4: Reinit source arena. */
     result = nvm_fee_arena_erase(nvmfeep, src_arena);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Update driver state. */
     nvmfeep->arena_active = dst_arena;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
-static bool_t nvm_fee_read(NVMFeeDriver* nvmfeep, uint32_t arena,
+static bool nvm_fee_read(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t startaddr, uint32_t n, uint8_t* buffer)
 {
     chDbgCheck((nvmfeep != NULL), "nvm_fee_read");
@@ -478,12 +478,12 @@ static bool_t nvm_fee_read(NVMFeeDriver* nvmfeep, uint32_t arena,
             slot < nvmfeep->arena_slots[nvmfeep->arena_active];
             ++slot)
     {
-        bool_t result;
+        bool result;
 
         /* Read slot. */
         struct slot temp_slot;
         result = nvm_fee_slot_read(nvmfeep, arena, slot, &temp_slot);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
 
         /* Skip if slot is not valid. */
@@ -519,7 +519,7 @@ static bool_t nvm_fee_read(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 static int memtst(const void* block, int c, size_t size)
@@ -530,7 +530,7 @@ static int memtst(const void* block, int c, size_t size)
     return 0;
 }
 
-static bool_t nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
+static bool nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t startaddr, uint32_t n, const uint8_t* buffer)
 {
     chDbgCheck((nvmfeep != NULL), "nvm_fee_write");
@@ -539,7 +539,7 @@ static bool_t nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
             (startaddr % NVM_FEE_SLOT_PAYLOAD_SIZE);
     const uint32_t pre_pad = startaddr % NVM_FEE_SLOT_PAYLOAD_SIZE;
 
-    bool_t result;
+    bool result;
     uint32_t n_remaining = n;
     uint32_t addr = startaddr;
 
@@ -553,14 +553,14 @@ static bool_t nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
 
         result = nvm_fee_slot_lookup(nvmfeep, arena, first_slot_addr,
                 &slot, &found);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
 
         if (found == true)
         {
             /* Existing slot so read it. */
             result = nvm_fee_slot_read(nvmfeep, arena, slot, &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
         }
         else
@@ -586,14 +586,14 @@ static bool_t nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
                     nvmfeep->arena_num_slots)
             {
                 result = nvm_fee_gc(nvmfeep, temp_slot.address);
-                if (result != CH_SUCCESS)
+                if (result != HAL_SUCCESS)
                     return result;
             }
 
             /* Write new slot. */
             result = nvm_fee_slot_write(nvmfeep, nvmfeep->arena_active,
                     nvmfeep->arena_slots[nvmfeep->arena_active], &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
 
             ++nvmfeep->arena_slots[nvmfeep->arena_active];
@@ -613,14 +613,14 @@ static bool_t nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
 
         result = nvm_fee_slot_lookup(nvmfeep, arena, addr,
                 &slot, &found);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
 
         if (found == true)
         {
             /* Existing slot so read it. */
             result = nvm_fee_slot_read(nvmfeep, arena, slot, &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
         }
         else
@@ -644,14 +644,14 @@ static bool_t nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
                     nvmfeep->arena_num_slots)
             {
                 result = nvm_fee_gc(nvmfeep, temp_slot.address);
-                if (result != CH_SUCCESS)
+                if (result != HAL_SUCCESS)
                     return result;
             }
 
             /* Write new slot. */
             result = nvm_fee_slot_write(nvmfeep, nvmfeep->arena_active,
                     nvmfeep->arena_slots[nvmfeep->arena_active], &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
 
             ++nvmfeep->arena_slots[nvmfeep->arena_active];
@@ -670,14 +670,14 @@ static bool_t nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t slot;
 
         result = nvm_fee_slot_lookup(nvmfeep, arena, addr, &slot, &found);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
 
         if (found == true)
         {
             /* Existing slot so read it. */
             result = nvm_fee_slot_read(nvmfeep, arena, slot, &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
         }
         else
@@ -701,14 +701,14 @@ static bool_t nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
                     nvmfeep->arena_num_slots)
             {
                 result = nvm_fee_gc(nvmfeep, temp_slot.address);
-                if (result != CH_SUCCESS)
+                if (result != HAL_SUCCESS)
                     return result;
             }
 
             /* Write new slot. */
             result = nvm_fee_slot_write(nvmfeep, nvmfeep->arena_active,
                     nvmfeep->arena_slots[nvmfeep->arena_active], &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
 
             ++nvmfeep->arena_slots[nvmfeep->arena_active];
@@ -718,10 +718,10 @@ static bool_t nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         n_remaining -= n_slot;
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
-static bool_t nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
+static bool nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t startaddr, uint32_t n, uint8_t pattern)
 {
     chDbgCheck((nvmfeep != NULL), "nvm_fee_write");
@@ -730,7 +730,7 @@ static bool_t nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
             (startaddr % NVM_FEE_SLOT_PAYLOAD_SIZE);
     const uint32_t pre_pad = startaddr % NVM_FEE_SLOT_PAYLOAD_SIZE;
 
-    bool_t result;
+    bool result;
     uint32_t n_remaining = n;
     uint32_t addr = startaddr;
 
@@ -744,14 +744,14 @@ static bool_t nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
 
         result = nvm_fee_slot_lookup(nvmfeep, arena, first_slot_addr,
                 &slot, &found);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
 
         if (found == true)
         {
             /* Existing slot so read it. */
             result = nvm_fee_slot_read(nvmfeep, arena, slot, &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
         }
         else
@@ -777,14 +777,14 @@ static bool_t nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
                     nvmfeep->arena_num_slots)
             {
                 result = nvm_fee_gc(nvmfeep, temp_slot.address);
-                if (result != CH_SUCCESS)
+                if (result != HAL_SUCCESS)
                     return result;
             }
 
             /* Write new slot. */
             result = nvm_fee_slot_write(nvmfeep, nvmfeep->arena_active,
                     nvmfeep->arena_slots[nvmfeep->arena_active], &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
 
             ++nvmfeep->arena_slots[nvmfeep->arena_active];
@@ -804,14 +804,14 @@ static bool_t nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
 
         result = nvm_fee_slot_lookup(nvmfeep, arena, addr,
                 &slot, &found);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
 
         if (found == true)
         {
             /* Existing slot so read it. */
             result = nvm_fee_slot_read(nvmfeep, arena, slot, &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
         }
         else
@@ -835,14 +835,14 @@ static bool_t nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
                     nvmfeep->arena_num_slots)
             {
                 result = nvm_fee_gc(nvmfeep, temp_slot.address);
-                if (result != CH_SUCCESS)
+                if (result != HAL_SUCCESS)
                     return result;
             }
 
             /* Write new slot. */
             result = nvm_fee_slot_write(nvmfeep, nvmfeep->arena_active,
                     nvmfeep->arena_slots[nvmfeep->arena_active], &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
 
             ++nvmfeep->arena_slots[nvmfeep->arena_active];
@@ -862,14 +862,14 @@ static bool_t nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
 
         result = nvm_fee_slot_lookup(nvmfeep, arena, addr,
                 &slot, &found);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             return result;
 
         if (found == true)
         {
             /* Existing slot so read it. */
             result = nvm_fee_slot_read(nvmfeep, arena, slot, &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
         }
         else
@@ -893,14 +893,14 @@ static bool_t nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
                     nvmfeep->arena_num_slots)
             {
                 result = nvm_fee_gc(nvmfeep, temp_slot.address);
-                if (result != CH_SUCCESS)
+                if (result != HAL_SUCCESS)
                     return result;
             }
 
             /* Write new slot. */
             result = nvm_fee_slot_write(nvmfeep, nvmfeep->arena_active,
                     nvmfeep->arena_slots[nvmfeep->arena_active], &temp_slot);
-            if (result != CH_SUCCESS)
+            if (result != HAL_SUCCESS)
                 return result;
 
             ++nvmfeep->arena_slots[nvmfeep->arena_active];
@@ -910,7 +910,7 @@ static bool_t nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
         n_remaining -= n_slot;
     }
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /*===========================================================================*/
@@ -998,14 +998,14 @@ void nvmfeeStart(NVMFeeDriver* nvmfeep, const NVMFeeConfig* config)
      *
      */
 
-    bool_t result;
+    bool result;
 
     if (states[0] == ARENA_STATE_ACTIVE && states[1] == ARENA_STATE_UNUSED)
     {
         /* Load arena 0 as active arena. */
         nvmfeep->arena_active = 0;
         result = nvm_fee_arena_load(nvmfeep, 0);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             goto out_error;
     }
     else if (states[0] == ARENA_STATE_UNUSED && states[1] == ARENA_STATE_ACTIVE)
@@ -1013,58 +1013,58 @@ void nvmfeeStart(NVMFeeDriver* nvmfeep, const NVMFeeConfig* config)
         /* Load arena 0 as active arena. */
         nvmfeep->arena_active = 1;
         result = nvm_fee_arena_load(nvmfeep, 1);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             goto out_error;
     }
     else if (states[0] == ARENA_STATE_FROZEN)
     {
         /* Clear arena 1. */
         result = nvm_fee_arena_erase(nvmfeep, 1);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             goto out_error;
 
         /* Load arena 0 as active arena. */
         nvmfeep->arena_active = 0;
         result = nvm_fee_arena_load(nvmfeep, 0);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             goto out_error;
 
         /* Restart garbage collection without omitting any address. */
         result = nvm_fee_gc(nvmfeep, 0xffffffff);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             goto out_error;
     }
     else if (states[1] == ARENA_STATE_FROZEN)
     {
         /* Clear arena 0. */
         result = nvm_fee_arena_erase(nvmfeep, 0);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             goto out_error;
 
         /* Load arena 1 as active arena. */
         nvmfeep->arena_active = 1;
         result = nvm_fee_arena_load(nvmfeep, 1);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             goto out_error;
 
         /* Restart garbage collection without omitting any address. */
         result = nvm_fee_gc(nvmfeep, 0xffffffff);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             goto out_error;
     }
     else
     {
         /* Pristine or totally broken memory. */
         result = nvm_fee_arena_erase(nvmfeep, 0);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             goto out_error;
 
         result = nvm_fee_arena_erase(nvmfeep, 1);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             goto out_error;
 
         result = nvm_fee_arena_state_update(nvmfeep, 0, ARENA_STATE_ACTIVE);
-        if (result != CH_SUCCESS)
+        if (result != HAL_SUCCESS)
             goto out_error;
 
         nvmfeep->arena_active = 0;
@@ -1105,12 +1105,12 @@ void nvmfeeStop(NVMFeeDriver* nvmfeep)
  * @param[in] buffer        pointer to data buffer
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfeeRead(NVMFeeDriver* nvmfeep, uint32_t startaddr,
+bool nvmfeeRead(NVMFeeDriver* nvmfeep, uint32_t startaddr,
         uint32_t n, uint8_t* buffer)
 {
     chDbgCheck(nvmfeep != NULL, "nvmfeeRead");
@@ -1124,15 +1124,15 @@ bool_t nvmfeeRead(NVMFeeDriver* nvmfeep, uint32_t startaddr,
     /* Read operation in progress. */
     nvmfeep->state = NVM_READING;
 
-    bool_t result = nvm_fee_read(nvmfeep, nvmfeep->arena_active, startaddr,
+    bool result = nvm_fee_read(nvmfeep, nvmfeep->arena_active, startaddr,
             n, buffer);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     /* Read operation finished. */
     nvmfeep->state = NVM_READY;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -1144,12 +1144,12 @@ bool_t nvmfeeRead(NVMFeeDriver* nvmfeep, uint32_t startaddr,
  * @param[in] buffer        pointer to data buffer
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfeeWrite(NVMFeeDriver* nvmfeep, uint32_t startaddr,
+bool nvmfeeWrite(NVMFeeDriver* nvmfeep, uint32_t startaddr,
         uint32_t n, const uint8_t* buffer)
 {
     chDbgCheck(nvmfeep != NULL, "nvmfeeWrite");
@@ -1163,12 +1163,12 @@ bool_t nvmfeeWrite(NVMFeeDriver* nvmfeep, uint32_t startaddr,
     /* Write operation in progress. */
     nvmfeep->state = NVM_WRITING;
 
-    bool_t result = nvm_fee_write(nvmfeep, nvmfeep->arena_active, startaddr,
+    bool result = nvm_fee_write(nvmfeep, nvmfeep->arena_active, startaddr,
             n, buffer);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -1179,12 +1179,12 @@ bool_t nvmfeeWrite(NVMFeeDriver* nvmfeep, uint32_t startaddr,
  * @param[in] n             number of bytes to erase
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfeeErase(NVMFeeDriver* nvmfeep, uint32_t startaddr, uint32_t n)
+bool nvmfeeErase(NVMFeeDriver* nvmfeep, uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(nvmfeep != NULL, "nvmfeeErase");
     /* Verify device status. */
@@ -1197,12 +1197,12 @@ bool_t nvmfeeErase(NVMFeeDriver* nvmfeep, uint32_t startaddr, uint32_t n)
     /* Erase operation in progress. */
     nvmfeep->state = NVM_ERASING;
 
-    bool_t result = nvm_fee_write_pattern(nvmfeep, nvmfeep->arena_active,
+    bool result = nvm_fee_write_pattern(nvmfeep, nvmfeep->arena_active,
             startaddr, n, 0xff);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -1211,12 +1211,12 @@ bool_t nvmfeeErase(NVMFeeDriver* nvmfeep, uint32_t startaddr, uint32_t n)
  * @param[in] nvmfeep       pointer to the @p NVMFeeDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfeeMassErase(NVMFeeDriver* nvmfeep)
+bool nvmfeeMassErase(NVMFeeDriver* nvmfeep)
 {
     chDbgCheck(nvmfeep != NULL, "nvmfeeMassErase");
     /* Verify device status. */
@@ -1226,23 +1226,23 @@ bool_t nvmfeeMassErase(NVMFeeDriver* nvmfeep)
     /* Erase operation in progress. */
     nvmfeep->state = NVM_ERASING;
 
-    bool_t result;
+    bool result;
 
     result = nvm_fee_arena_erase(nvmfeep, 0);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     result = nvm_fee_arena_erase(nvmfeep, 1);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     result = nvm_fee_arena_state_update(nvmfeep, 0, ARENA_STATE_ACTIVE);
-    if (result != CH_SUCCESS)
+    if (result != HAL_SUCCESS)
         return result;
 
     nvmfeep->arena_active = 0;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -1251,12 +1251,12 @@ bool_t nvmfeeMassErase(NVMFeeDriver* nvmfeep)
  * @param[in] nvmfeep       pointer to the @p NVMFeeDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfeeSync(NVMFeeDriver* nvmfeep)
+bool nvmfeeSync(NVMFeeDriver* nvmfeep)
 {
     chDbgCheck(nvmfeep != NULL, "nvmfeeSync");
     /* Verify device status. */
@@ -1264,16 +1264,16 @@ bool_t nvmfeeSync(NVMFeeDriver* nvmfeep)
             "invalid state");
 
     if (nvmfeep->state == NVM_READY)
-        return CH_SUCCESS;
+        return HAL_SUCCESS;
 
-    bool_t result = nvmSync(nvmfeep->config->nvmp);
-    if (result != CH_SUCCESS)
+    bool result = nvmSync(nvmfeep->config->nvmp);
+    if (result != HAL_SUCCESS)
         return result;
 
     /* No more operation in progress. */
     nvmfeep->state = NVM_READY;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -1283,12 +1283,12 @@ bool_t nvmfeeSync(NVMFeeDriver* nvmfeep)
  * @param[out] nvmdip       pointer to a @p NVMDeviceInfo structure
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfeeGetInfo(NVMFeeDriver* nvmfeep, NVMDeviceInfo* nvmdip)
+bool nvmfeeGetInfo(NVMFeeDriver* nvmfeep, NVMDeviceInfo* nvmdip)
 {
     chDbgCheck(nvmfeep != NULL, "nvmfeeGetInfo");
     /* Verify device status. */
@@ -1302,7 +1302,7 @@ bool_t nvmfeeGetInfo(NVMFeeDriver* nvmfeep, NVMDeviceInfo* nvmdip)
     /* Note: The virtual address room can be written byte wise */
     nvmdip->write_alignment = 0;
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -1365,12 +1365,12 @@ void nvmfeeReleaseBus(NVMFeeDriver* nvmfeep)
  * @param[in] n             number of bytes to protect
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfeeWriteProtect(NVMFeeDriver* nvmfeep,
+bool nvmfeeWriteProtect(NVMFeeDriver* nvmfeep,
         uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(nvmfeep != NULL, "nvmfeeWriteProtect");
@@ -1380,7 +1380,7 @@ bool_t nvmfeeWriteProtect(NVMFeeDriver* nvmfeep,
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -1389,12 +1389,12 @@ bool_t nvmfeeWriteProtect(NVMFeeDriver* nvmfeep,
  * @param[in] nvmfeep       pointer to the @p NVMFeeDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfeeMassWriteProtect(NVMFeeDriver* nvmfeep)
+bool nvmfeeMassWriteProtect(NVMFeeDriver* nvmfeep)
 {
     chDbgCheck(nvmfeep != NULL, "nvmfeeMassWriteProtect");
     /* Verify device status. */
@@ -1403,7 +1403,7 @@ bool_t nvmfeeMassWriteProtect(NVMFeeDriver* nvmfeep)
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -1414,12 +1414,12 @@ bool_t nvmfeeMassWriteProtect(NVMFeeDriver* nvmfeep)
  * @param[in] n             number of bytes to unprotect
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfeeWriteUnprotect(NVMFeeDriver* nvmfeep,
+bool nvmfeeWriteUnprotect(NVMFeeDriver* nvmfeep,
         uint32_t startaddr, uint32_t n)
 {
     chDbgCheck(nvmfeep != NULL, "nvmfeeWriteUnprotect");
@@ -1429,7 +1429,7 @@ bool_t nvmfeeWriteUnprotect(NVMFeeDriver* nvmfeep,
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 /**
@@ -1438,12 +1438,12 @@ bool_t nvmfeeWriteUnprotect(NVMFeeDriver* nvmfeep,
  * @param[in] nvmfeep       pointer to the @p NVMFeeDriver object
  *
  * @return                  The operation status.
- * @retval CH_SUCCESS       the operation succeeded.
- * @retval CH_FAILED        the operation failed.
+ * @retval HAL_SUCCESS      the operation succeeded.
+ * @retval HAL_FAILED       the operation failed.
  *
  * @api
  */
-bool_t nvmfeeMassWriteUnprotect(NVMFeeDriver* nvmfeep)
+bool nvmfeeMassWriteUnprotect(NVMFeeDriver* nvmfeep)
 {
     chDbgCheck(nvmfeep != NULL, "nvmfeeMassWriteUnprotect");
     /* Verify device status. */
@@ -1452,7 +1452,7 @@ bool_t nvmfeeMassWriteUnprotect(NVMFeeDriver* nvmfeep)
 
     /* TODO: add implementation */
 
-    return CH_SUCCESS;
+    return HAL_SUCCESS;
 }
 
 #endif /* HAL_USE_NVM_FEE */
