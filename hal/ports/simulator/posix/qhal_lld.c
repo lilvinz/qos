@@ -45,7 +45,7 @@
 /* Driver interrupt handlers.                                                */
 /*===========================================================================*/
 
-CH_IRQ_HANDLER(port_tick_signal_handler);
+OSAL_IRQ_HANDLER(port_tick_signal_handler);
 
 /*===========================================================================*/
 /* Driver exported functions.                                                */

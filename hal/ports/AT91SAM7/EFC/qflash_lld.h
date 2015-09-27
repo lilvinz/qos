@@ -91,14 +91,10 @@ typedef struct
      */
     AT91S_EFC* flash;
 #if FLASH_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES || defined(__DOXYGEN__)
     /**
      * @brief mutex_t protecting the device.
      */
     mutex_t mutex;
-#elif CH_CFG_USE_SEMAPHORES
-    semaphore_t semaphore;
-#endif
 #endif /* FLASH_USE_MUTUAL_EXCLUSION */
 } FLASHDriver;
 

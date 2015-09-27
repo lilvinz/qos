@@ -41,7 +41,7 @@
 /*===========================================================================*/
 
 #if !CH_CFG_USE_WAITEXIT
-#error "GD_SIM_USE_MUTUAL_EXCLUSION requires CH_CFG_USE_WAITEXIT"
+#error "GD_SIM requires CH_CFG_USE_WAITEXIT"
 #endif
 
 /*===========================================================================*/
@@ -96,14 +96,10 @@ typedef struct
     */
     const GDSimConfig* config;
 #if GD_SIM_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES || defined(__DOXYGEN__)
     /**
      * @brief mutex_t protecting the device.
      */
     mutex_t mutex;
-#elif CH_CFG_USE_SEMAPHORES
-    semaphore_t semaphore;
-#endif
 #endif /* GD_SIM_USE_MUTUAL_EXCLUSION */
     /**
      * @brief   Pointer to the thread when it is sleeping or @p NULL.

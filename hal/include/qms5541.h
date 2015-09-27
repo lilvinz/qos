@@ -41,11 +41,6 @@
 #error "MS5541 driver requires HAL_USE_SPI and SPI_USE_WAIT"
 #endif
 
-#if MS5541_USE_MUTUAL_EXCLUSION && !CH_CFG_USE_MUTEXES && !CH_CFG_USE_SEMAPHORES
-#error "MS5541_USE_MUTUAL_EXCLUSION requires CH_CFG_USE_MUTEXES "
-       "and/or CH_CFG_USE_SEMAPHORES"
-#endif
-
 /*===========================================================================*/
 /* Driver data structures and types.                                         */
 /*===========================================================================*/
@@ -110,14 +105,10 @@ struct MS5541Driver
     */
     const MS5541Config* config;
 #if MS5541_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES || defined(__DOXYGEN__)
     /**
      * @brief mutex_t protecting the device.
      */
     mutex_t mutex;
-#elif CH_CFG_USE_SEMAPHORES
-    semaphore_t semaphore;
-#endif
 #endif /* MS5541_USE_MUTUAL_EXCLUSION */
     /**
     * @brief Calibration data read from chip rom.

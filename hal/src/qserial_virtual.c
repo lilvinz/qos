@@ -35,7 +35,7 @@ static size_t write(void *ip, const uint8_t *bp, size_t n)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    chSysLock();
+    osalSysLock();
 
     size_t w = 0;
 
@@ -45,7 +45,7 @@ static size_t write(void *ip, const uint8_t *bp, size_t n)
         msg_t result = chSymQPutTimeoutS(&svdp->configp->farp->queue, *bp++, TIME_INFINITE);
         if (result != Q_OK)
         {
-            chSysUnlock();
+            osalSysUnlock();
             return w;
         }
 
@@ -54,7 +54,7 @@ static size_t write(void *ip, const uint8_t *bp, size_t n)
             chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
     }
 
-    chSysUnlock();
+    osalSysUnlock();
 
     return w;
 }
@@ -63,7 +63,7 @@ static size_t read(void *ip, uint8_t *bp, size_t n)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    chSysLock();
+    osalSysLock();
 
     size_t r = 0;
 
@@ -73,7 +73,7 @@ static size_t read(void *ip, uint8_t *bp, size_t n)
         msg_t result = chSymQGetTimeoutS(&svdp->queue, TIME_INFINITE);
         if (result < Q_OK)
         {
-            chSysUnlock();
+            osalSysUnlock();
             return r;
         }
 
@@ -85,7 +85,7 @@ static size_t read(void *ip, uint8_t *bp, size_t n)
             chnAddFlagsI(svdp->configp->farp, CHN_OUTPUT_EMPTY);
     }
 
-    chSysUnlock();
+    osalSysUnlock();
 
     return r;
 }
@@ -94,13 +94,13 @@ static msg_t put(void *ip, uint8_t b)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    chSysLock();
+    osalSysLock();
 
     /* Try to write a byte to far queue. */
     msg_t result = chSymQPutTimeoutS(&svdp->configp->farp->queue, b, TIME_INFINITE);
     if (result != Q_OK)
     {
-        chSysUnlock();
+        osalSysUnlock();
         return result;
     }
 
@@ -108,7 +108,7 @@ static msg_t put(void *ip, uint8_t b)
     if (chSymQSpaceI(&svdp->configp->farp->queue) == 1)
         chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
 
-    chSysUnlock();
+    osalSysUnlock();
 
     return result;
 }
@@ -117,13 +117,13 @@ static msg_t get(void *ip)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    chSysLock();
+    osalSysLock();
 
     /* Try to get a byte from near queue. */
     msg_t result = chSymQGetTimeoutS(&svdp->queue, TIME_INFINITE);
     if (result < Q_OK)
     {
-        chSysUnlock();
+        osalSysUnlock();
         return result;
     }
 
@@ -131,7 +131,7 @@ static msg_t get(void *ip)
     if (chSymQIsEmptyI(&svdp->queue) == TRUE)
         chnAddFlagsI(svdp->configp->farp, CHN_OUTPUT_EMPTY);
 
-    chSysUnlock();
+    osalSysUnlock();
 
     return result;
 }
@@ -140,13 +140,13 @@ static msg_t putt(void *ip, uint8_t b, systime_t timeout)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    chSysLock();
+    osalSysLock();
 
     /* Try to write a byte to far queue. */
     msg_t result = chSymQPutTimeoutS(&svdp->configp->farp->queue, b, timeout);
     if (result != Q_OK)
     {
-        chSysUnlock();
+        osalSysUnlock();
         return result;
     }
 
@@ -154,7 +154,7 @@ static msg_t putt(void *ip, uint8_t b, systime_t timeout)
     if (chSymQSpaceI(&svdp->configp->farp->queue) == 1)
         chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
 
-    chSysUnlock();
+    osalSysUnlock();
 
     return result;
 }
@@ -163,13 +163,13 @@ static msg_t gett(void *ip, systime_t timeout)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    chSysLock();
+    osalSysLock();
 
     /* Try to get a byte from near queue. */
     msg_t result = chSymQGetTimeoutS(&svdp->queue, timeout);
     if (result < Q_OK)
     {
-        chSysUnlock();
+        osalSysUnlock();
         return result;
     }
 
@@ -177,7 +177,7 @@ static msg_t gett(void *ip, systime_t timeout)
     if (chSymQIsEmptyI(&svdp->queue) == TRUE)
         chnAddFlagsI(svdp->configp->farp, CHN_OUTPUT_EMPTY);
 
-    chSysUnlock();
+    osalSysUnlock();
 
     return result;
 }
@@ -186,7 +186,7 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    chSysLock();
+    osalSysLock();
 
     size_t w = 0;
     systime_t start = chVTGetSystemTimeX();
@@ -199,7 +199,7 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
         {
             if (chVTTimeElapsedSinceX(start) >= timeout)
             {
-                chSysUnlock();
+                osalSysUnlock();
                 return w;
             }
             this_timeout = timeout - chVTTimeElapsedSinceX(start);
@@ -209,7 +209,7 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
         msg_t result = chSymQPutTimeoutS(&svdp->configp->farp->queue, *bp++, this_timeout);
         if (result != Q_OK)
         {
-            chSysUnlock();
+            osalSysUnlock();
             return w;
         }
 
@@ -218,7 +218,7 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout)
             chnAddFlagsI(svdp->configp->farp, CHN_INPUT_AVAILABLE);
     }
 
-    chSysUnlock();
+    osalSysUnlock();
 
     return w;
 }
@@ -227,7 +227,7 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout)
 {
     SerialVirtualDriver *svdp = (SerialVirtualDriver*)ip;
 
-    chSysLock();
+    osalSysLock();
 
     size_t r = 0;
     systime_t start = chVTGetSystemTimeX();
@@ -240,7 +240,7 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout)
         {
             if (chVTTimeElapsedSinceX(start) >= timeout)
             {
-                chSysUnlock();
+                osalSysUnlock();
                 return r;
             }
             this_timeout = timeout - chVTTimeElapsedSinceX(start);
@@ -250,7 +250,7 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout)
         msg_t result = chSymQGetTimeoutS(&svdp->queue, this_timeout);
         if (result < Q_OK)
         {
-            chSysUnlock();
+            osalSysUnlock();
             return r;
         }
 
@@ -262,7 +262,7 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout)
             chnAddFlagsI(svdp->configp->farp, CHN_OUTPUT_EMPTY);
     }
 
-    chSysUnlock();
+    osalSysUnlock();
 
     return r;
 }
@@ -300,7 +300,7 @@ void sdvirtualInit(void)
 void sdvirtualObjectInit(SerialVirtualDriver *sdvirtualp)
 {
     sdvirtualp->vmt = &vmt;
-    chEvtObjectInit(&sdvirtualp->event);
+    osalEventObjectInit(&sdvirtualp->event);
     sdvirtualp->state = SDVIRTUAL_STOP;
     chSymQObjectInit(&sdvirtualp->queue, sdvirtualp->queuebuf,
             sizeof(sdvirtualp->queuebuf));
@@ -318,15 +318,15 @@ void sdvirtualObjectInit(SerialVirtualDriver *sdvirtualp)
  */
 void sdvirtualStart(SerialVirtualDriver *sdvirtualp, const SerialVirtualConfig *configp)
 {
-    chDbgCheck(sdvirtualp != NULL);
+    osalDbgCheck(sdvirtualp != NULL);
 
-    chSysLock();
-    chDbgAssert((sdvirtualp->state == SDVIRTUAL_STOP) || (sdvirtualp->state == SDVIRTUAL_READY),
+    osalSysLock();
+    osalDbgAssert((sdvirtualp->state == SDVIRTUAL_STOP) || (sdvirtualp->state == SDVIRTUAL_READY),
             "invalid state");
     sdvirtualp->configp = configp;
     sdvirtualp->state = SDVIRTUAL_READY;
     chnAddFlagsI(sdvirtualp, CHN_CONNECTED);
-    chSysUnlock();
+    osalSysUnlock();
 }
 
 /**
@@ -340,15 +340,15 @@ void sdvirtualStart(SerialVirtualDriver *sdvirtualp, const SerialVirtualConfig *
  */
 void sdvirtualStop(SerialVirtualDriver *sdvirtualp)
 {
-    chDbgCheck(sdvirtualp != NULL);
+    osalDbgCheck(sdvirtualp != NULL);
 
-    chSysLock();
-    chDbgAssert((sdvirtualp->state == SDVIRTUAL_STOP) || (sdvirtualp->state == SDVIRTUAL_READY),
+    osalSysLock();
+    osalDbgAssert((sdvirtualp->state == SDVIRTUAL_STOP) || (sdvirtualp->state == SDVIRTUAL_READY),
                 "invalid state");
     chnAddFlagsI(sdvirtualp, CHN_DISCONNECTED);
     chSymQResetI(&sdvirtualp->queue);
     chSchRescheduleS();
-    chSysUnlock();
+    osalSysUnlock();
 }
 
 #endif /* HAL_USE_SERIAL_VIRTUAL */

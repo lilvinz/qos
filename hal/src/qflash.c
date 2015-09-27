@@ -80,11 +80,7 @@ void flashObjectInit(FLASHDriver* flashp)
     flashp->state = NVM_STOP;
     flashp->config = NULL;
 #if FLASH_USE_MUTUAL_EXCLUSION
-#if CH_CFG_USE_MUTEXES
     chMtxObjectInit(&flashp->mutex);
-#else
-    chSemObjectInit(&flashp->semaphore, 1);
-#endif
 #endif /* FLASH_USE_MUTUAL_EXCLUSION */
 }
 
@@ -353,11 +349,7 @@ void flashAcquireBus(FLASHDriver* flashp)
     chDbgCheck(flashp != NULL);
 
 #if FLASH_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
     chMtxLock(&flashp->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemWait(&flashp->semaphore);
-#endif
 #endif /* FLASH_USE_MUTUAL_EXCLUSION */
 }
 
@@ -375,12 +367,7 @@ void flashReleaseBus(FLASHDriver* flashp)
     chDbgCheck(flashp != NULL);
 
 #if FLASH_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
-    (void)flashp;
     chMtxUnlock(&flashp->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemSignal(&flashp->semaphore);
-#endif
 #endif /* FLASH_USE_MUTUAL_EXCLUSION */
 }
 

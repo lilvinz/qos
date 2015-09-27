@@ -83,11 +83,7 @@ void ms58xxObjectInit(MS58XXDriver* ms58xxp)
     ms58xxp->last_d2 = 0;
     memset(ms58xxp->calibration, 0, sizeof(ms58xxp->calibration));
 #if MS58XX_USE_MUTUAL_EXCLUSION
-#if CH_CFG_USE_MUTEXES
-    chMtxObjectInit(&ms58xxp->mutex);
-#else
-    chSemObjectInit(&ms58xxp->semaphore, 1);
-#endif
+    osalMutexObjectInit(&ms58xxp->mutex);
 #endif /* MS58XX_USE_MUTUAL_EXCLUSION */
 }
 
@@ -101,9 +97,9 @@ void ms58xxObjectInit(MS58XXDriver* ms58xxp)
  */
 void ms58xxStart(MS58XXDriver* ms58xxp, const MS58XXConfig* configp)
 {
-    chDbgCheck((ms58xxp != NULL) && (configp != NULL));
+    osalDbgCheck((ms58xxp != NULL) && (configp != NULL));
     /* Verify device status. */
-    chDbgAssert((ms58xxp->state == MS58XX_STOP) || (ms58xxp->state == MS58XX_READY),
+    osalDbgAssert((ms58xxp->state == MS58XX_STOP) || (ms58xxp->state == MS58XX_READY),
             "invalid state");
 
     ms58xxp->configp = configp;
@@ -203,9 +199,9 @@ void ms58xxStart(MS58XXDriver* ms58xxp, const MS58XXConfig* configp)
  */
 void ms58xxStop(MS58XXDriver* ms58xxp)
 {
-    chDbgCheck(ms58xxp != NULL);
+    osalDbgCheck(ms58xxp != NULL);
     /* Verify device status. */
-    chDbgAssert((ms58xxp->state == MS58XX_STOP) || (ms58xxp->state == MS58XX_READY),
+    osalDbgAssert((ms58xxp->state == MS58XX_STOP) || (ms58xxp->state == MS58XX_READY),
             "invalid state");
 
     ms58xxp->state = MS58XX_STOP;
@@ -224,14 +220,10 @@ void ms58xxStop(MS58XXDriver* ms58xxp)
  */
 void ms58xxAcquireBus(MS58XXDriver* ms58xxp)
 {
-    chDbgCheck(ms58xxp != NULL);
+    osalDbgCheck(ms58xxp != NULL);
 
 #if MS58XX_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
-    chMtxLock(&ms58xxp->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemWait(&ms58xxp->semaphore);
-#endif
+    osalMutexLock(&ms58xxp->mutex);
 
 #if I2C_USE_MUTUAL_EXCLUSION
     /* Acquire the underlying device as well. */
@@ -251,15 +243,10 @@ void ms58xxAcquireBus(MS58XXDriver* ms58xxp)
  */
 void ms58xxReleaseBus(MS58XXDriver* ms58xxp)
 {
-    chDbgCheck(ms58xxp != NULL);
+    osalDbgCheck(ms58xxp != NULL);
 
 #if MS58XX_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
-    (void)ms58xxp;
-    chMtxUnlock(&ms58xxp->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemSignal(&ms58xxp->semaphore);
-#endif
+    osalMutexUnlock(&ms58xxp->mutex);
 
 #if I2C_USE_MUTUAL_EXCLUSION
     /* Release the underlying device as well. */
@@ -282,9 +269,9 @@ void ms58xxReleaseBus(MS58XXDriver* ms58xxp)
  */
 bool ms58xxTemperatureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
 {
-    chDbgCheck(ms58xxp != NULL);
+    osalDbgCheck(ms58xxp != NULL);
     /* Verify device status. */
-    chDbgAssert(ms58xxp->state == MS58XX_READY, "invalid state");
+    osalDbgAssert(ms58xxp->state == MS58XX_READY, "invalid state");
 
     ms58xxp->state = MS58XX_ACTIVE;
 
@@ -320,9 +307,9 @@ bool ms58xxTemperatureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
  */
 bool ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
 {
-    chDbgCheck(ms58xxp != NULL);
+    osalDbgCheck(ms58xxp != NULL);
     /* Verify device status. */
-    chDbgAssert(ms58xxp->state == MS58XX_ACTIVE, "invalid state");
+    osalDbgAssert(ms58xxp->state == MS58XX_ACTIVE, "invalid state");
 
     /* Read result from chip. */
     {
@@ -393,9 +380,9 @@ bool ms58xxTemperatureResult(MS58XXDriver* ms58xxp, float *resultp)
  */
 bool ms58xxPressureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
 {
-    chDbgCheck(ms58xxp != NULL);
+    osalDbgCheck(ms58xxp != NULL);
     /* Verify device status. */
-    chDbgAssert(ms58xxp->state == MS58XX_READY, "invalid state");
+    osalDbgAssert(ms58xxp->state == MS58XX_READY, "invalid state");
 
     ms58xxp->state = MS58XX_ACTIVE;
 
@@ -431,9 +418,9 @@ bool ms58xxPressureStart(MS58XXDriver* ms58xxp, enum ms58xx_osr_e osr)
  */
 bool ms58xxPressureResult(MS58XXDriver* ms58xxp, float *resultp)
 {
-    chDbgCheck(ms58xxp != NULL);
+    osalDbgCheck(ms58xxp != NULL);
     /* Verify device status. */
-    chDbgAssert(ms58xxp->state == MS58XX_ACTIVE, "invalid state");
+    osalDbgAssert(ms58xxp->state == MS58XX_ACTIVE, "invalid state");
 
     /* Read result from chip. */
     {

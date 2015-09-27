@@ -48,21 +48,21 @@ static void blink_timer_on_cb(void *par)
 {
     LedDriver* ledp = (LedDriver*)par;
 
-    chSysLockFromISR();
+    osalSysLockFromISR();
 
     /* Set new timer. */
     chVTSetI(&ledp->blink_vt, ledp->blink_off, blink_timer_off_cb, ledp);
 
     led_off(ledp);
 
-    chSysUnlockFromISR();
+    osalSysUnlockFromISR();
 }
 
 static void blink_timer_off_cb(void *par)
 {
     LedDriver* ledp = (LedDriver*)par;
 
-    chSysLockFromISR();
+    osalSysLockFromISR();
 
     /* Decrement counter. */
     if (ledp->blink_loop > 0)
@@ -76,7 +76,7 @@ static void blink_timer_off_cb(void *par)
         led_on(ledp);
     }
 
-    chSysUnlockFromISR();
+    osalSysUnlockFromISR();
 }
 
 /*===========================================================================*/
@@ -105,7 +105,7 @@ void ledInit(void)
  */
 void ledObjectInit(LedDriver* ledp)
 {
-    chDbgCheck(ledp != NULL);
+    osalDbgCheck(ledp != NULL);
     ledp->state = LED_STOP;
 }
 
@@ -119,19 +119,19 @@ void ledObjectInit(LedDriver* ledp)
  */
 void ledStart(LedDriver* ledp, const LedConfig* config)
 {
-    chDbgCheck(ledp != NULL);
-    chDbgCheck(config != NULL);
+    osalDbgCheck(ledp != NULL);
+    osalDbgCheck(config != NULL);
 
-    chSysLock();
+    osalSysLock();
 
-    chDbgAssert((ledp->state == LED_STOP) || (ledp->state == LED_READY),
+    osalDbgAssert((ledp->state == LED_STOP) || (ledp->state == LED_READY),
             "invalid state");
 
     ledp->config = config;
 
     ledp->state = LED_READY;
 
-    chSysUnlock();
+    osalSysUnlock();
 }
 
 /**
@@ -143,20 +143,20 @@ void ledStart(LedDriver* ledp, const LedConfig* config)
  */
 void ledStop(LedDriver* ledp)
 {
-    chDbgCheck(ledp != NULL);
+    osalDbgCheck(ledp != NULL);
 
-    chSysLock();
+    osalSysLock();
 
     /* Reset blink timer in case it is armed. */
     chVTResetI(&ledp->blink_vt);
 
-    chDbgAssert((ledp->state == LED_STOP) || (ledp->state == LED_READY),
+    osalDbgAssert((ledp->state == LED_STOP) || (ledp->state == LED_READY),
             "invalid state");
 
     /* Driver in stopped state. */
     ledp->state = LED_STOP;
 
-    chSysUnlock();
+    osalSysUnlock();
 }
 
 /**
@@ -168,9 +168,9 @@ void ledStop(LedDriver* ledp)
  */
 void ledOn(LedDriver* ledp)
 {
-    chDbgCheck(ledp != NULL);
+    osalDbgCheck(ledp != NULL);
     /* Verify device status. */
-    chDbgAssert(ledp->state >= LED_READY, "invalid state");
+    osalDbgAssert(ledp->state >= LED_READY, "invalid state");
 
     /* Reset blink timer in case it is armed. */
     chVTReset(&ledp->blink_vt);
@@ -187,9 +187,9 @@ void ledOn(LedDriver* ledp)
  */
 void ledOff(LedDriver* ledp)
 {
-    chDbgCheck(ledp != NULL);
+    osalDbgCheck(ledp != NULL);
     /* Verify device status. */
-    chDbgAssert(ledp->state >= LED_READY, "invalid state");
+    osalDbgAssert(ledp->state >= LED_READY, "invalid state");
 
     /* Reset blink timer in case it is armed. */
     chVTReset(&ledp->blink_vt);
@@ -206,9 +206,9 @@ void ledOff(LedDriver* ledp)
  */
 void ledToggle(LedDriver* ledp)
 {
-    chDbgCheck(ledp != NULL);
+    osalDbgCheck(ledp != NULL);
     /* Verify device status. */
-    chDbgAssert(ledp->state >= LED_READY, "invalid state");
+    osalDbgAssert(ledp->state >= LED_READY, "invalid state");
 
     /* Reset blink timer in case it is armed. */
     chVTReset(&ledp->blink_vt);
@@ -228,17 +228,17 @@ void ledToggle(LedDriver* ledp)
  */
 void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop)
 {
-    chDbgCheck(ledp != NULL);
+    osalDbgCheck(ledp != NULL);
     /* Verify device status. */
-    chDbgAssert(ledp->state >= LED_READY, "invalid state");
+    osalDbgAssert(ledp->state >= LED_READY, "invalid state");
     /* Verify parameters. */
-    chDbgAssert(on > TIME_IMMEDIATE && off > TIME_IMMEDIATE,
+    osalDbgAssert(on > TIME_IMMEDIATE && off > TIME_IMMEDIATE,
             "invalid parameters");
 
     if (loop <= 0)
         loop = -1;
 
-    chSysLock();
+    osalSysLock();
 
     ledp->blink_on = on;
     ledp->blink_off = off;
@@ -249,7 +249,7 @@ void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop)
 
     led_on(ledp);
 
-    chSysUnlock();
+    osalSysUnlock();
 }
 
 /**
@@ -265,9 +265,9 @@ void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop)
  */
 bool ledIsLedOn(LedDriver* ledp)
 {
-    chDbgCheck(ledp != NULL);
+    osalDbgCheck(ledp != NULL);
     /* Verify device status. */
-    chDbgAssert(ledp->state >= LED_READY, "invalid state");
+    osalDbgAssert(ledp->state >= LED_READY, "invalid state");
 
     uint8_t palstate = palReadPad(ledp->config->ledport, ledp->config->ledpad);
 

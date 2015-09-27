@@ -112,7 +112,7 @@ void s485dInit(void) {
 void s485dObjectInit(Serial485Driver *s485dp, qnotify_t inotify, qnotify_t onotify) {
 
   s485dp->vmt = &vmt;
-  chEvtObjectInit(&s485dp->event);
+  osalEventObjectInit(&s485dp->event);
   s485dp->state = S485D_STOP;
   chIQObjectInit(&s485dp->iqueue, s485dp->ib, SERIAL_BUFFERS_SIZE, inotify, s485dp);
   chOQObjectInit(&s485dp->oqueue, s485dp->ob, SERIAL_BUFFERS_SIZE, onotify, s485dp);
@@ -130,16 +130,16 @@ void s485dObjectInit(Serial485Driver *s485dp, qnotify_t inotify, qnotify_t onoti
  */
 void s485dStart(Serial485Driver *s485dp, const Serial485Config *config) {
 
-  chDbgCheck(s485dp != NULL);
+  osalDbgCheck(s485dp != NULL);
 
-  chSysLock();
-  chDbgAssert((s485dp->state == S485D_STOP) || (s485dp->state == S485D_READY),
+  osalSysLock();
+  osalDbgAssert((s485dp->state == S485D_STOP) || (s485dp->state == S485D_READY),
               "invalid state");
   s485dp->config = config;
   s485d_lld_start(s485dp, config);
   s485dp->state = S485D_READY;
   chnAddFlagsI(s485dp, CHN_CONNECTED);
-  chSysUnlock();
+  osalSysUnlock();
 }
 
 /**
@@ -153,10 +153,10 @@ void s485dStart(Serial485Driver *s485dp, const Serial485Config *config) {
  */
 void s485dStop(Serial485Driver *s485dp) {
 
-  chDbgCheck(s485dp != NULL);
+  osalDbgCheck(s485dp != NULL);
 
-  chSysLock();
-  chDbgAssert((s485dp->state == S485D_STOP) || (s485dp->state == S485D_READY),
+  osalSysLock();
+  osalDbgAssert((s485dp->state == S485D_STOP) || (s485dp->state == S485D_READY),
               "invalid state");
   chnAddFlagsI(s485dp, CHN_DISCONNECTED);
   s485d_lld_stop(s485dp);
@@ -164,7 +164,7 @@ void s485dStop(Serial485Driver *s485dp) {
   chOQResetI(&s485dp->oqueue);
   chIQResetI(&s485dp->iqueue);
   chSchRescheduleS();
-  chSysUnlock();
+  osalSysUnlock();
 }
 
 /**
@@ -185,8 +185,8 @@ void s485dStop(Serial485Driver *s485dp) {
  */
 void s485dIncomingDataI(Serial485Driver *s485dp, uint8_t b) {
 
-  chDbgCheckClassI();
-  chDbgCheck(s485dp != NULL);
+  osalDbgCheckClassI();
+  osalDbgCheck(s485dp != NULL);
 
   if (chIQIsEmptyI(&s485dp->iqueue))
     chnAddFlagsI(s485dp, CHN_INPUT_AVAILABLE);
@@ -212,8 +212,8 @@ void s485dIncomingDataI(Serial485Driver *s485dp, uint8_t b) {
 msg_t s485dRequestDataI(Serial485Driver *s485dp) {
   msg_t  b;
 
-  chDbgCheckClassI();
-  chDbgCheck(s485dp != NULL);
+  osalDbgCheckClassI();
+  osalDbgCheck(s485dp != NULL);
 
   b = chOQGetI(&s485dp->oqueue);
   if (b < Q_OK)

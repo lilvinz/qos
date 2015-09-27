@@ -47,11 +47,6 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
-#if FLASH_USE_MUTUAL_EXCLUSION && !CH_CFG_USE_MUTEXES && !CH_CFG_USE_SEMAPHORES
-#error "FLASH_USE_MUTUAL_EXCLUSION requires CH_CFG_USE_MUTEXES and/or "
-       "CH_CFG_USE_SEMAPHORES"
-#endif
-
 /*===========================================================================*/
 /* Driver data structures and types.                                         */
 /*===========================================================================*/

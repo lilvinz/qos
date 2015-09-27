@@ -65,10 +65,10 @@ void wdgObjectInit(WDGDriver* wdgp)
  */
 void wdgStart(WDGDriver* wdgp, const WDGConfig* config)
 {
-    chDbgCheck((wdgp != NULL) && (config != NULL));
+    osalDbgCheck((wdgp != NULL) && (config != NULL));
 
     /* Verify device status. */
-    chDbgAssert((wdgp->state == WDG_STOP) || (wdgp->state == WDG_READY),
+    osalDbgAssert((wdgp->state == WDG_STOP) || (wdgp->state == WDG_READY),
             "invalid state");
 
     wdgp->config = config;
@@ -85,10 +85,10 @@ void wdgStart(WDGDriver* wdgp, const WDGConfig* config)
  */
 void wdgStop(WDGDriver* wdgp)
 {
-    chDbgCheck(wdgp != NULL);
+    osalDbgCheck(wdgp != NULL);
 
     /* Verify device status. */
-    chDbgAssert((wdgp->state == WDG_STOP) || (wdgp->state == WDG_READY),
+    osalDbgAssert((wdgp->state == WDG_STOP) || (wdgp->state == WDG_READY),
             "invalid state");
 
     wdg_lld_stop(wdgp);
@@ -104,10 +104,10 @@ void wdgStop(WDGDriver* wdgp)
  */
 void wdgReload(WDGDriver* wdgp)
 {
-    chDbgCheck(wdgp != NULL);
+    osalDbgCheck(wdgp != NULL);
 
     /* Verify device status. */
-    chDbgAssert(wdgp->state >= WDG_READY, "invalid state");
+    osalDbgAssert(wdgp->state >= WDG_READY, "invalid state");
 
     wdg_lld_reload(wdgp);
 }

@@ -145,9 +145,9 @@ uint32_t rtc_lld_get_time_fat(RTCDriver *rtcp)
   uint32_t fattime;
   RTCTime timespec;
 
-  chSysLock();
+  osalSysLock();
   rtcGetTimeI(rtcp, &timespec);
-  chSysUnlock();
+  osalSysUnlock();
 
   fattime  = timespec.tm.tm_sec >> 1;
   fattime |= timespec.tm.tm_min << 5;

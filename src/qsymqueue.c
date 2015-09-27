@@ -76,12 +76,12 @@ void chSymQObjectInit(symmetric_queue_t *sqp, uint8_t *bp, size_t size)
  */
 void chSymQResetI(symmetric_queue_t *sqp)
 {
-    chDbgCheckClassI();
+    osalDbgCheckClassI();
 
     sqp->q_rdptr = sqp->q_wrptr = sqp->q_buffer;
     sqp->q_counter = 0;
-    chThdDequeueAllI(&sqp->q_readers, Q_RESET);
-    chThdDequeueAllI(&sqp->q_writers, Q_RESET);
+    osalThreadDequeueAllI(&sqp->q_readers, Q_RESET);
+    osalThreadDequeueAllI(&sqp->q_writers, Q_RESET);
 }
 
 /**
@@ -99,7 +99,7 @@ msg_t chSymQGetI(symmetric_queue_t *sqp)
 {
     uint8_t b;
 
-    chDbgCheckClassI();
+    osalDbgCheckClassI();
 
     if (chSymQIsEmptyI(sqp))
         return Q_EMPTY;
@@ -110,7 +110,7 @@ msg_t chSymQGetI(symmetric_queue_t *sqp)
         sqp->q_rdptr = sqp->q_buffer;
 
     /* Wake first eventually pending writer. */
-    chThdDequeueNextI(&sqp->q_writers, Q_OK);
+    osalThreadDequeueNextI(&sqp->q_writers, Q_OK);
 
     return b;
 }
@@ -137,12 +137,12 @@ msg_t chSymQGetTimeoutS(symmetric_queue_t *sqp, systime_t timeout)
 {
     uint8_t b;
 
-    chDbgCheckClassS();
+    osalDbgCheckClassS();
 
     if (chSymQIsEmptyI(sqp))
     {
         msg_t msg;
-        if ((msg = chThdEnqueueTimeoutS(&sqp->q_readers, timeout)) != Q_OK)
+        if ((msg = osalThreadEnqueueTimeoutS(&sqp->q_readers, timeout)) != Q_OK)
             return msg;
     }
 
@@ -152,7 +152,7 @@ msg_t chSymQGetTimeoutS(symmetric_queue_t *sqp, systime_t timeout)
         sqp->q_rdptr = sqp->q_buffer;
 
     /* Wake first eventually pending writer. */
-    chThdDequeueNextI(&sqp->q_writers, Q_OK);
+    osalThreadDequeueNextI(&sqp->q_writers, Q_OK);
 
     return b;
 }
@@ -177,9 +177,9 @@ msg_t chSymQGetTimeoutS(symmetric_queue_t *sqp, systime_t timeout)
  */
 msg_t chSymQGetTimeout(symmetric_queue_t *sqp, systime_t timeout)
 {
-    chSysLock();
+    osalSysLock();
     msg_t result = chSymQGetTimeoutS(sqp, timeout);
-    chSysUnlock();
+    osalSysUnlock();
 
     return result;
 }
@@ -211,9 +211,9 @@ size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
 {
     size_t r = 0;
 
-    chDbgCheckClassS();
+    osalDbgCheckClassS();
 
-    chDbgCheck(n > 0);
+    osalDbgCheck(n > 0);
 
     systime_t start = chVTGetSystemTimeX();
 
@@ -229,7 +229,7 @@ size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
                 this_timeout = timeout - chVTTimeElapsedSinceX(start);
             }
 
-            if (chThdEnqueueTimeoutS(&sqp->q_readers, timeout) != Q_OK)
+            if (osalThreadEnqueueTimeoutS(&sqp->q_readers, timeout) != Q_OK)
                 return r;
         }
 
@@ -239,17 +239,17 @@ size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
             sqp->q_rdptr = sqp->q_buffer;
 
         /* Wake first eventually pending writer. */
-        chThdDequeueNextI(&sqp->q_writers, Q_OK);
+        osalThreadDequeueNextI(&sqp->q_writers, Q_OK);
 
-        chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
+        osalSysUnlock(); /* Gives a preemption chance in a controlled point.*/
         r++;
         if (--n == 0)
         {
-            chSysLock();
+            osalSysLock();
             return r;
         }
 
-        chSysLock();
+        osalSysLock();
     }
 }
 
@@ -278,9 +278,9 @@ size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
 size_t chSymQReadTimeout(symmetric_queue_t *sqp, uint8_t *bp,
                        size_t n, systime_t timeout)
 {
-    chSysLock();
+    osalSysLock();
     size_t result = chSymQReadTimeoutS(sqp, bp, n, timeout);
-    chSysUnlock();
+    osalSysUnlock();
 
     return result;
 }
@@ -301,7 +301,7 @@ size_t chSymQReadTimeout(symmetric_queue_t *sqp, uint8_t *bp,
  */
 msg_t chSymQPutI(symmetric_queue_t *sqp, uint8_t b)
 {
-    chDbgCheckClassI();
+    osalDbgCheckClassI();
     if (chSymQIsFullI(sqp) == TRUE)
         return Q_FULL;
 
@@ -311,7 +311,7 @@ msg_t chSymQPutI(symmetric_queue_t *sqp, uint8_t b)
         sqp->q_wrptr = sqp->q_buffer;
 
     /* Wake first eventually pending reader. */
-    chThdDequeueNextI(&sqp->q_readers, Q_OK);
+    osalThreadDequeueNextI(&sqp->q_readers, Q_OK);
 
     return Q_OK;
 }
@@ -338,12 +338,12 @@ msg_t chSymQPutI(symmetric_queue_t *sqp, uint8_t b)
  */
 msg_t chSymQPutTimeoutS(symmetric_queue_t *sqp, uint8_t b, systime_t timeout)
 {
-    chDbgCheckClassS();
+    osalDbgCheckClassS();
 
     if (chSymQIsFullI(sqp))
     {
         msg_t msg;
-        if ((msg = chThdEnqueueTimeoutS(&sqp->q_writers, timeout)) != Q_OK)
+        if ((msg = osalThreadEnqueueTimeoutS(&sqp->q_writers, timeout)) != Q_OK)
             return msg;
     }
 
@@ -353,7 +353,7 @@ msg_t chSymQPutTimeoutS(symmetric_queue_t *sqp, uint8_t b, systime_t timeout)
         sqp->q_wrptr = sqp->q_buffer;
 
     /* Wake first eventually pending reader. */
-    chThdDequeueNextI(&sqp->q_readers, Q_OK);
+    osalThreadDequeueNextI(&sqp->q_readers, Q_OK);
 
     return Q_OK;
 }
@@ -380,9 +380,9 @@ msg_t chSymQPutTimeoutS(symmetric_queue_t *sqp, uint8_t b, systime_t timeout)
  */
 msg_t chSymQPutTimeout(symmetric_queue_t *sqp, uint8_t b, systime_t timeout)
 {
-    chSysLock();
+    osalSysLock();
     msg_t result = chSymQPutTimeoutS(sqp, b, timeout);
-    chSysUnlock();
+    osalSysUnlock();
 
     return result;
 }
@@ -414,9 +414,9 @@ size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
 {
     size_t w = 0;
 
-    chDbgCheckClassS();
+    osalDbgCheckClassS();
 
-    chDbgCheck(n > 0);
+    osalDbgCheck(n > 0);
 
     systime_t start = chVTGetSystemTimeX();
 
@@ -432,7 +432,7 @@ size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
                 this_timeout = timeout - chVTTimeElapsedSinceX(start);
             }
 
-            if (chThdEnqueueTimeoutS(&sqp->q_writers, timeout) != Q_OK)
+            if (osalThreadEnqueueTimeoutS(&sqp->q_writers, timeout) != Q_OK)
                 return w;
         }
 
@@ -442,16 +442,16 @@ size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
             sqp->q_wrptr = sqp->q_buffer;
 
         /* Wake first eventually pending reader. */
-        chThdDequeueNextI(&sqp->q_readers, Q_OK);
+        osalThreadDequeueNextI(&sqp->q_readers, Q_OK);
 
-        chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
+        osalSysUnlock(); /* Gives a preemption chance in a controlled point.*/
         w++;
         if (--n == 0)
         {
-            chSysLock();
+            osalSysLock();
             return w;
         }
-        chSysLock();
+        osalSysLock();
     }
 }
 
@@ -480,9 +480,9 @@ size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
 size_t chSymQWriteTimeout(symmetric_queue_t *sqp, const uint8_t *bp,
                         size_t n, systime_t timeout)
 {
-    chSysLock();
+    osalSysLock();
     size_t result = chSymQWriteTimeoutS(sqp, bp, n, timeout);
-    chSysUnlock();
+    osalSysUnlock();
 
     return result;
 }

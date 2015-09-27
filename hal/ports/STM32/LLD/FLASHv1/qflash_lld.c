@@ -313,13 +313,13 @@ static void serve_flash_irq(FLASHDriver* flashp)
  *
  * @isr
  */
-CH_IRQ_HANDLER(STM32_FLASH_HANDLER)
+OSAL_IRQ_HANDLER(STM32_FLASH_HANDLER)
 {
-    CH_IRQ_PROLOGUE();
+    OSAL_IRQ_PROLOGUE();
 
     serve_flash_irq(&FLASHD);
 
-    CH_IRQ_EPILOGUE();
+    OSAL_IRQ_EPILOGUE();
 }
 
 /*===========================================================================*/
@@ -466,7 +466,7 @@ void flash_lld_write(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
         const uint8_t* buffer)
 {
     /* Verify that we are writing an even address and size. */
-    chDbgAssert((startaddr & 1) == 0 && (n & 1) == 0, "invalid parameters");
+    osalDbgAssert((startaddr & 1) == 0 && (n & 1) == 0, "invalid parameters");
 
     uint32_t addr = FLASH_BASE + startaddr;
     uint32_t offset = 0;
@@ -539,9 +539,9 @@ void flash_lld_sync(FLASHDriver* flashp)
     {
 #if FLASH_NICE_WAITING
         /* Trying to be nice with the other threads. */
-        chSysUnlock();
-        chThdSleep(1);
-        chSysLock();
+        osalSysUnlock();
+        osalThreadSleep(1);
+        osalSysLock();
 #endif
     }
 }

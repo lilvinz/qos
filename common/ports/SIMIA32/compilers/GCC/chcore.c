@@ -39,14 +39,14 @@
 /* Port interrupt handlers.                                                  */
 /*===========================================================================*/
 
-CH_IRQ_HANDLER(port_tick_signal_handler) {
-  CH_IRQ_PROLOGUE();
+OSAL_IRQ_HANDLER(port_tick_signal_handler) {
+  OSAL_IRQ_PROLOGUE();
 
-  chSysLockFromISR();
-  chSysTimerHandlerI();
-  chSysUnlockFromISR();
+  osalSysLockFromISR();
+  osalSysTimerHandlerI();
+  osalSysUnlockFromISR();
 
-  CH_IRQ_EPILOGUE();
+  OSAL_IRQ_PROLOGUE();
 
   dbg_check_lock();
   if (chSchIsPreemptionRequired())
@@ -211,7 +211,7 @@ void port_switch(Thread *ntp, Thread *otp) {
 void _port_thread_start(void) {
   asm volatile ("push %ecx                                      \n\t"
                 "push %edx");
-  chSysUnlock();
+  osalSysUnlock();
   asm volatile ("pop %edx                                       \n\t"
                 "pop %ecx                                       \n\t"
                 "push %edx                                      \n\t"

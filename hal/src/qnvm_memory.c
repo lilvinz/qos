@@ -82,11 +82,7 @@ void nvmmemoryObjectInit(NVMMemoryDriver* nvmmemoryp)
     nvmmemoryp->state = NVM_STOP;
     nvmmemoryp->config = NULL;
 #if NVM_MEMORY_USE_MUTUAL_EXCLUSION
-#if CH_CFG_USE_MUTEXES
-    chMtxObjectInit(&nvmmemoryp->mutex);
-#else
-    chSemObjectInit(&nvmmemoryp->semaphore, 1);
-#endif
+    osalMutexObjectInit(&nvmmemoryp->mutex);
 #endif /* NVM_MEMORY_USE_MUTUAL_EXCLUSION */
 }
 
@@ -100,9 +96,9 @@ void nvmmemoryObjectInit(NVMMemoryDriver* nvmmemoryp)
  */
 void nvmmemoryStart(NVMMemoryDriver* nvmmemoryp, const NVMMemoryConfig* config)
 {
-    chDbgCheck((nvmmemoryp != NULL) && (config != NULL));
+    osalDbgCheck((nvmmemoryp != NULL) && (config != NULL));
     /* Verify device status. */
-    chDbgAssert((nvmmemoryp->state == NVM_STOP) || (nvmmemoryp->state == NVM_READY),
+    osalDbgAssert((nvmmemoryp->state == NVM_STOP) || (nvmmemoryp->state == NVM_READY),
             "invalid state");
 
     nvmmemoryp->config = config;
@@ -118,9 +114,9 @@ void nvmmemoryStart(NVMMemoryDriver* nvmmemoryp, const NVMMemoryConfig* config)
  */
 void nvmmemoryStop(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert((nvmmemoryp->state == NVM_STOP) || (nvmmemoryp->state == NVM_READY),
+    osalDbgAssert((nvmmemoryp->state == NVM_STOP) || (nvmmemoryp->state == NVM_READY),
             "invalid state");
 
     nvmmemoryp->state = NVM_STOP;
@@ -143,11 +139,11 @@ void nvmmemoryStop(NVMMemoryDriver* nvmmemoryp)
 bool nvmmemoryRead(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n,
         uint8_t* buffer)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
     /* Verify range is within chip size. */
-    chDbgAssert((startaddr + n <= nvmmemoryp->config->sector_size * nvmmemoryp->config->sector_num),
+    osalDbgAssert((startaddr + n <= nvmmemoryp->config->sector_size * nvmmemoryp->config->sector_num),
             "invalid parameters");
 
     if (nvmmemorySync(nvmmemoryp) != HAL_SUCCESS)
@@ -181,11 +177,11 @@ bool nvmmemoryRead(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n,
 bool nvmmemoryWrite(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n,
         const uint8_t* buffer)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
     /* Verify range is within chip size. */
-    chDbgAssert((startaddr + n <= nvmmemoryp->config->sector_size * nvmmemoryp->config->sector_num),
+    osalDbgAssert((startaddr + n <= nvmmemoryp->config->sector_size * nvmmemoryp->config->sector_num),
             "invalid parameters");
 
     if (nvmmemorySync(nvmmemoryp) != HAL_SUCCESS)
@@ -217,11 +213,11 @@ bool nvmmemoryWrite(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n,
  */
 bool nvmmemoryErase(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
     /* Verify range is within chip size. */
-    chDbgAssert((startaddr + n <= nvmmemoryp->config->sector_size * nvmmemoryp->config->sector_num),
+    osalDbgAssert((startaddr + n <= nvmmemoryp->config->sector_size * nvmmemoryp->config->sector_num),
             "invalid parameters");
 
     if (nvmmemorySync(nvmmemoryp) != HAL_SUCCESS)
@@ -251,9 +247,9 @@ bool nvmmemoryErase(NVMMemoryDriver* nvmmemoryp, uint32_t startaddr, uint32_t n)
  */
 bool nvmmemoryMassErase(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     if (nvmmemorySync(nvmmemoryp) != HAL_SUCCESS)
         return HAL_FAILED;
@@ -283,9 +279,9 @@ bool nvmmemoryMassErase(NVMMemoryDriver* nvmmemoryp)
  */
 bool nvmmemorySync(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     if (nvmmemoryp->state == NVM_READY)
         return HAL_SUCCESS;
@@ -310,9 +306,9 @@ bool nvmmemorySync(NVMMemoryDriver* nvmmemoryp)
  */
 bool nvmmemoryGetInfo(NVMMemoryDriver* nvmmemoryp, NVMDeviceInfo* nvmdip)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     nvmdip->sector_num = nvmmemoryp->config->sector_num;
     nvmdip->sector_size = nvmmemoryp->config->sector_size;
@@ -338,14 +334,10 @@ bool nvmmemoryGetInfo(NVMMemoryDriver* nvmmemoryp, NVMDeviceInfo* nvmdip)
  */
 void nvmmemoryAcquireBus(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
 
 #if NVM_MEMORY_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
-    chMtxLock(&nvmmemoryp->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemWait(&nvmmemoryp->semaphore);
-#endif
+    osalMutexLock(&nvmmemoryp->mutex);
 #endif /* NVM_MEMORY_USE_MUTUAL_EXCLUSION */
 }
 
@@ -360,15 +352,10 @@ void nvmmemoryAcquireBus(NVMMemoryDriver* nvmmemoryp)
  */
 void nvmmemoryReleaseBus(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
 
 #if NVM_MEMORY_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
-    (void)nvmmemoryp;
-    chMtxUnlock(&nvmmemoryp->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemSignal(&nvmmemoryp->semaphore);
-#endif
+    osalMutexUnlock(&nvmmemoryp->mutex);
 #endif /* NVM_MEMORY_USE_MUTUAL_EXCLUSION */
 }
 
@@ -388,9 +375,9 @@ void nvmmemoryReleaseBus(NVMMemoryDriver* nvmmemoryp)
 bool nvmmemoryWriteProtect(NVMMemoryDriver* nvmmemoryp,
         uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -410,9 +397,9 @@ bool nvmmemoryWriteProtect(NVMMemoryDriver* nvmmemoryp,
  */
 bool nvmmemoryMassWriteProtect(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -435,9 +422,9 @@ bool nvmmemoryMassWriteProtect(NVMMemoryDriver* nvmmemoryp)
 bool nvmmemoryWriteUnprotect(NVMMemoryDriver* nvmmemoryp,
         uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -457,9 +444,9 @@ bool nvmmemoryWriteUnprotect(NVMMemoryDriver* nvmmemoryp,
  */
 bool nvmmemoryMassWriteUnprotect(NVMMemoryDriver* nvmmemoryp)
 {
-    chDbgCheck(nvmmemoryp != NULL);
+    osalDbgCheck(nvmmemoryp != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmmemoryp->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 

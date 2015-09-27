@@ -126,11 +126,7 @@ void ms5541ObjectInit(MS5541Driver* ms5541p)
     ms5541p->last_d2 = 0;
     memset(ms5541p->calibration, 0, sizeof(ms5541p->calibration));
 #if MS5541_USE_MUTUAL_EXCLUSION
-#if CH_CFG_USE_MUTEXES
-    chMtxObjectInit(&ms5541p->mutex);
-#else
-    chSemObjectInit(&ms5541p->semaphore, 1);
-#endif
+    osalMutexObjectInit(&ms5541p->mutex);
 #endif /* MS5541_USE_MUTUAL_EXCLUSION */
 }
 
@@ -144,9 +140,9 @@ void ms5541ObjectInit(MS5541Driver* ms5541p)
  */
 void ms5541Start(MS5541Driver* ms5541p, const MS5541Config* config)
 {
-    chDbgCheck((ms5541p != NULL) && (config != NULL));
+    osalDbgCheck((ms5541p != NULL) && (config != NULL));
     /* Verify device status. */
-    chDbgAssert((ms5541p->state == MS5541_STOP) || (ms5541p->state == MS5541_READY),
+    osalDbgAssert((ms5541p->state == MS5541_STOP) || (ms5541p->state == MS5541_READY),
             "invalid state");
 
     ms5541p->config = config;
@@ -186,9 +182,9 @@ void ms5541Start(MS5541Driver* ms5541p, const MS5541Config* config)
  */
 void ms5541Stop(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL);
+    osalDbgCheck(ms5541p != NULL);
     /* Verify device status. */
-    chDbgAssert((ms5541p->state == MS5541_STOP) || (ms5541p->state == MS5541_READY),
+    osalDbgAssert((ms5541p->state == MS5541_STOP) || (ms5541p->state == MS5541_READY),
             "invalid state");
 
     ms5541p->state = MS5541_STOP;
@@ -207,14 +203,10 @@ void ms5541Stop(MS5541Driver* ms5541p)
  */
 void ms5541AcquireBus(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL);
+    osalDbgCheck(ms5541p != NULL);
 
 #if MS5541_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
-    chMtxLock(&ms5541p->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemWait(&ms5541p->semaphore);
-#endif
+    osalMutexLock(&ms5541p->mutex);
 
 #if SPI_USE_MUTUAL_EXCLUSION
     /* Acquire the underlying device as well. */
@@ -234,15 +226,10 @@ void ms5541AcquireBus(MS5541Driver* ms5541p)
  */
 void ms5541ReleaseBus(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL);
+    osalDbgCheck(ms5541p != NULL);
 
 #if MS5541_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
-    (void)ms5541p;
-    chMtxUnlock(&ms5541p->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemSignal(&ms5541p->semaphore);
-#endif
+    osalMutexUnlock(&ms5541p->mutex);
 
 #if SPI_USE_MUTUAL_EXCLUSION
     /* Release the underlying device as well. */
@@ -260,9 +247,9 @@ void ms5541ReleaseBus(MS5541Driver* ms5541p)
  */
 void ms5541TemperatureStart(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL);
+    osalDbgCheck(ms5541p != NULL);
     /* Verify device status. */
-    chDbgAssert(ms5541p->state == MS5541_READY, "invalid state");
+    osalDbgAssert(ms5541p->state == MS5541_READY, "invalid state");
 
     ms5541p->state = MS5541_ACTIVE;
 
@@ -285,9 +272,9 @@ void ms5541TemperatureStart(MS5541Driver* ms5541p)
  */
 int16_t ms5541TemperatureResult(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL);
+    osalDbgCheck(ms5541p != NULL);
     /* Verify device status. */
-    chDbgAssert(ms5541p->state == MS5541_ACTIVE, "invalid state");
+    osalDbgAssert(ms5541p->state == MS5541_ACTIVE, "invalid state");
 
     /* Disable clock output if configured. */
     if (ms5541p->config->mclk_cb != NULL)
@@ -324,9 +311,9 @@ int16_t ms5541TemperatureResult(MS5541Driver* ms5541p)
  */
 void ms5541PressureStart(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL);
+    osalDbgCheck(ms5541p != NULL);
     /* Verify device status. */
-    chDbgAssert(ms5541p->state == MS5541_READY, "invalid state");
+    osalDbgAssert(ms5541p->state == MS5541_READY, "invalid state");
 
     ms5541p->state = MS5541_ACTIVE;
 
@@ -349,9 +336,9 @@ void ms5541PressureStart(MS5541Driver* ms5541p)
  */
 uint16_t ms5541PressureResult(MS5541Driver* ms5541p)
 {
-    chDbgCheck(ms5541p != NULL);
+    osalDbgCheck(ms5541p != NULL);
     /* Verify device status. */
-    chDbgAssert(ms5541p->state == MS5541_ACTIVE, "invalid state");
+    osalDbgAssert(ms5541p->state == MS5541_ACTIVE, "invalid state");
 
     /* Disable clock output if configured. */
     if (ms5541p->config->mclk_cb != NULL)

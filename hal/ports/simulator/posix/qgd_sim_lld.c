@@ -66,9 +66,9 @@ static void gdsim_lld_pump(void* p)
         xcb_generic_event_t* e;
 
         /* Nothing to do. Going to sleep. */
-        chSysLock();
+        osalSysLock();
         chThdSuspendS(&gdsimp->wait);
-        chSysUnlock();
+        osalSysUnlock();
 
         while ((e = xcb_poll_for_event(gdsimp->xcb_connection)) != NULL)
         {
@@ -95,7 +95,7 @@ static void gdsim_lld_pump(void* p)
             free(e);
         }
 
-        chThdSleepMilliseconds(10);
+        osalThreadSleepMilliseconds(10);
     }
 }
 

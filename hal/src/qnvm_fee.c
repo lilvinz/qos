@@ -154,7 +154,7 @@ static enum slot_state nvm_fee_mark_2_slot_state(uint32_t mark)
 static bool nvm_fee_slot_read(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t slot, struct slot* slotp)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
 
     const uint32_t addr = arena *
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size +
@@ -171,7 +171,7 @@ static bool nvm_fee_slot_read(NVMFeeDriver* nvmfeep, uint32_t arena,
 static bool nvm_fee_slot_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t slot, enum slot_state state)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
 
     const uint32_t addr = arena *
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size +
@@ -193,9 +193,9 @@ static bool nvm_fee_slot_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
 static bool nvm_fee_slot_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t slot, const struct slot* slotp)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
     /* Verify state of to be written slot. */
-    chDbgAssert(nvm_fee_mark_2_slot_state(slotp->state_mark) ==
+    osalDbgAssert(nvm_fee_mark_2_slot_state(slotp->state_mark) ==
             SLOT_STATE_VALID, "invalid state");
 
     const uint32_t addr = arena *
@@ -222,7 +222,7 @@ static bool nvm_fee_slot_write(NVMFeeDriver* nvmfeep, uint32_t arena,
 static bool nvm_fee_slot_lookup(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t address, uint32_t* slotp, bool* foundp)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
 
     *foundp = false;
 
@@ -274,7 +274,7 @@ static enum arena_state nvm_fee_mark_2_arena_state(uint32_t mark)
 static enum arena_state nvm_fee_arena_state_get(NVMFeeDriver* nvmfeep,
         uint32_t arena)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
 
     const uint32_t addr = arena *
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size;
@@ -295,7 +295,7 @@ static enum arena_state nvm_fee_arena_state_get(NVMFeeDriver* nvmfeep,
 static bool nvm_fee_arena_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
         enum arena_state state)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
 
     const uint32_t addr = arena *
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size;
@@ -316,7 +316,7 @@ static bool nvm_fee_arena_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
 
 static bool nvm_fee_arena_load(NVMFeeDriver* nvmfeep, uint32_t arena)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
 
     nvmfeep->arena_slots[arena] = 0;
 
@@ -346,7 +346,7 @@ static bool nvm_fee_arena_load(NVMFeeDriver* nvmfeep, uint32_t arena)
 
 static bool nvm_fee_arena_erase(NVMFeeDriver* nvmfeep, uint32_t arena)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
 
     const uint32_t addr = arena *
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size;
@@ -378,7 +378,7 @@ static bool nvm_fee_arena_erase(NVMFeeDriver* nvmfeep, uint32_t arena)
 
 static bool nvm_fee_gc(NVMFeeDriver* nvmfeep, uint32_t omit_addr)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
 
     uint32_t src_arena;
     uint32_t dst_arena;
@@ -457,7 +457,7 @@ static bool nvm_fee_gc(NVMFeeDriver* nvmfeep, uint32_t omit_addr)
 static bool nvm_fee_read(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t startaddr, uint32_t n, uint8_t* buffer)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
 
     const uint32_t first_slot_addr = startaddr -
             (startaddr % NVM_FEE_SLOT_PAYLOAD_SIZE);
@@ -531,7 +531,7 @@ static int memtst(const void* block, int c, size_t size)
 static bool nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t startaddr, uint32_t n, const uint8_t* buffer)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
 
     const uint32_t first_slot_addr = startaddr -
             (startaddr % NVM_FEE_SLOT_PAYLOAD_SIZE);
@@ -722,7 +722,7 @@ static bool nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
 static bool nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t startaddr, uint32_t n, uint8_t pattern)
 {
-    chDbgCheck((nvmfeep != NULL));
+    osalDbgCheck((nvmfeep != NULL));
 
     const uint32_t first_slot_addr = startaddr -
             (startaddr % NVM_FEE_SLOT_PAYLOAD_SIZE);
@@ -939,11 +939,7 @@ void nvmfeeObjectInit(NVMFeeDriver* nvmfeep)
     nvmfeep->state = NVM_STOP;
     nvmfeep->config = NULL;
 #if NVM_FEE_USE_MUTUAL_EXCLUSION
-#if CH_CFG_USE_MUTEXES
-    chMtxObjectInit(&nvmfeep->mutex);
-#else
-    chSemObjectInit(&nvmfeep->semaphore, 1);
-#endif
+    osalMutexObjectInit(&nvmfeep->mutex);
 #endif /* NVM_JEDEC_SPI_USE_MUTUAL_EXCLUSION */
     nvmfeep->arena_active = 0;
     nvmfeep->arena_slots[0] = 0;
@@ -960,9 +956,9 @@ void nvmfeeObjectInit(NVMFeeDriver* nvmfeep)
  */
 void nvmfeeStart(NVMFeeDriver* nvmfeep, const NVMFeeConfig* config)
 {
-    chDbgCheck((nvmfeep != NULL) && (config != NULL));
+    osalDbgCheck((nvmfeep != NULL) && (config != NULL));
     /* Verify device status. */
-    chDbgAssert((nvmfeep->state == NVM_STOP) || (nvmfeep->state == NVM_READY),
+    osalDbgAssert((nvmfeep->state == NVM_STOP) || (nvmfeep->state == NVM_READY),
             "invalid state");
 
     nvmfeep->config = config;
@@ -1086,9 +1082,9 @@ out_error:
  */
 void nvmfeeStop(NVMFeeDriver* nvmfeep)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
     /* Verify device status. */
-    chDbgAssert((nvmfeep->state == NVM_STOP) || (nvmfeep->state == NVM_READY),
+    osalDbgAssert((nvmfeep->state == NVM_STOP) || (nvmfeep->state == NVM_READY),
             "invalid state");
 
     nvmfeep->state = NVM_STOP;
@@ -1111,11 +1107,11 @@ void nvmfeeStop(NVMFeeDriver* nvmfeep)
 bool nvmfeeRead(NVMFeeDriver* nvmfeep, uint32_t startaddr,
         uint32_t n, uint8_t* buffer)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
     /* Verify range is within fee size. */
-    chDbgAssert(startaddr + n <= nvmfeep->fee_size, "invalid parameters");
+    osalDbgAssert(startaddr + n <= nvmfeep->fee_size, "invalid parameters");
 
     /* Read operation in progress. */
     nvmfeep->state = NVM_READING;
@@ -1148,11 +1144,11 @@ bool nvmfeeRead(NVMFeeDriver* nvmfeep, uint32_t startaddr,
 bool nvmfeeWrite(NVMFeeDriver* nvmfeep, uint32_t startaddr,
         uint32_t n, const uint8_t* buffer)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
     /* Verify range is within fee size. */
-    chDbgAssert(startaddr + n <= nvmfeep->fee_size, "invalid parameters");
+    osalDbgAssert(startaddr + n <= nvmfeep->fee_size, "invalid parameters");
 
     /* Write operation in progress. */
     nvmfeep->state = NVM_WRITING;
@@ -1180,11 +1176,11 @@ bool nvmfeeWrite(NVMFeeDriver* nvmfeep, uint32_t startaddr,
  */
 bool nvmfeeErase(NVMFeeDriver* nvmfeep, uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
     /* Verify range is within fee size. */
-    chDbgAssert(startaddr + n <= nvmfeep->fee_size, "invalid parameters");
+    osalDbgAssert(startaddr + n <= nvmfeep->fee_size, "invalid parameters");
 
     /* Erase operation in progress. */
     nvmfeep->state = NVM_ERASING;
@@ -1210,9 +1206,9 @@ bool nvmfeeErase(NVMFeeDriver* nvmfeep, uint32_t startaddr, uint32_t n)
  */
 bool nvmfeeMassErase(NVMFeeDriver* nvmfeep)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
 
     /* Erase operation in progress. */
     nvmfeep->state = NVM_ERASING;
@@ -1249,9 +1245,9 @@ bool nvmfeeMassErase(NVMFeeDriver* nvmfeep)
  */
 bool nvmfeeSync(NVMFeeDriver* nvmfeep)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
 
     if (nvmfeep->state == NVM_READY)
         return HAL_SUCCESS;
@@ -1280,9 +1276,9 @@ bool nvmfeeSync(NVMFeeDriver* nvmfeep)
  */
 bool nvmfeeGetInfo(NVMFeeDriver* nvmfeep, NVMDeviceInfo* nvmdip)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
 
     nvmdip->sector_size = NVM_FEE_SLOT_PAYLOAD_SIZE;
     nvmdip->sector_num = nvmfeep->arena_num_slots;
@@ -1307,14 +1303,10 @@ bool nvmfeeGetInfo(NVMFeeDriver* nvmfeep, NVMDeviceInfo* nvmdip)
  */
 void nvmfeeAcquireBus(NVMFeeDriver* nvmfeep)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
 
 #if NVM_FEE_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
-    chMtxLock(&nvmfeep->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemWait(&nvmfeep->semaphore);
-#endif
+    osalMutexLock(&nvmfeep->mutex);
 
     /* Lock the underlying device as well */
     nvmAcquire(nvmfeep->config->nvmp);
@@ -1332,14 +1324,10 @@ void nvmfeeAcquireBus(NVMFeeDriver* nvmfeep)
  */
 void nvmfeeReleaseBus(NVMFeeDriver* nvmfeep)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
 
 #if NVM_FEE_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
-    chMtxUnlock(&nvmfeep->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemSignal(&nvmfeep->semaphore);
-#endif
+    osalMutexUnlock(&nvmfeep->mutex);
 
     /* Release the underlying device as well */
     nvmRelease(nvmfeep->config->nvmp);
@@ -1362,9 +1350,9 @@ void nvmfeeReleaseBus(NVMFeeDriver* nvmfeep)
 bool nvmfeeWriteProtect(NVMFeeDriver* nvmfeep,
         uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -1384,9 +1372,9 @@ bool nvmfeeWriteProtect(NVMFeeDriver* nvmfeep,
  */
 bool nvmfeeMassWriteProtect(NVMFeeDriver* nvmfeep)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -1409,9 +1397,9 @@ bool nvmfeeMassWriteProtect(NVMFeeDriver* nvmfeep)
 bool nvmfeeWriteUnprotect(NVMFeeDriver* nvmfeep,
         uint32_t startaddr, uint32_t n)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 
@@ -1431,9 +1419,9 @@ bool nvmfeeWriteUnprotect(NVMFeeDriver* nvmfeep,
  */
 bool nvmfeeMassWriteUnprotect(NVMFeeDriver* nvmfeep)
 {
-    chDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(nvmfeep != NULL);
     /* Verify device status. */
-    chDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
+    osalDbgAssert(nvmfeep->state >= NVM_READY, "invalid state");
 
     /* TODO: add implementation */
 

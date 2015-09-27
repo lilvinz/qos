@@ -143,14 +143,14 @@ static void serve_interrupt(Serial485Driver *s485dp) {
 
   /* Special case, LIN break detection.*/
   if (sr & USART_SR_LBD) {
-    chSysLockFromISR();
+    osalSysLockFromISR();
     chnAddFlagsI(s485dp, S485D_BREAK_DETECTED);
-    chSysUnlockFromISR();
+    osalSysUnlockFromISR();
     u->SR = ~USART_SR_LBD;
   }
 
   /* Data available.*/
-  chSysLockFromISR();
+  osalSysLockFromISR();
   while (sr & (USART_SR_RXNE | USART_SR_ORE | USART_SR_NE | USART_SR_FE |
                USART_SR_PE)) {
     /* Error condition detection.*/
@@ -174,7 +174,7 @@ static void serve_interrupt(Serial485Driver *s485dp) {
     }
     sr = u->SR;
   }
-  chSysUnlockFromISR();
+  osalSysUnlockFromISR();
 
   /* Physical transmission end.
    * Note: This must be handled before TXE to prevent a startup glitch
@@ -184,18 +184,18 @@ static void serve_interrupt(Serial485Driver *s485dp) {
     /* Clear driver enable pad. */
     if (s485dp->config->ssport != NULL)
       palClearPad(s485dp->config->ssport, s485dp->config->sspad);
-    chSysLockFromISR();
+    osalSysLockFromISR();
     if (chOQIsEmptyI(&s485dp->oqueue))
         chnAddFlagsI(s485dp, CHN_TRANSMISSION_END);
     u->CR1 = (cr1 & ~USART_CR1_TCIE) | USART_CR1_RE;
     u->SR = ~USART_SR_TC;
-    chSysUnlockFromISR();
+    osalSysUnlockFromISR();
   }
 
   /* Transmission buffer empty.*/
   if ((cr1 & USART_CR1_TXEIE) && (sr & USART_SR_TXE)) {
     msg_t b;
-    chSysLockFromISR();
+    osalSysLockFromISR();
     b = chOQGetI(&s485dp->oqueue);
     if (b < Q_OK) {
       chnAddFlagsI(s485dp, CHN_OUTPUT_EMPTY);
@@ -211,7 +211,7 @@ static void serve_interrupt(Serial485Driver *s485dp) {
         palSetPad(s485dp->config->ssport, s485dp->config->sspad);
       u->DR = b;
     }
-    chSysUnlockFromISR();
+    osalSysUnlockFromISR();
   }
 }
 
@@ -276,13 +276,13 @@ static void notify6(io_queue_t *qp) {
  *
  * @isr
  */
-CH_IRQ_HANDLER(STM32_USART1_HANDLER) {
+OSAL_IRQ_HANDLER(STM32_USART1_HANDLER) {
 
-  CH_IRQ_PROLOGUE();
+  OSAL_IRQ_PROLOGUE();
 
   serve_interrupt(&S485D1);
 
-  CH_IRQ_EPILOGUE();
+  OSAL_IRQ_EPILOGUE();
 }
 #endif
 
@@ -295,13 +295,13 @@ CH_IRQ_HANDLER(STM32_USART1_HANDLER) {
  *
  * @isr
  */
-CH_IRQ_HANDLER(STM32_USART2_HANDLER) {
+OSAL_IRQ_HANDLER(STM32_USART2_HANDLER) {
 
-  CH_IRQ_PROLOGUE();
+  OSAL_IRQ_PROLOGUE();
 
   serve_interrupt(&S485D2);
 
-  CH_IRQ_EPILOGUE();
+  OSAL_IRQ_EPILOGUE();
 }
 #endif
 
@@ -314,13 +314,13 @@ CH_IRQ_HANDLER(STM32_USART2_HANDLER) {
  *
  * @isr
  */
-CH_IRQ_HANDLER(STM32_USART3_HANDLER) {
+OSAL_IRQ_HANDLER(STM32_USART3_HANDLER) {
 
-  CH_IRQ_PROLOGUE();
+  OSAL_IRQ_PROLOGUE();
 
   serve_interrupt(&S485D3);
 
-  CH_IRQ_EPILOGUE();
+  OSAL_IRQ_EPILOGUE();
 }
 #endif
 
@@ -333,13 +333,13 @@ CH_IRQ_HANDLER(STM32_USART3_HANDLER) {
  *
  * @isr
  */
-CH_IRQ_HANDLER(STM32_UART4_HANDLER) {
+OSAL_IRQ_HANDLER(STM32_UART4_HANDLER) {
 
-  CH_IRQ_PROLOGUE();
+  OSAL_IRQ_PROLOGUE();
 
   serve_interrupt(&S485D4);
 
-  CH_IRQ_EPILOGUE();
+  OSAL_IRQ_EPILOGUE();
 }
 #endif
 
@@ -352,13 +352,13 @@ CH_IRQ_HANDLER(STM32_UART4_HANDLER) {
  *
  * @isr
  */
-CH_IRQ_HANDLER(STM32_UART5_HANDLER) {
+OSAL_IRQ_HANDLER(STM32_UART5_HANDLER) {
 
-  CH_IRQ_PROLOGUE();
+  OSAL_IRQ_PROLOGUE();
 
   serve_interrupt(&S485D5);
 
-  CH_IRQ_EPILOGUE();
+  OSAL_IRQ_EPILOGUE();
 }
 #endif
 
@@ -371,13 +371,13 @@ CH_IRQ_HANDLER(STM32_UART5_HANDLER) {
  *
  * @isr
  */
-CH_IRQ_HANDLER(STM32_USART6_HANDLER) {
+OSAL_IRQ_HANDLER(STM32_USART6_HANDLER) {
 
-  CH_IRQ_PROLOGUE();
+  OSAL_IRQ_PROLOGUE();
 
   serve_interrupt(&S485D6);
 
-  CH_IRQ_EPILOGUE();
+  OSAL_IRQ_EPILOGUE();
 }
 #endif
 

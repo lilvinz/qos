@@ -78,11 +78,7 @@ void gdsimObjectInit(GDSimDriver* gdsimp)
     gdsimp->state = GD_STOP;
     gdsimp->config = NULL;
 #if GD_SIM_USE_MUTUAL_EXCLUSION
-#if CH_CFG_USE_MUTEXES
-    chMtxObjectInit(&gdsimp->mutex);
-#else
-    chSemObjectInit(&gdsimp->semaphore, 1);
-#endif
+    osalMutexObjectInit(&gdsimp->mutex);
 #endif /* GD_SIM_USE_MUTUAL_EXCLUSION */
 }
 
@@ -96,9 +92,9 @@ void gdsimObjectInit(GDSimDriver* gdsimp)
  */
 void gdsimStart(GDSimDriver* gdsimp, const GDSimConfig* config)
 {
-    chDbgCheck((gdsimp != NULL) && (config != NULL));
+    osalDbgCheck((gdsimp != NULL) && (config != NULL));
     /* Verify device status. */
-    chDbgAssert((gdsimp->state == GD_STOP) || (gdsimp->state == GD_READY),
+    osalDbgAssert((gdsimp->state == GD_STOP) || (gdsimp->state == GD_READY),
             "invalid state");
 
     if (gdsimp->state == GD_READY)
@@ -106,10 +102,10 @@ void gdsimStart(GDSimDriver* gdsimp, const GDSimConfig* config)
 
     gdsimp->config = config;
 
-    chSysLock();
+    osalSysLock();
     gdsim_lld_start(gdsimp);
     gdsimp->state = GD_READY;
-    chSysUnlock();
+    osalSysUnlock();
 }
 
 /**
@@ -121,15 +117,15 @@ void gdsimStart(GDSimDriver* gdsimp, const GDSimConfig* config)
  */
 void gdsimStop(GDSimDriver* gdsimp)
 {
-    chDbgCheck(gdsimp != NULL);
+    osalDbgCheck(gdsimp != NULL);
     /* Verify device status. */
-    chDbgAssert((gdsimp->state == GD_STOP) || (gdsimp->state == GD_READY),
+    osalDbgAssert((gdsimp->state == GD_STOP) || (gdsimp->state == GD_READY),
             "invalid state");
 
-    chSysLock();
+    osalSysLock();
     gdsim_lld_stop(gdsimp);
     gdsimp->state = GD_STOP;
-    chSysUnlock();
+    osalSysUnlock();
 }
 
 /**
@@ -142,9 +138,9 @@ void gdsimStop(GDSimDriver* gdsimp)
  */
 void gdsimPixelSet(GDSimDriver* gdsimp, coord_t x, coord_t y, color_t color)
 {
-    chDbgCheck(gdsimp != NULL);
+    osalDbgCheck(gdsimp != NULL);
     /* Verify device status. */
-    chDbgAssert(gdsimp->state >= GD_READY, "invalid state");
+    osalDbgAssert(gdsimp->state >= GD_READY, "invalid state");
 
     gdsim_lld_pixel_set(gdsimp, x, y, color);
     gdsim_lld_flush(gdsimp, x, y, 1, 1);
@@ -164,9 +160,9 @@ void gdsimPixelSet(GDSimDriver* gdsimp, coord_t x, coord_t y, color_t color)
 void gdsimStreamStart(GDSimDriver* gdsimp, coord_t left, coord_t top,
         coord_t width, coord_t height)
 {
-    chDbgCheck(gdsimp != NULL);
+    osalDbgCheck(gdsimp != NULL);
     /* Verify device status. */
-    chDbgAssert(gdsimp->state >= GD_READY, "invalid state");
+    osalDbgAssert(gdsimp->state >= GD_READY, "invalid state");
 
     gdsimp->state = GD_ACTIVE;
 
@@ -188,9 +184,9 @@ void gdsimStreamStart(GDSimDriver* gdsimp, coord_t left, coord_t top,
  */
 void gdsimStreamWrite(GDSimDriver* gdsimp, const color_t data[], size_t n)
 {
-    chDbgCheck(gdsimp != NULL);
+    osalDbgCheck(gdsimp != NULL);
     /* Verify device status. */
-    chDbgAssert(gdsimp->state >= GD_ACTIVE, "invalid state");
+    osalDbgAssert(gdsimp->state >= GD_ACTIVE, "invalid state");
 
     for (size_t i = 0; i < n; ++i)
     {
@@ -212,9 +208,9 @@ void gdsimStreamWrite(GDSimDriver* gdsimp, const color_t data[], size_t n)
  */
 void gdsimStreamEnd(GDSimDriver* gdsimp)
 {
-    chDbgCheck(gdsimp != NULL);
+    osalDbgCheck(gdsimp != NULL);
     /* Verify device status. */
-    chDbgAssert(gdsimp->state >= GD_ACTIVE, "invalid state");
+    osalDbgAssert(gdsimp->state >= GD_ACTIVE, "invalid state");
 
     gdsim_lld_flush(gdsimp, gdsimp->stream_left, gdsimp->stream_top,
             gdsimp->stream_width, gdsimp->stream_height);
@@ -237,9 +233,9 @@ void gdsimStreamEnd(GDSimDriver* gdsimp)
 void gdsimRectFill(GDSimDriver* gdsimp, coord_t left, coord_t top,
         coord_t width, coord_t height, color_t color)
 {
-    chDbgCheck(gdsimp != NULL);
+    osalDbgCheck(gdsimp != NULL);
     /* Verify device status. */
-    chDbgAssert(gdsimp->state >= GD_READY, "invalid state");
+    osalDbgAssert(gdsimp->state >= GD_READY, "invalid state");
 
     gdsim_lld_rect_fill(gdsimp, left, top, width, height, color);
     gdsim_lld_flush(gdsimp, left, top, width, height);
@@ -259,13 +255,13 @@ void gdsimRectFill(GDSimDriver* gdsimp, coord_t left, coord_t top,
  */
 bool gdsimGetInfo(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
 {
-    chDbgCheck(gdsimp != NULL);
+    osalDbgCheck(gdsimp != NULL);
     /* Verify device status. */
-    chDbgAssert(gdsimp->state >= GD_READY, "invalid state");
+    osalDbgAssert(gdsimp->state >= GD_READY, "invalid state");
 
-    chSysLock();
+    osalSysLock();
     gdsim_lld_get_info(gdsimp, gddip);
-    chSysUnlock();
+    osalSysUnlock();
 
     return HAL_SUCCESS;
 }
@@ -284,14 +280,10 @@ bool gdsimGetInfo(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
  */
 void gdsimAcquireBus(GDSimDriver* gdsimp)
 {
-    chDbgCheck(gdsimp != NULL);
+    osalDbgCheck(gdsimp != NULL);
 
 #if GD_SIM_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
-    chMtxLock(&gdsimp->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemWait(&gdsimp->semaphore);
-#endif
+    osalMutexLock(&gdsimp->mutex);
 #endif /* GD_SIM_USE_MUTUAL_EXCLUSION */
 }
 
@@ -306,15 +298,10 @@ void gdsimAcquireBus(GDSimDriver* gdsimp)
  */
 void gdsimReleaseBus(GDSimDriver* gdsimp)
 {
-    chDbgCheck(gdsimp != NULL);
+    osalDbgCheck(gdsimp != NULL);
 
 #if GD_SIM_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES
-    (void)gdsimp;
-    chMtxUnlock(&gdsimp->mutex);
-#elif CH_CFG_USE_SEMAPHORES
-    chSemSignal(&gdsimp->semaphore);
-#endif
+    osalMutexUnlock(&gdsimp->mutex);
 #endif /* GD_SIM_USE_MUTUAL_EXCLUSION */
 }
 

@@ -155,32 +155,32 @@
 #endif
 
 #if STM32_SERIAL_485_USE_USART1 &&                                              \
-    !CH_IRQ_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_485_USART1_PRIORITY)
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_SERIAL_485_USART1_PRIORITY)
 #error "Invalid IRQ priority assigned to USART1"
 #endif
 
 #if STM32_SERIAL_485_USE_USART2 &&                                              \
-    !CH_IRQ_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_485_USART2_PRIORITY)
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_SERIAL_485_USART2_PRIORITY)
 #error "Invalid IRQ priority assigned to USART2"
 #endif
 
 #if STM32_SERIAL_485_USE_USART3 &&                                              \
-    !CH_IRQ_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_485_USART3_PRIORITY)
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_SERIAL_485_USART3_PRIORITY)
 #error "Invalid IRQ priority assigned to USART3"
 #endif
 
 #if STM32_SERIAL_485_USE_UART4 &&                                               \
-    !CH_IRQ_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_485_UART4_PRIORITY)
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_SERIAL_485_UART4_PRIORITY)
 #error "Invalid IRQ priority assigned to UART4"
 #endif
 
 #if STM32_SERIAL_485_USE_UART5 &&                                               \
-    !CH_IRQ_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_485_UART5_PRIORITY)
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_SERIAL_485_UART5_PRIORITY)
 #error "Invalid IRQ priority assigned to UART5"
 #endif
 
 #if STM32_SERIAL_485_USE_USART6 &&                                              \
-    !CH_IRQ_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_485_USART6_PRIORITY)
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_SERIAL_485_USART6_PRIORITY)
 #error "Invalid IRQ priority assigned to USART6"
 #endif
 

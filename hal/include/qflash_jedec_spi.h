@@ -52,11 +52,6 @@
 #error "FLASH_JEDEC_SPI driver requires HAL_USE_SPI and SPI_USE_WAIT"
 #endif
 
-#if FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION && !CH_CFG_USE_MUTEXES && !CH_CFG_USE_SEMAPHORES
-#error "FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION requires CH_CFG_USE_MUTEXES "
-       "and/or CH_CFG_USE_SEMAPHORES"
-#endif
-
 /*===========================================================================*/
 /* Driver data structures and types.                                         */
 /*===========================================================================*/
@@ -149,14 +144,10 @@ typedef struct
     */
     const FlashJedecSPIConfig* config;
 #if FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
-#if CH_CFG_USE_MUTEXES || defined(__DOXYGEN__)
     /**
      * @brief mutex_t protecting the device.
      */
     mutex_t mutex;
-#elif CH_CFG_USE_SEMAPHORES
-    semaphore_t semaphore;
-#endif
 #endif /* FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION */
 } FlashJedecSPIDriver;
 

@@ -544,13 +544,13 @@ static void serve_flash_irq(FLASHDriver* flashp)
  *
  * @isr
  */
-CH_IRQ_HANDLER(STM32_FLASH_HANDLER)
+OSAL_IRQ_HANDLER(STM32_FLASH_HANDLER)
 {
-    CH_IRQ_PROLOGUE();
+    OSAL_IRQ_PROLOGUE();
 
     serve_flash_irq(&FLASHD);
 
-    CH_IRQ_EPILOGUE();
+    OSAL_IRQ_EPILOGUE();
 }
 
 /*===========================================================================*/
@@ -815,9 +815,9 @@ void flash_lld_sync(FLASHDriver* flashp)
     {
 #if FLASH_NICE_WAITING
         /* Trying to be nice with the other threads. */
-        chSysUnlock();
-        chThdSleep(1);
-        chSysLock();
+        osalSysUnlock();
+        osalThreadSleep(1);
+        osalSysLock();
 #endif
     }
 }
