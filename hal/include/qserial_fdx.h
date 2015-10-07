@@ -97,7 +97,7 @@
  * @brief   Dedicated data pump thread stack size.
  */
 #if !defined(SERIAL_FDX_THREAD_STACK_SIZE) || defined(__DOXYGEN__)
-#define SERIAL_FDX_THREAD_STACK_SIZE 128
+#define SERIAL_FDX_THREAD_STACK_SIZE 256
 #endif
 
 /**
