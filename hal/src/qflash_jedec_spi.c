@@ -884,10 +884,6 @@ bool_t fjsMassWriteProtect(FlashJedecSPIDriver* fjsp)
     if (fjsp->config->bpbits_num == 0)
         return CH_SUCCESS;
 
-    /* Check if chip supports write protection. */
-    if (fjsp->config->bpbits_num == 0)
-        return CH_SUCCESS;
-
     /* set BP3 ... BP0 */
     flash_jedec_spi_sr_write(fjsp, 0x07 << 2);
 
