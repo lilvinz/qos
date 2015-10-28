@@ -40,9 +40,7 @@
 #define FLASH_JEDEC_RDID 0x9f
 #define FLASH_JEDEC_RDSR 0x05
 #define FLASH_JEDEC_WRSR 0x01
-#define FLASH_JEDEC_READ 0x03
 #define FLASH_JEDEC_FAST_READ 0x0b
-#define FLASH_JEDEC_PP 0x02
 #define FLASH_JEDEC_MASS_ERASE 0xc7
 
 /*===========================================================================*/
@@ -879,10 +877,6 @@ bool_t fjsMassWriteProtect(FlashJedecSPIDriver* fjsp)
     /* Verify device status. */
     chDbgAssert(fjsp->state >= NVM_READY, "fjsMassWriteProtect(), #1",
             "invalid state");
-
-    /* Check if chip supports write protection. */
-    if (fjsp->config->bpbits_num == 0)
-        return CH_SUCCESS;
 
     /* Check if chip supports write protection. */
     if (fjsp->config->bpbits_num == 0)
