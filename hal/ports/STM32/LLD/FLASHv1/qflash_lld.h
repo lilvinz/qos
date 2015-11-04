@@ -48,15 +48,15 @@
  */
 enum
 {
-    OB_USER_no_WDG_HW = FLASH_OBR_WDG_SW >> 2,
+    OB_USER_no_WDG_HW = 0x01,
     OB_USER_WDG_HW = 0,
-    OB_USER_no_RST_STOP = FLASH_OBR_nRST_STOP >> 2,
+    OB_USER_no_RST_STOP = 0x02,
     OB_USER_RST_STOP = 0,
-    OB_USER_no_RST_STDBY = FLASH_OBR_nRST_STDBY >> 2,
+    OB_USER_no_RST_STDBY = 0x04,
     OB_USER_RST_STDBY = 0,
 #if defined(STM32F10X_XL)
     OB_USER_no_BFB2 = 0,
-    OB_USER_BFB2 = FLASH_OBR_BFB2 >> 2,
+    OB_USER_BFB2 = 0x08,
 #endif
 };
 /** @} */
@@ -70,13 +70,28 @@ enum
 /*===========================================================================*/
 
 /* Check for supported devices. */
-#if defined(STM32F10X_LD) ||                     \
-        defined(STM32F10X_LD_VL) ||             \
-        defined(STM32F10X_MD) ||                \
-        defined(STM32F10X_MD_VL) ||             \
-        defined(STM32F10X_HD) ||                \
-        defined(STM32F10X_HD_VL) ||             \
-        defined(STM32F10X_CL)
+#if defined(STM32F10X_LD) ||                \
+        defined(STM32F10X_LD_VL) ||         \
+        defined(STM32F10X_MD) ||            \
+        defined(STM32F10X_MD_VL) ||         \
+        defined(STM32F10X_HD) ||            \
+        defined(STM32F10X_HD_VL) ||         \
+        defined(STM32F10X_CL) ||            \
+        defined(STM32F030x6) ||             \
+        defined(STM32F030x8) ||             \
+        defined(STM32F030xC) ||             \
+        defined(STM32F031x6) ||             \
+        defined(STM32F038xx) ||             \
+        defined(STM32F042xx) ||             \
+        defined(STM32F048xx) ||             \
+        defined(STM32F051x8) ||             \
+        defined(STM32F070x6) ||             \
+        defined(STM32F070xB) ||             \
+        defined(STM32F071xB) ||             \
+        defined(STM32F072xB) ||             \
+        defined(STM32F078xx) ||             \
+        defined(STM32F091xC) ||             \
+        defined(STM32F098xx)
 #else
 #error "device unsupported by FLASHv1 driver"
 #endif
@@ -121,6 +136,22 @@ typedef enum
         defined(STM32F10X_XL) ||            \
         defined(STM32F10X_CL)
     OB_RDP_LEVEL_0 = 0xa5,
+#elif defined(STM32F030x6) ||               \
+        defined(STM32F030x8) ||             \
+        defined(STM32F030xC) ||             \
+        defined(STM32F031x6) ||             \
+        defined(STM32F038xx) ||             \
+        defined(STM32F042xx) ||             \
+        defined(STM32F048xx) ||             \
+        defined(STM32F051x8) ||             \
+        defined(STM32F070x6) ||             \
+        defined(STM32F070xB) ||             \
+        defined(STM32F071xB) ||             \
+        defined(STM32F072xB) ||             \
+        defined(STM32F078xx) ||             \
+        defined(STM32F091xC) ||             \
+        defined(STM32F098xx)
+    OB_RDP_LEVEL_0 = 0xaa,
 #endif
     OB_RDP_LEVEL_1 = 0x00,
 } ob_rdp_level_e;
