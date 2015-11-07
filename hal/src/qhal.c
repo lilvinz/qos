@@ -98,6 +98,9 @@ void qhalInit(void)
 #if HAL_USE_MS58XX || defined(__DOXYGEN__)
     ms58xxInit();
 #endif
+#if HAL_USE_BQ276XX || defined(__DOXYGEN__)
+    bq276xxInit();
+#endif
 }
 
 /** @} */
