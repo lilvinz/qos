@@ -280,6 +280,36 @@ static void flash_jedec_spi_sector_erase(FlashJedecSPIDriver* fjsp,
     spiUnselect(fjsp->config->spip);
 }
 
+static void flash_jedec_spi_block_erase(FlashJedecSPIDriver* fjsp,
+        uint32_t startaddr)
+{
+    chDbgCheck(fjsp != NULL, "flash_jedec_spi_block_erase");
+
+    flash_jedec_spi_wait_busy(fjsp);
+
+    flash_jedec_spi_write_enable(fjsp);
+
+    spiSelect(fjsp->config->spip);
+
+    const uint8_t out[] =
+    {
+        fjsp->config->cmd_block_erase, /* Erase command is chip specific. */
+        (startaddr >> 24) & 0xff,
+        (startaddr >> 16) & 0xff,
+        (startaddr >> 8) & 0xff,
+        (startaddr >> 0) & 0xff,
+    };
+
+    /* command byte */
+    spiSend(fjsp->config->spip, 1, &out[0]);
+
+    /* address bytes */
+    spiSend(fjsp->config->spip, fjsp->config->addrbytes_num,
+            &out[NELEMS(out) - fjsp->config->addrbytes_num]);
+
+    spiUnselect(fjsp->config->spip);
+}
+
 static void flash_jedec_spi_page_program_ff(FlashJedecSPIDriver* fjsp,
         uint32_t startaddr)
 {
@@ -606,18 +636,23 @@ bool_t fjsErase(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n)
     /* Erase operation in progress. */
     fjsp->state = NVM_ERASING;
 
-    uint32_t first_sector_addr =
-            startaddr - (startaddr % fjsp->config->sector_size);
+    uint32_t addr = startaddr - (startaddr % fjsp->config->sector_size);
 
-    for (uint32_t addr = first_sector_addr;
-            addr < startaddr + n;
-            addr += fjsp->config->sector_size)
+    while (addr < startaddr + n)
     {
-        /* Check if device supports erase command. */
-        if (fjsp->config->cmd_sector_erase != 0x00)
+        if (   (fjsp->config->cmd_block_erase != 0x00)
+            && (addr % fjsp->config->block_size == 0)
+            && (addr + fjsp->config->block_size <= startaddr + n))
+        {
+            /* Execute erase block command. */
+            flash_jedec_spi_block_erase(fjsp, addr);
+            addr += fjsp->config->block_size;
+        }
+        else if (fjsp->config->cmd_sector_erase != 0x00)
         {
             /* Execute erase sector command. */
             flash_jedec_spi_sector_erase(fjsp, addr);
+            addr += fjsp->config->sector_size;
         }
         else
         {
@@ -628,6 +663,7 @@ bool_t fjsErase(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n)
             {
                 flash_jedec_spi_page_program_ff(fjsp, i);
             }
+            addr += fjsp->config->sector_size;
         }
     }
 
