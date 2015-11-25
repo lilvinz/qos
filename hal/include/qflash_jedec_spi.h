@@ -101,6 +101,16 @@ typedef struct
      */
     uint8_t cmd_sector_erase;
     /**
+     * @brief Block size for specified block erase command in bytes.
+     * Set to 0x00 if block erase is not available.
+     */
+    uint32_t block_size;
+    /**
+     * @brief Block erase command for specified block size.
+     * Set to 0x00 if block erase is not available.
+     */
+    uint8_t cmd_block_erase;
+    /**
      * @brief Page program command.
      * Commands:
      * - 0x02 (BYTE program)
