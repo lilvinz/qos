@@ -1,5 +1,5 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,41 +15,48 @@
 */
 
 /**
- * @file    Posix/qhal_lld.c
- * @brief   Posix HAL subsystem low level driver code.
- *
- * @addtogroup POSIX_HAL
+ * @file    console.h
+ * @brief   Simulator console driver header.
  * @{
  */
 
-#include "qhal.h"
+#ifndef _CONSOLE_H_
+#define _CONSOLE_H_
 
 /*===========================================================================*/
-/* Driver exported variables.                                                */
-/*===========================================================================*/
-
-/*===========================================================================*/
-/* Driver local variables and types.                                         */
+/* Driver constants.                                                         */
 /*===========================================================================*/
 
 /*===========================================================================*/
-/* Driver local functions.                                                   */
+/* Driver pre-compile time settings.                                         */
 /*===========================================================================*/
 
 /*===========================================================================*/
-/* Driver interrupt handlers.                                                */
+/* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
 /*===========================================================================*/
-/* Driver exported functions.                                                */
+/* Driver data structures and types.                                         */
 /*===========================================================================*/
 
-/**
- * @brief Low level HAL driver initialization.
- */
-void qhal_lld_init(void) {
+/*===========================================================================*/
+/* Driver macros.                                                            */
+/*===========================================================================*/
 
+/*===========================================================================*/
+/* External declarations.                                                    */
+/*===========================================================================*/
 
+extern BaseChannel CD1;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  void conInit(void);
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* _CONSOLE_H_ */
 
 /** @} */

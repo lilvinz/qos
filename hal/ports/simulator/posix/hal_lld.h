@@ -1,5 +1,5 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,41 +15,49 @@
 */
 
 /**
- * @file    Posix/qhal_lld.c
- * @brief   Posix HAL subsystem low level driver code.
+ * @file    hal_lld.h
+ * @brief   POSIX simulator HAL subsystem low level driver header.
  *
  * @addtogroup POSIX_HAL
  * @{
  */
 
-#include "qhal.h"
+#ifndef _HAL_LLD_H_
+#define _HAL_LLD_H_
 
 /*===========================================================================*/
-/* Driver exported variables.                                                */
-/*===========================================================================*/
-
-/*===========================================================================*/
-/* Driver local variables and types.                                         */
-/*===========================================================================*/
-
-/*===========================================================================*/
-/* Driver local functions.                                                   */
-/*===========================================================================*/
-
-/*===========================================================================*/
-/* Driver interrupt handlers.                                                */
-/*===========================================================================*/
-
-/*===========================================================================*/
-/* Driver exported functions.                                                */
+/* Driver constants.                                                         */
 /*===========================================================================*/
 
 /**
- * @brief Low level HAL driver initialization.
+ * @brief   Platform name.
  */
-void qhal_lld_init(void) {
+#define PLATFORM_NAME   "Posix Simulator"
 
+/*===========================================================================*/
+/* Driver pre-compile time settings.                                         */
+/*===========================================================================*/
 
+/*===========================================================================*/
+/* Derived constants and error checks.                                       */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver data structures and types.                                         */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* External declarations.                                                    */
+/*===========================================================================*/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  void hal_lld_init(void);
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* _HAL_LLD_H_ */
 
 /** @} */

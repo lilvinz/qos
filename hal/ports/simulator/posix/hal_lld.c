@@ -1,5 +1,5 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
 */
 
 /**
- * @file    Posix/qhal_lld.c
- * @brief   Posix HAL subsystem low level driver code.
+ * @file    hal_lld.c
+ * @brief   POSIX simulator HAL subsystem low level driver code.
  *
  * @addtogroup POSIX_HAL
  * @{
  */
 
-#include "qhal.h"
+#include "hal.h"
 
 /*===========================================================================*/
 /* Driver exported variables.                                                */
@@ -31,7 +31,6 @@
 /*===========================================================================*/
 /* Driver local variables and types.                                         */
 /*===========================================================================*/
-
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
@@ -47,8 +46,7 @@
 /**
  * @brief Low level HAL driver initialization.
  */
-void qhal_lld_init(void) {
-
+void hal_lld_init(void) {
 
 }
 

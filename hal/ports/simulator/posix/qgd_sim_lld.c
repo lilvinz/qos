@@ -14,6 +14,7 @@
 #include <xcb/xcb_atom.h>
 
 #include <string.h>
+#include <stdlib.h>
 
 /*===========================================================================*/
 /* Driver local definitions.                                                 */
@@ -128,10 +129,10 @@ void gdsim_lld_object_init(GDSimDriver* gdsimp)
         void *wsp = gdsimp->wa_pump;
         _thread_memfill((uint8_t*)wsp,
                 (uint8_t*)wsp + sizeof(thread_t),
-                CH_THREAD_FILL_VALUE);
+                CH_DBG_STACK_FILL_VALUE);
         _thread_memfill((uint8_t*)wsp + sizeof(thread_t),
                 (uint8_t*)wsp + sizeof(gdsimp->wa_pump),
-                CH_STACK_FILL_VALUE);
+                CH_DBG_STACK_FILL_VALUE);
     }
 #endif
 #endif /* defined(_CHIBIOS_RT_) */
@@ -232,7 +233,7 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
         if (gdsimp->tr == NULL)
         {
             gdsimp->tr = chThdCreateI(gdsimp->wa_pump, sizeof(gdsimp->wa_pump),
-                    GD_SIM_THREAD_PRIO, gdsimp_lld_pump, gdsimp);
+                    GD_SIM_THREAD_PRIO, gdsim_lld_pump, gdsimp);
             chThdStartI(gdsimp->tr);
             chSchRescheduleS();
         }

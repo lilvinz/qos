@@ -77,7 +77,7 @@ void rtc_lld_init(void)
  *
  * @api
  */
-void rtc_lld_set_time(RTCDriver *rtcp, const RTCTime *timespec)
+void rtc_lld_set_time(RTCDriver *rtcp, const RTCDateTime *timespec)
 {
     (void)rtcp;
     (void)timespec;
@@ -91,12 +91,14 @@ void rtc_lld_set_time(RTCDriver *rtcp, const RTCTime *timespec)
  *
  * @api
  */
-void rtc_lld_get_time(RTCDriver *rtcp, RTCTime *timespec)
+void rtc_lld_get_time(RTCDriver *rtcp, RTCDateTime *timespec)
 {
     (void)rtcp;
     time_t timestamp;
     time(&timestamp);
-    gmtime_r(&timestamp, &timespec->tm);
+    struct tm tm;
+    gmtime_r(&timestamp, &tm);
+    rtcConvertStructTmToDateTime(&tm, 0, timespec);
 }
 
 /**
@@ -130,33 +132,6 @@ void rtc_lld_set_alarm(RTCDriver *rtcp,
 void rtc_lld_get_alarm(RTCDriver *rtcp, rtcalarm_t alarm,
         RTCAlarm *alarmspec)
 {
-}
-
-/**
- * @brief   Get current time in format suitable for usage in FatFS.
- *
- * @param[in] rtcp      pointer to RTC driver structure
- * @return              FAT time value.
- *
- * @api
- */
-uint32_t rtc_lld_get_time_fat(RTCDriver *rtcp)
-{
-  uint32_t fattime;
-  RTCTime timespec;
-
-  osalSysLock();
-  rtcGetTimeI(rtcp, &timespec);
-  osalSysUnlock();
-
-  fattime  = timespec.tm.tm_sec >> 1;
-  fattime |= timespec.tm.tm_min << 5;
-  fattime |= timespec.tm.tm_hour << 11;
-  fattime |= timespec.tm.tm_mday << 16;
-  fattime |= (timespec.tm.tm_mon + 1) << 21;
-  fattime |= (timespec.tm.tm_year % 100) << 25;
-
-  return fattime;
 }
 
 #endif /* HAL_USE_RTC */
