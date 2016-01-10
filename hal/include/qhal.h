@@ -26,7 +26,6 @@
 
 /* Layered drivers.*/
 #include "qflash.h"
-#include "qwdg.h"
 #include "qserial_485.h"
 #include "qgd_sim.h"
 #include "qrtc_lld.h"

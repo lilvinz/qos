@@ -1,12 +1,12 @@
 /**
- * @file    Posix/qwdg.c
+ * @file    Posix/wdg_lld.c
  * @brief   Posix low level WDG driver code.
  *
  * @addtogroup WDG
  * @{
  */
 
-#include "qhal.h"
+#include "hal.h"
 
 #if HAL_USE_WDG || defined(__DOXYGEN__)
 
@@ -21,7 +21,7 @@
 /**
  * @brief WDG driver identifier.
  */
-WDGDriver WDGD;
+WDGDriver WDGD1;
 
 /*===========================================================================*/
 /* Driver local variables and types.                                         */
@@ -46,7 +46,7 @@ WDGDriver WDGD;
  */
 void wdg_lld_init(void)
 {
-    wdgObjectInit(&WDGD);
+  WDGD1.state = WDG_STOP;
 }
 
 /**
@@ -60,7 +60,7 @@ void wdg_lld_start(WDGDriver* wdgp)
 {
     if (wdgp->state == WDG_STOP)
     {
-        if (wdgp == &WDGD)
+        if (wdgp == &WDGD1)
         {
             return;
         }
@@ -78,7 +78,7 @@ void wdg_lld_stop(WDGDriver* wdgp)
 {
     if (wdgp->state == WDG_READY)
     {
-        if (wdgp == &WDGD)
+        if (wdgp == &WDGD1)
         {
             return;
         }
@@ -92,7 +92,7 @@ void wdg_lld_stop(WDGDriver* wdgp)
  *
  * @notapi
  */
-void wdg_lld_reload(WDGDriver* wdgp)
+void wdg_lld_reset(WDGDriver* wdgp)
 {
 }
 

@@ -1,13 +1,13 @@
 /**
- * @file    qwdg.h
- * @brief   MCU internal watchdog driver header.
+ * @file    posix/wdg_lld.c
+ * @brief   Posix low level WDG driver header.
  *
  * @addtogroup WDG
  * @{
  */
 
-#ifndef _QWDG_H_
-#define _QWDG_H_
+#ifndef _WDG_LLD_H_
+#define _WDG_LLD_H_
 
 #if HAL_USE_WDG || defined(__DOXYGEN__)
 
@@ -28,16 +28,32 @@
 /*===========================================================================*/
 
 /**
- * @brief   Driver state machine possible states.
+ * @brief   Type of a structure representing an WDG driver.
  */
-typedef enum
-{
-    WDG_UNINIT = 0,                  /**< Not initialized.                   */
-    WDG_STOP = 1,                    /**< Stopped.                           */
-    WDG_READY = 2,                   /**< Ready.                             */
-} wdgstate_t;
+typedef struct WDGDriver WDGDriver;
 
-#include "qwdg_lld.h"
+/**
+ * @brief   Driver configuration structure.
+ * @note    It could be empty on some architectures.
+ */
+typedef struct
+{
+} WDGConfig;
+
+/**
+ * @brief   Structure representing an WDG driver.
+ */
+struct WDGDriver
+{
+    /**
+     * @brief Driver state.
+     */
+    wdgstate_t state;
+    /**
+    * @brief Current configuration data.
+    */
+    const WDGConfig* config;
+};
 
 /*===========================================================================*/
 /* Driver macros.                                                            */
@@ -47,20 +63,21 @@ typedef enum
 /* External declarations.                                                    */
 /*===========================================================================*/
 
+extern WDGDriver WDGD1;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-    void wdgInit(void);
-    void wdgObjectInit(WDGDriver* wdgp);
-    void wdgStart(WDGDriver* wdgp, const WDGConfig* config);
-    void wdgStop(WDGDriver* wdgp);
-    void wdgReload(WDGDriver* wdgp);
+    void wdg_lld_init(void);
+    void wdg_lld_start(WDGDriver* wdgp);
+    void wdg_lld_stop(WDGDriver* wdgp);
+    void wdg_lld_reset(WDGDriver* wdgp);
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* HAL_USE_WDG */
 
-#endif /* _QWDG_H_ */
+#endif /* _WDG_LLD_H_ */
 
 /** @} */
