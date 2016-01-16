@@ -167,53 +167,49 @@ static void sfdxd_pump(void* parameters)
     msg_t receiveResult = 0;
     while (true)
     {
-        if (sfdxdp->state == SFDXD_READY)
+        /* Nothing to do, going to sleep.*/
+        osalSysLock();
+        if (sfdxdp->state == SFDXD_STOP)
+            chThdSuspendS(&sfdxdp->wait);
+        osalSysUnlock();
+
+        if (sfdxdp->configp->type == SFDXD_MASTER)
         {
-            if (sfdxdp->configp->type == SFDXD_MASTER)
-            {
-                sfdxd_send(sfdxdp);
-                receiveResult = sfdxd_receive(sfdxdp,
-                        OSAL_MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
-            }
-            else
-            {
-                receiveResult = sfdxd_receive(sfdxdp,
-                        OSAL_MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
-                if (receiveResult >= 0)
-                    sfdxd_send(sfdxdp);
-            }
-
-            /* Send connect or disconnect event. */
-            if ((receiveResult >= 0) && (sfdxdp->connected == FALSE) &&
-                    (sfdxdp->state == SFDXD_READY))
-            {
-                osalSysLock();
-
-                chSymQResetI(&sfdxdp->oqueue);
-                chSymQResetI(&sfdxdp->iqueue);
-                sfdxdp->connected = TRUE;
-                chnAddFlagsI(sfdxdp, CHN_CONNECTED);
-
-                osalSysUnlock();
-            }
-            else if ((receiveResult == Q_TIMEOUT) &&
-                    (sfdxdp->connected == TRUE))
-            {
-                osalSysLock();
-
-                sfdxdp->connected = FALSE;
-                chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
-                chSymQResetI(&sfdxdp->oqueue);
-                chSymQResetI(&sfdxdp->iqueue);
-
-                osalSysUnlock();
-            }
+            sfdxd_send(sfdxdp);
+            receiveResult = sfdxd_receive(sfdxdp,
+                    OSAL_MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
         }
         else
         {
-            /* Nothing to do. Going to sleep. */
+            receiveResult = sfdxd_receive(sfdxdp,
+                    OSAL_MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
+            if (receiveResult >= 0)
+                sfdxd_send(sfdxdp);
+        }
+
+        /* Send connect or disconnect event. */
+        if ((receiveResult >= 0) && (sfdxdp->connected == FALSE) &&
+                (sfdxdp->state == SFDXD_READY))
+        {
             osalSysLock();
-            chThdSuspendS(&sfdxdp->wait);
+
+            chSymQResetI(&sfdxdp->oqueue);
+            chSymQResetI(&sfdxdp->iqueue);
+            sfdxdp->connected = TRUE;
+            chnAddFlagsI(sfdxdp, CHN_CONNECTED);
+
+            osalSysUnlock();
+        }
+        else if ((receiveResult == Q_TIMEOUT) &&
+                (sfdxdp->connected == TRUE))
+        {
+            osalSysLock();
+
+            sfdxdp->connected = FALSE;
+            chnAddFlagsI(sfdxdp, CHN_DISCONNECTED);
+            chSymQResetI(&sfdxdp->oqueue);
+            chSymQResetI(&sfdxdp->iqueue);
+
             osalSysUnlock();
         }
     }
