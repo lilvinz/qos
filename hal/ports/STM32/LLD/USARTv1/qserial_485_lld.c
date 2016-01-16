@@ -1,3 +1,19 @@
+/*
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
 /**
  * @file    STM32/USARTv1/qserial_485_lld.c
  * @brief   STM32 low level serial 485 driver code.
@@ -48,6 +64,16 @@ Serial485Driver S485D5;
 Serial485Driver S485D6;
 #endif
 
+/** @brief UART7 serial driver identifier.*/
+#if STM32_SERIAL_485_USE_UART7 || defined(__DOXYGEN__)
+Serial485Driver S485D7;
+#endif
+
+/** @brief UART8 serial driver identifier.*/
+#if STM32_SERIAL_485_USE_UART8 || defined(__DOXYGEN__)
+Serial485Driver S485D8;
+#endif
+
 /*===========================================================================*/
 /* Driver local variables and types.                                         */
 /*===========================================================================*/
@@ -55,12 +81,12 @@ Serial485Driver S485D6;
 /** @brief Driver default configuration.*/
 static const Serial485Config default_config =
 {
-  SERIAL_DEFAULT_BITRATE,
-  0,
-  USART_CR2_STOP1_BITS | USART_CR2_LINEN,
-  0,
-  0,
-  0,
+  .speed = SERIAL_DEFAULT_BITRATE,
+  .cr1 = 0,
+  .cr2 = USART_CR2_STOP1_BITS | USART_CR2_LINEN,
+  .cr3 = 0,
+  .ssport = 0,
+  .sspad = 0,
 };
 
 /*===========================================================================*/
@@ -145,32 +171,34 @@ static void serve_interrupt(Serial485Driver *s485dp) {
   if (sr & USART_SR_LBD) {
     osalSysLockFromISR();
     chnAddFlagsI(s485dp, S485D_BREAK_DETECTED);
-    osalSysUnlockFromISR();
     u->SR = ~USART_SR_LBD;
+    osalSysUnlockFromISR();
   }
 
   /* Data available.*/
   osalSysLockFromISR();
   while (sr & (USART_SR_RXNE | USART_SR_ORE | USART_SR_NE | USART_SR_FE |
                USART_SR_PE)) {
+    uint16_t b;
+
     /* Error condition detection.*/
     if (sr & (USART_SR_ORE | USART_SR_NE | USART_SR_FE | USART_SR_PE))
       set_error(s485dp, sr);
-    uint16_t c = u->DR;
+    b = u->DR;
     if (sr & USART_SR_RXNE) {
       /* Mask parity bit according to configuration. */
       switch (u->CR1 & (USART_CR1_PCE | USART_CR1_M))
       {
       case USART_CR1_PCE:
-          c &= 0x7f;
+          b &= 0x7f;
           break;
       case USART_CR1_PCE | USART_CR1_M:
-          c &= 0xff;
+          b &= 0xff;
           break;
       default:
           break;
       }
-      s485dIncomingDataI(s485dp, c);
+      s485dIncomingDataI(s485dp, b);
     }
     sr = u->SR;
   }
@@ -185,8 +213,8 @@ static void serve_interrupt(Serial485Driver *s485dp) {
     if (s485dp->config->ssport != NULL)
       palClearPad(s485dp->config->ssport, s485dp->config->sspad);
     osalSysLockFromISR();
-    if (chOQIsEmptyI(&s485dp->oqueue))
-        chnAddFlagsI(s485dp, CHN_TRANSMISSION_END);
+    if (oqIsEmptyI(&sdp->oqueue))
+      chnAddFlagsI(sdp, CHN_TRANSMISSION_END);
     u->CR1 = (cr1 & ~USART_CR1_TCIE) | USART_CR1_RE;
     u->SR = ~USART_SR_TC;
     osalSysUnlockFromISR();
@@ -196,7 +224,7 @@ static void serve_interrupt(Serial485Driver *s485dp) {
   if ((cr1 & USART_CR1_TXEIE) && (sr & USART_SR_TXE)) {
     msg_t b;
     osalSysLockFromISR();
-    b = chOQGetI(&s485dp->oqueue);
+    b = oqGetI(&sdp->oqueue);
     if (b < Q_OK) {
       chnAddFlagsI(s485dp, CHN_OUTPUT_EMPTY);
       u->CR1 = (cr1 & ~USART_CR1_TXEIE) | USART_CR1_TCIE;
@@ -260,6 +288,22 @@ static void notify6(io_queue_t *qp) {
 
   (void)qp;
   USART6->CR1 |= USART_CR1_TXEIE;
+}
+#endif
+
+#if STM32_SERIAL_485_USE_UART7 || defined(__DOXYGEN__)
+static void notify7(io_queue_t *qp) {
+
+  (void)qp;
+  UART7->CR1 |= USART_CR1_TXEIE;
+}
+#endif
+
+#if STM32_SERIAL_485_USE_UART8 || defined(__DOXYGEN__)
+static void notify8(io_queue_t *qp) {
+
+  (void)qp;
+  UART8->CR1 |= USART_CR1_TXEIE;
 }
 #endif
 
@@ -367,7 +411,7 @@ OSAL_IRQ_HANDLER(STM32_UART5_HANDLER) {
 #error "STM32_USART6_HANDLER not defined"
 #endif
 /**
- * @brief   USART1 interrupt handler.
+ * @brief   USART6 interrupt handler.
  *
  * @isr
  */
@@ -376,6 +420,44 @@ OSAL_IRQ_HANDLER(STM32_USART6_HANDLER) {
   OSAL_IRQ_PROLOGUE();
 
   serve_interrupt(&S485D6);
+
+  OSAL_IRQ_EPILOGUE();
+}
+#endif
+
+#if STM32_SERIAL_485_USE_UART7 || defined(__DOXYGEN__)
+#if !defined(STM32_UART7_HANDLER)
+#error "STM32_UART7_HANDLER not defined"
+#endif
+/**
+ * @brief   UART7 interrupt handler.
+ *
+ * @isr
+ */
+OSAL_IRQ_HANDLER(STM32_UART7_HANDLER) {
+
+  OSAL_IRQ_PROLOGUE();
+
+  serve_interrupt(&S485D7);
+
+  OSAL_IRQ_EPILOGUE();
+}
+#endif
+
+#if STM32_SERIAL_485_USE_UART8 || defined(__DOXYGEN__)
+#if !defined(STM32_UART8_HANDLER)
+#error "STM32_UART8_HANDLER not defined"
+#endif
+/**
+ * @brief   UART8 interrupt handler.
+ *
+ * @isr
+ */
+OSAL_IRQ_HANDLER(STM32_UART8_HANDLER) {
+
+  OSAL_IRQ_PROLOGUE();
+
+  serve_interrupt(&S485D8);
 
   OSAL_IRQ_EPILOGUE();
 }
@@ -420,6 +502,16 @@ void s485d_lld_init(void) {
 #if STM32_SERIAL_485_USE_USART6
   s485dObjectInit(&S485D6, NULL, notify6);
   S485D6.usart = USART6;
+#endif
+
+#if STM32_SERIAL_485_USE_UART7
+  s485dObjectInit(&S485D7, NULL, notify7);
+  S485D7.usart = UART7;
+#endif
+
+#if STM32_SERIAL_485_USE_UART8
+  s485dObjectInit(&S485D8, NULL, notify8);
+  S485D8.usart = UART8;
 #endif
 }
 
@@ -473,6 +565,18 @@ void s485d_lld_start(Serial485Driver *s485dp, const Serial485Config *config) {
     if (&S485D6 == s485dp) {
       rccEnableUSART6(FALSE);
       nvicEnableVector(STM32_USART6_NUMBER, STM32_SERIAL_485_USART6_PRIORITY);
+    }
+#endif
+#if STM32_SERIAL_485_USE_UART7
+    if (&S485D7 == s485dp) {
+      rccEnableUART7(FALSE);
+      nvicEnableVector(STM32_UART7_NUMBER, STM32_SERIAL_485_UART7_PRIORITY);
+    }
+#endif
+#if STM32_SERIAL_485_USE_UART8
+    if (&S485D8 == s485dp) {
+      rccEnableUART8(FALSE);
+      nvicEnableVector(STM32_UART8_NUMBER, STM32_SERIAL_485_UART8_PRIORITY);
     }
 #endif
     /* Clear driver enable pad. */
@@ -534,6 +638,20 @@ void s485d_lld_stop(Serial485Driver *s485dp) {
     if (&S485D6 == s485dp) {
       rccDisableUSART6(FALSE);
       nvicDisableVector(STM32_USART6_NUMBER);
+      return;
+    }
+#endif
+#if STM32_SERIAL_485_USE_UART7
+    if (&S485D7 == s485dp) {
+      rccDisableUART7(FALSE);
+      nvicDisableVector(STM32_UART7_NUMBER);
+      return;
+    }
+#endif
+#if STM32_SERIAL_485_USE_UART8
+    if (&S485D8 == s485dp) {
+      rccDisableUART8(FALSE);
+      nvicDisableVector(STM32_UART8_NUMBER);
       return;
     }
 #endif

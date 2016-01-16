@@ -1,3 +1,19 @@
+/*
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
 /**
  * @file    STM32/USARTv1/qserial_485_lld.h
  * @brief   STM32 low level serial driver header.
@@ -26,7 +42,7 @@
 /**
  * @brief   USART1 driver enable switch.
  * @details If set to @p TRUE the support for USART1 is included.
- * @note    The default is @p TRUE.
+ * @note    The default is @p FALSE.
  */
 #if !defined(STM32_SERIAL_485_USE_USART1) || defined(__DOXYGEN__)
 #define STM32_SERIAL_485_USE_USART1         FALSE
@@ -35,7 +51,7 @@
 /**
  * @brief   USART2 driver enable switch.
  * @details If set to @p TRUE the support for USART2 is included.
- * @note    The default is @p TRUE.
+ * @note    The default is @p FALSE.
  */
 #if !defined(STM32_SERIAL_485_USE_USART2) || defined(__DOXYGEN__)
 #define STM32_SERIAL_485_USE_USART2         FALSE
@@ -44,7 +60,7 @@
 /**
  * @brief   USART3 driver enable switch.
  * @details If set to @p TRUE the support for USART3 is included.
- * @note    The default is @p TRUE.
+ * @note    The default is @p FALSE.
  */
 #if !defined(STM32_SERIAL_485_USE_USART3) || defined(__DOXYGEN__)
 #define STM32_SERIAL_485_USE_USART3         FALSE
@@ -53,7 +69,7 @@
 /**
  * @brief   UART4 driver enable switch.
  * @details If set to @p TRUE the support for UART4 is included.
- * @note    The default is @p TRUE.
+ * @note    The default is @p FALSE.
  */
 #if !defined(STM32_SERIAL_485_USE_UART4) || defined(__DOXYGEN__)
 #define STM32_SERIAL_485_USE_UART4          FALSE
@@ -62,7 +78,7 @@
 /**
  * @brief   UART5 driver enable switch.
  * @details If set to @p TRUE the support for UART5 is included.
- * @note    The default is @p TRUE.
+ * @note    The default is @p FALSE.
  */
 #if !defined(STM32_SERIAL_485_USE_UART5) || defined(__DOXYGEN__)
 #define STM32_SERIAL_485_USE_UART5          FALSE
@@ -71,10 +87,28 @@
 /**
  * @brief   USART6 driver enable switch.
  * @details If set to @p TRUE the support for USART6 is included.
- * @note    The default is @p TRUE.
+ * @note    The default is @p FALSE.
  */
 #if !defined(STM32_SERIAL_485_USE_USART6) || defined(__DOXYGEN__)
 #define STM32_SERIAL_485_USE_USART6         FALSE
+#endif
+
+/**
+ * @brief   UART7 driver enable switch.
+ * @details If set to @p TRUE the support for UART7 is included.
+ * @note    The default is @p FALSE.
+ */
+#if !defined(STM32_SERIAL_485_USE_UART7) || defined(__DOXYGEN__)
+#define STM32_SERIAL_485_USE_UART7          FALSE
+#endif
+
+/**
+ * @brief   UART8 driver enable switch.
+ * @details If set to @p TRUE the support for UART8 is included.
+ * @note    The default is @p FALSE.
+ */
+#if !defined(STM32_SERIAL_485_USE_UART8) || defined(__DOXYGEN__)
+#define STM32_SERIAL_USE_485_UART8          FALSE
 #endif
 
 /**
@@ -118,6 +152,20 @@
 #if !defined(STM32_SERIAL_485_USART6_PRIORITY) || defined(__DOXYGEN__)
 #define STM32_SERIAL_485_USART6_PRIORITY    12
 #endif
+
+/**
+ * @brief   UART7 interrupt priority level setting.
+ */
+#if !defined(STM32_SERIAL_485_UART7_PRIORITY) || defined(__DOXYGEN__)
+#define STM32_SERIAL_485_UART7_PRIORITY     12
+#endif
+
+/**
+ * @brief   UART8 interrupt priority level setting.
+ */
+#if !defined(STM32_SERIAL_UART8_PRIORITY) || defined(__DOXYGEN__)
+#define STM32_SERIAL_485_UART8_PRIORITY     12
+#endif
 /** @} */
 
 /*===========================================================================*/
@@ -146,6 +194,14 @@
 
 #if STM32_SERIAL_485_USE_USART6 && !STM32_HAS_USART6
 #error "USART6 not present in the selected device"
+#endif
+
+#if STM32_SERIAL_485_USE_UART7 && !STM32_HAS_UART7
+#error "UART7 not present in the selected device"
+#endif
+
+#if STM32_SERIAL_485_USE_UART8 && !STM32_HAS_UART8
+#error "UART8 not present in the selected device"
 #endif
 
 #if !STM32_SERIAL_485_USE_USART1 && !STM32_SERIAL_485_USE_USART2 &&                 \
@@ -182,6 +238,16 @@
 #if STM32_SERIAL_485_USE_USART6 &&                                              \
     !OSAL_IRQ_IS_VALID_PRIORITY(STM32_SERIAL_485_USART6_PRIORITY)
 #error "Invalid IRQ priority assigned to USART6"
+#endif
+
+#if STM32_SERIAL_485_USE_UART7 &&                                               \
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_SERIAL_485_UART7_PRIORITY)
+#error "Invalid IRQ priority assigned to UART7"
+#endif
+
+#if STM32_SERIAL_485_USE_UART8 &&                                               \
+    !OSAL_IRQ_IS_VALID_PRIORITY(STM32_SERIAL_485_UART8_PRIORITY)
+#error "Invalid IRQ priority assigned to UART8"
 #endif
 
 /*===========================================================================*/
@@ -277,6 +343,11 @@ extern Serial485Driver S485D5;
 #if STM32_SERIAL_485_USE_USART6 && !defined(__DOXYGEN__)
 extern Serial485Driver S485D6;
 #endif
+#if STM32_SERIAL_485_USE_UART7 && !defined(__DOXYGEN__)
+extern Serial485Driver S485D7;
+#endif
+#if STM32_SERIAL_485_USE_UART8 && !defined(__DOXYGEN__)
+extern Serial485Driver S485D8;
 
 #ifdef __cplusplus
 extern "C" {
