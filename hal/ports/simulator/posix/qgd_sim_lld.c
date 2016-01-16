@@ -64,13 +64,13 @@ static void gdsim_lld_pump(void* p)
 
     while (true)
     {
-        xcb_generic_event_t* e;
-
-        /* Nothing to do. Going to sleep. */
+        /* Nothing to do, going to sleep.*/
         osalSysLock();
-        chThdSuspendS(&gdsimp->wait);
+        if (gdsimp->state == GD_STOP)
+            chThdSuspendS(&gdsimp->wait);
         osalSysUnlock();
 
+        xcb_generic_event_t* e;
         while ((e = xcb_poll_for_event(gdsimp->xcb_connection)) != NULL)
         {
             switch (e->response_type)
