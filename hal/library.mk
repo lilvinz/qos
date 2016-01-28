@@ -25,7 +25,7 @@ EXTRAINCDIRS += $(KERNINC)
 EXTRAINCDIRS += $(OSALINC)
 EXTRAINCDIRS += $(STARTUPINC)
 
-include $(CHIBIOS_DIR)/os/hal/hal.mk
+include $(CHIBIOS_DIR)/community/os/hal/hal.mk
 
 CHIBIOS_VARIOUS_DIR := $(CHIBIOS_DIR)/os/various
 CSRC += $(wildcard $(CHIBIOS_VARIOUS_DIR)/*.c)
