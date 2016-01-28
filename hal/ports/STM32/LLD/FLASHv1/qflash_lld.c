@@ -17,6 +17,8 @@
  *          - replace sync polling by synchronization with isr
  *          - add support for USER1 and USER2 option bytes
  *          - add support for XL density devices
+ *          - switch f1 devices to new chip defines
+ *          - add support for second option byte
  */
 
 /*===========================================================================*/
@@ -33,7 +35,22 @@
         defined(STM32F10X_HD) ||            \
         defined(STM32F10X_HD_VL) ||         \
         defined(STM32F10X_XL) ||            \
-        defined(STM32F10X_CL)
+        defined(STM32F10X_CL) ||            \
+        defined(STM32F030x6) ||             \
+        defined(STM32F030x8) ||             \
+        defined(STM32F030xC) ||             \
+        defined(STM32F031x6) ||             \
+        defined(STM32F038xx) ||             \
+        defined(STM32F042xx) ||             \
+        defined(STM32F048xx) ||             \
+        defined(STM32F051x8) ||             \
+        defined(STM32F070x6) ||             \
+        defined(STM32F070xB) ||             \
+        defined(STM32F071xB) ||             \
+        defined(STM32F072xB) ||             \
+        defined(STM32F078xx) ||             \
+        defined(STM32F091xC) ||             \
+        defined(STM32F098xx)
 #define FLASH_SIZE_REGISTER_ADDRESS ((uint32_t)0x1ffff7e0)
 #endif
 
@@ -43,12 +60,28 @@
 #if defined(STM32F10X_LD) ||                \
         defined(STM32F10X_LD_VL) ||         \
         defined(STM32F10X_MD) ||            \
-        defined(STM32F10X_MD_VL)
+        defined(STM32F10X_MD_VL) ||         \
+        defined(STM32F10X_CL) ||            \
+        defined(STM32F030x6) ||             \
+        defined(STM32F030x8) ||             \
+        defined(STM32F030xC) ||             \
+        defined(STM32F031x6) ||             \
+        defined(STM32F038xx) ||             \
+        defined(STM32F042xx) ||             \
+        defined(STM32F048xx) ||             \
+        defined(STM32F051x8)
 #define FLASH_SECTOR_SIZE 1024
 #elif defined(STM32F10X_HD) ||              \
         defined(STM32F10X_HD_VL) ||         \
         defined(STM32F10X_XL) ||            \
-        defined(STM32F10X_CL)
+        defined(STM32F10X_CL) ||            \
+        defined(STM32F070x6) ||             \
+        defined(STM32F070xB) ||             \
+        defined(STM32F071xB) ||             \
+        defined(STM32F072xB) ||             \
+        defined(STM32F078xx) ||             \
+        defined(STM32F091xC) ||             \
+        defined(STM32F098xx)
 #define FLASH_SECTOR_SIZE 2048
 #endif
 
@@ -417,18 +450,33 @@ bool flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo)
         sinfo->sector = addr / FLASH_SECTOR_SIZE;
         sinfo->origin = sinfo->sector * FLASH_SECTOR_SIZE;
         sinfo->size = FLASH_SECTOR_SIZE;
-#if defined(STM32F10X_LD) ||                \
-        defined(STM32F10X_LD_VL) ||         \
-        defined(STM32F10X_MD) ||             \
-        defined(STM32F10X_MD_VL)
-        sinfo->wrp_bit = sinfo->sector / 4;
-#elif defined(STM32F10X_HD) ||              \
-        defined(STM32F10X_HD_VL) ||         \
-        defined(STM32F10X_XL) ||            \
-        defined(STM32F10X_CL)
         if (sinfo->sector >= 62)
             sinfo->wrp_bit = 31;
         else
+#if defined(STM32F10X_LD) ||                \
+        defined(STM32F10X_LD_VL) ||         \
+        defined(STM32F10X_MD) ||            \
+        defined(STM32F10X_MD_VL) ||         \
+        defined(STM32F030x6) ||             \
+        defined(STM32F030x8) ||             \
+        defined(STM32F030xC) ||             \
+        defined(STM32F031x6) ||             \
+        defined(STM32F038xx) ||             \
+        defined(STM32F042xx) ||             \
+        defined(STM32F048xx) ||             \
+        defined(STM32F051x8)
+            sinfo->wrp_bit = sinfo->sector / 4;
+#elif defined(STM32F10X_HD) ||              \
+        defined(STM32F10X_HD_VL) ||         \
+        defined(STM32F10X_XL) ||            \
+        defined(STM32F10X_CL) ||            \
+        defined(STM32F070x6) ||             \
+        defined(STM32F070xB) ||             \
+        defined(STM32F071xB) ||             \
+        defined(STM32F072xB) ||             \
+        defined(STM32F078xx) ||             \
+        defined(STM32F091xC) ||             \
+        defined(STM32F098xx)
             sinfo->wrp_bit = sinfo->sector / 2;
 #endif
     }
