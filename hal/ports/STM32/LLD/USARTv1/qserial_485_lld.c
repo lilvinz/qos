@@ -81,7 +81,7 @@ Serial485Driver S485D8;
 /** @brief Driver default configuration.*/
 static const Serial485Config default_config =
 {
-  .speed = SERIAL_DEFAULT_BITRATE,
+  .speed = SERIAL_485_DEFAULT_BITRATE,
   .cr1 = 0,
   .cr2 = USART_CR2_STOP1_BITS | USART_CR2_LINEN,
   .cr3 = 0,
