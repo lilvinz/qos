@@ -39,11 +39,22 @@
 #define NVM_FEE_SLOT_PAYLOAD_SIZE       8
 #endif
 
+/**
+ * @brief   Sets the smallest writable unit of the underlying flash device.
+ */
+#if !defined(NVM_FEE_WRITE_UNIT_SIZE) || defined(__DOXYGEN__)
+#define NVM_FEE_WRITE_UNIT_SIZE         2
+#endif
+
 /** @} */
 
 /*===========================================================================*/
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
+
+#if (4 + NVM_FEE_SLOT_PAYLOAD_SIZE) % NVM_FEE_WRITE_UNIT_SIZE
+#error "payload size + 4 must be a multiple of write unit size."
+#endif
 
 /*===========================================================================*/
 /* Driver data structures and types.                                         */

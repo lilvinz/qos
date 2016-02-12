@@ -20,8 +20,8 @@
  *          Data consistency is guaranteed as long as there is no
  *          hardware defect. The device can be written up to 100% of its
  *          reported size. Garbage collection is performed automatically when
- *          necessary. The number of write is minimized by comparing to be
- *          written data with current content prio to executing write to the
+ *          necessary. The number of writes is minimized by comparing to be
+ *          written data with current content prior to executing writes to the
  *          underlying device.
  *
  *          The memory partitioning is:
@@ -40,7 +40,10 @@
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
 
-static const uint32_t nvm_fee_magic = 0x86618c51 + NVM_FEE_SLOT_PAYLOAD_SIZE;
+static const uint32_t nvm_fee_magic =
+        0x86618c51UL +
+        (((NVM_FEE_WRITE_UNIT_SIZE - 2) & 0xff) << 8) +
+        ((NVM_FEE_SLOT_PAYLOAD_SIZE & 0xff) << 0);
 
 /*===========================================================================*/
 /* Driver exported variables.                                                */
@@ -99,26 +102,33 @@ enum slot_state
  *          any nvm device including devices with the following
  *          limitations:
  *          - Writes are not allowed to cells which contain low bits.
- *          - Smallest write operation is 16bits
+ *          - Already written to cells can only be written again to full zero.
+ *          - Smallest write operation is 8 / 16 / 32 / 64bits
  *
  *          Also note that the chosen patterns requires little endian byte order.
  */
-static const uint32_t nvm_fee_state_mark_table[] =
-{
-    0xffffffff,
-    0xffff0000,
-    0x00000000,
-};
-STATIC_ASSERT(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__);
+#if NVM_FEE_WRITE_UNIT_SIZE == 1
+typedef uint8_t write_unit_t;
+#elif NVM_FEE_WRITE_UNIT_SIZE == 2
+typedef uint16_t write_unit_t;
+#elif NVM_FEE_WRITE_UNIT_SIZE == 4
+typedef uint32_t write_unit_t;
+#elif NVM_FEE_WRITE_UNIT_SIZE == 8
+typedef uint64_t write_unit_t;
+#else
+#error "Unsupported state mark size."
+#endif
 
 /**
  * @brief   Header structure at the beginning of each arena.
  */
 struct __attribute__((__packed__)) arena_header
 {
+    /* Ensure backwards compatibility. */
     uint32_t magic;
-    uint32_t state_mark;
-    uint32_t unused[6];
+    write_unit_t state_mark[2];
+    /* Pad to 32 bytes. */
+    uint8_t unused[32 - sizeof(uint32_t) - 2 * sizeof(write_unit_t)];
 };
 
 /**
@@ -126,7 +136,7 @@ struct __attribute__((__packed__)) arena_header
  */
 struct __attribute__((__packed__)) slot
 {
-    uint32_t state_mark;
+    write_unit_t state_mark[2];
     uint32_t address;
     uint8_t payload[NVM_FEE_SLOT_PAYLOAD_SIZE];
 };
@@ -134,18 +144,16 @@ struct __attribute__((__packed__)) slot
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
-static uint32_t nvm_fee_slot_state_2_mark(enum slot_state state)
+static enum slot_state nvm_fee_mark_2_slot_state(const write_unit_t markp[])
 {
-    return nvm_fee_state_mark_table[state];
-}
-
-static enum slot_state nvm_fee_mark_2_slot_state(uint32_t mark)
-{
-    if (mark == nvm_fee_state_mark_table[SLOT_STATE_UNUSED])
+    if (markp[0] == (write_unit_t)0xffffffffffffffffULL &&
+            markp[1] == (write_unit_t)0xffffffffffffffffULL)
         return SLOT_STATE_UNUSED;
-    else if (mark == nvm_fee_state_mark_table[SLOT_STATE_DIRTY])
+    else if (markp[0] == (write_unit_t)0x0000000000000000ULL &&
+            markp[1] == (write_unit_t)0xffffffffffffffffULL)
         return SLOT_STATE_DIRTY;
-    else if (mark == nvm_fee_state_mark_table[SLOT_STATE_VALID])
+    else if (markp[0] == (write_unit_t)0x0000000000000000ULL &&
+            markp[1] == (write_unit_t)0x0000000000000000ULL)
         return SLOT_STATE_VALID;
 
     return SLOT_STATE_UNKNOWN;
@@ -154,7 +162,7 @@ static enum slot_state nvm_fee_mark_2_slot_state(uint32_t mark)
 static bool nvm_fee_slot_read(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t slot, struct slot* slotp)
 {
-    osalDbgCheck((nvmfeep != NULL));
+    osalDbgCheck(nvmfeep != NULL);
 
     const uint32_t addr = arena *
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size +
@@ -171,19 +179,25 @@ static bool nvm_fee_slot_read(NVMFeeDriver* nvmfeep, uint32_t arena,
 static bool nvm_fee_slot_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t slot, enum slot_state state)
 {
-    osalDbgCheck((nvmfeep != NULL));
+    osalDbgCheck(nvmfeep != NULL);
+    osalDbgCheck(state == SLOT_STATE_DIRTY || state == SLOT_STATE_VALID);
 
     const uint32_t addr = arena *
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size +
             sizeof(struct arena_header) + slot * sizeof(struct slot);
 
-    const struct slot temp_slot =
-    {
-        .state_mark = nvm_fee_slot_state_2_mark(state),
-    };
+    static const write_unit_t zero_mark;
 
-    bool result = nvmWrite(nvmfeep->config->nvmp, addr,
-            sizeof(temp_slot.state_mark), (uint8_t*)&temp_slot.state_mark);
+    bool result = false;
+    if (state == SLOT_STATE_DIRTY)
+        result= nvmWrite(nvmfeep->config->nvmp,
+                addr + offsetof(struct slot, state_mark[0]),
+                sizeof(zero_mark), (uint8_t*)&zero_mark);
+    else if (state == SLOT_STATE_VALID)
+        result= nvmWrite(nvmfeep->config->nvmp,
+                addr + offsetof(struct slot, state_mark[1]),
+                sizeof(zero_mark), (uint8_t*)&zero_mark);
+
     if (result != HAL_SUCCESS)
         return result;
 
@@ -254,21 +268,9 @@ static bool nvm_fee_slot_lookup(NVMFeeDriver* nvmfeep, uint32_t arena,
     return HAL_SUCCESS;
 }
 
-static uint32_t nvm_fee_arena_state_2_mark(enum arena_state state)
+static enum slot_state nvm_fee_mark_2_arena_state(const write_unit_t markp[])
 {
-    return nvm_fee_state_mark_table[state];
-}
-
-static enum arena_state nvm_fee_mark_2_arena_state(uint32_t mark)
-{
-    if (mark == nvm_fee_state_mark_table[ARENA_STATE_UNUSED])
-        return ARENA_STATE_UNUSED;
-    else if (mark == nvm_fee_state_mark_table[ARENA_STATE_ACTIVE])
-        return ARENA_STATE_ACTIVE;
-    else if (mark == nvm_fee_state_mark_table[ARENA_STATE_FROZEN])
-        return ARENA_STATE_FROZEN;
-
-    return ARENA_STATE_UNKNOWN;
+    return (enum arena_state)nvm_fee_mark_2_slot_state(markp);
 }
 
 static enum arena_state nvm_fee_arena_state_get(NVMFeeDriver* nvmfeep,
@@ -296,18 +298,23 @@ static bool nvm_fee_arena_state_update(NVMFeeDriver* nvmfeep, uint32_t arena,
         enum arena_state state)
 {
     osalDbgCheck((nvmfeep != NULL));
+    osalDbgCheck(state == ARENA_STATE_ACTIVE || state == ARENA_STATE_FROZEN);
 
     const uint32_t addr = arena *
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size;
 
-    const struct arena_header header =
-    {
-        .state_mark = nvm_fee_arena_state_2_mark(state),
-    };
+    static const write_unit_t zero_mark;
 
-    bool result = nvmWrite(nvmfeep->config->nvmp,
-            addr + offsetof(struct arena_header, state_mark),
-            sizeof(header.state_mark), (uint8_t*)&header.state_mark);
+    bool result = false;
+    if (state == ARENA_STATE_ACTIVE)
+        result = nvmWrite(nvmfeep->config->nvmp,
+                    addr + offsetof(struct arena_header, state_mark[0]),
+                    sizeof(zero_mark), (uint8_t*)&zero_mark);
+    else if (state == ARENA_STATE_FROZEN)
+        result = nvmWrite(nvmfeep->config->nvmp,
+                    addr + offsetof(struct arena_header, state_mark[1]),
+                    sizeof(zero_mark), (uint8_t*)&zero_mark);
+
     if (result != HAL_SUCCESS)
         return result;
 
@@ -363,7 +370,8 @@ static bool nvm_fee_arena_erase(NVMFeeDriver* nvmfeep, uint32_t arena)
     const struct arena_header header =
     {
         .magic = nvm_fee_magic,
-        .state_mark = nvm_fee_arena_state_2_mark(ARENA_STATE_UNUSED),
+        .state_mark[0] = (write_unit_t)0xffffffffffffffffULL,
+        .state_mark[1] = (write_unit_t)0xffffffffffffffffULL,
     };
 
     result = nvmWrite(nvmfeep->config->nvmp, addr,
@@ -563,8 +571,9 @@ static bool nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
         else
         {
-            /* No existing slot so initialize a pristine one. */
-            temp_slot.state_mark = nvm_fee_slot_state_2_mark(SLOT_STATE_VALID);
+            /* No existing slot so initialize a pristine one with state valid. */
+            temp_slot.state_mark[0] = (write_unit_t)0x0000000000000000ULL;
+            temp_slot.state_mark[1] = (write_unit_t)0x0000000000000000ULL;
             temp_slot.address = first_slot_addr;
             memset(temp_slot.payload, 0xff, sizeof(temp_slot.payload));
         }
@@ -623,8 +632,9 @@ static bool nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
         else
         {
-            /* No existing slot so initialize a pristine one. */
-            temp_slot.state_mark = nvm_fee_slot_state_2_mark(SLOT_STATE_VALID);
+            /* No existing slot so initialize a pristine one with state valid. */
+            temp_slot.state_mark[0] = (write_unit_t)0x0000000000000000ULL;
+            temp_slot.state_mark[1] = (write_unit_t)0x0000000000000000ULL;
             temp_slot.address = addr;
             memset(temp_slot.payload, 0xff, sizeof(temp_slot.payload));
         }
@@ -680,8 +690,9 @@ static bool nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
         else
         {
-            /* No existing slot so initialize a pristine one. */
-            temp_slot.state_mark = nvm_fee_slot_state_2_mark(SLOT_STATE_VALID);
+            /* No existing slot so initialize a pristine one with state valid. */
+            temp_slot.state_mark[0] = (write_unit_t)0x0000000000000000ULL;
+            temp_slot.state_mark[1] = (write_unit_t)0x0000000000000000ULL;
             temp_slot.address = addr;
             memset(temp_slot.payload, 0xff, sizeof(temp_slot.payload));
         }
@@ -754,8 +765,9 @@ static bool nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
         else
         {
-            /* No existing slot so initialize a pristine one. */
-            temp_slot.state_mark = nvm_fee_slot_state_2_mark(SLOT_STATE_VALID);
+            /* No existing slot so initialize a pristine one with state valid. */
+            temp_slot.state_mark[0] = (write_unit_t)0x0000000000000000ULL;
+            temp_slot.state_mark[1] = (write_unit_t)0x0000000000000000ULL;
             temp_slot.address = first_slot_addr;
             memset(temp_slot.payload, 0xff, sizeof(temp_slot.payload));
         }
@@ -814,8 +826,9 @@ static bool nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
         else
         {
-            /* No existing slot so initialize a pristine one. */
-            temp_slot.state_mark = nvm_fee_slot_state_2_mark(SLOT_STATE_VALID);
+            /* No existing slot so initialize a pristine one with state valid. */
+            temp_slot.state_mark[0] = (write_unit_t)0x0000000000000000ULL;
+            temp_slot.state_mark[1] = (write_unit_t)0x0000000000000000ULL;
             temp_slot.address = addr;
             memset(temp_slot.payload, 0xff, sizeof(temp_slot.payload));
         }
@@ -872,8 +885,9 @@ static bool nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
         else
         {
-            /* No existing slot so initialize a pristine one. */
-            temp_slot.state_mark = nvm_fee_slot_state_2_mark(SLOT_STATE_VALID);
+            /* No existing slot so initialize a pristine one with state valid. */
+            temp_slot.state_mark[0] = (write_unit_t)0x0000000000000000ULL;
+            temp_slot.state_mark[1] = (write_unit_t)0x0000000000000000ULL;
             temp_slot.address = addr;
             memset(temp_slot.payload, 0xff, sizeof(temp_slot.payload));
         }
