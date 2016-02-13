@@ -229,7 +229,7 @@ size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
                 this_timeout = timeout - chVTTimeElapsedSinceX(start);
             }
 
-            if (osalThreadEnqueueTimeoutS(&sqp->q_readers, timeout) != Q_OK)
+            if (osalThreadEnqueueTimeoutS(&sqp->q_readers, this_timeout) != Q_OK)
                 return r;
         }
 
@@ -432,7 +432,7 @@ size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
                 this_timeout = timeout - chVTTimeElapsedSinceX(start);
             }
 
-            if (osalThreadEnqueueTimeoutS(&sqp->q_writers, timeout) != Q_OK)
+            if (osalThreadEnqueueTimeoutS(&sqp->q_writers, this_timeout) != Q_OK)
                 return w;
         }
 
