@@ -52,7 +52,7 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
-#if (4 + NVM_FEE_SLOT_PAYLOAD_SIZE) % NVM_FEE_WRITE_UNIT_SIZE
+#if (NVM_FEE_SLOT_PAYLOAD_SIZE + 4) % NVM_FEE_WRITE_UNIT_SIZE
 #error "payload size + 4 must be a multiple of write unit size."
 #endif
 

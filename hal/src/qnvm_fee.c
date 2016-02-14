@@ -126,9 +126,16 @@ struct __attribute__((__packed__)) arena_header
 {
     /* Ensure backwards compatibility. */
     uint32_t magic;
+#if NVM_FEE_WRITE_UNIT_SIZE == 8
+    uint32_t magic2;
+#endif
     write_unit_t state_mark[2];
     /* Pad to 32 bytes. */
+#if NVM_FEE_WRITE_UNIT_SIZE == 8
+    uint8_t unused[32 - sizeof(uint32_t) - sizeof(uint32_t) - 2 * sizeof(write_unit_t)];
+#else
     uint8_t unused[32 - sizeof(uint32_t) - 2 * sizeof(write_unit_t)];
+#endif
 };
 
 /**
@@ -208,9 +215,6 @@ static bool nvm_fee_slot_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         uint32_t slot, const struct slot* slotp)
 {
     osalDbgCheck((nvmfeep != NULL));
-    /* Verify state of to be written slot. */
-    osalDbgAssert(nvm_fee_mark_2_slot_state(slotp->state_mark) ==
-            SLOT_STATE_VALID, "invalid state");
 
     const uint32_t addr = arena *
             nvmfeep->arena_num_sectors * nvmfeep->llnvmdi.sector_size +
@@ -225,8 +229,15 @@ static bool nvm_fee_slot_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         return result;
 
     /* Write new slot. */
-    result = nvmWrite(nvmfeep->config->nvmp, addr,
-            sizeof(*slotp), (uint8_t*)slotp);
+    result = nvmWrite(nvmfeep->config->nvmp, addr + offsetof(struct slot, address),
+            sizeof(*slotp) - offsetof(struct slot, address),
+            (uint8_t*)slotp + offsetof(struct slot, address));
+    if (result != HAL_SUCCESS)
+        return result;
+
+    /* Set slot to valid.*/
+    result = nvm_fee_slot_state_update(nvmfeep, arena,
+            slot, SLOT_STATE_VALID);
     if (result != HAL_SUCCESS)
         return result;
 
@@ -370,6 +381,9 @@ static bool nvm_fee_arena_erase(NVMFeeDriver* nvmfeep, uint32_t arena)
     const struct arena_header header =
     {
         .magic = nvm_fee_magic,
+#if NVM_FEE_WRITE_UNIT_SIZE == 8
+        .magic2 = nvm_fee_magic,
+#endif
         .state_mark[0] = (write_unit_t)0xffffffffffffffffULL,
         .state_mark[1] = (write_unit_t)0xffffffffffffffffULL,
     };
@@ -690,9 +704,7 @@ static bool nvm_fee_write(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
         else
         {
-            /* No existing slot so initialize a pristine one with state valid. */
-            temp_slot.state_mark[0] = (write_unit_t)0x0000000000000000ULL;
-            temp_slot.state_mark[1] = (write_unit_t)0x0000000000000000ULL;
+            /* No existing slot so initialize a pristine one. */
             temp_slot.address = addr;
             memset(temp_slot.payload, 0xff, sizeof(temp_slot.payload));
         }
@@ -765,9 +777,7 @@ static bool nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
         else
         {
-            /* No existing slot so initialize a pristine one with state valid. */
-            temp_slot.state_mark[0] = (write_unit_t)0x0000000000000000ULL;
-            temp_slot.state_mark[1] = (write_unit_t)0x0000000000000000ULL;
+            /* No existing slot so initialize a pristine one. */
             temp_slot.address = first_slot_addr;
             memset(temp_slot.payload, 0xff, sizeof(temp_slot.payload));
         }
@@ -826,9 +836,7 @@ static bool nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
         else
         {
-            /* No existing slot so initialize a pristine one with state valid. */
-            temp_slot.state_mark[0] = (write_unit_t)0x0000000000000000ULL;
-            temp_slot.state_mark[1] = (write_unit_t)0x0000000000000000ULL;
+            /* No existing slot so initialize a pristine one. */
             temp_slot.address = addr;
             memset(temp_slot.payload, 0xff, sizeof(temp_slot.payload));
         }
@@ -885,9 +893,7 @@ static bool nvm_fee_write_pattern(NVMFeeDriver* nvmfeep, uint32_t arena,
         }
         else
         {
-            /* No existing slot so initialize a pristine one with state valid. */
-            temp_slot.state_mark[0] = (write_unit_t)0x0000000000000000ULL;
-            temp_slot.state_mark[1] = (write_unit_t)0x0000000000000000ULL;
+            /* No existing slot so initialize a pristine one. */
             temp_slot.address = addr;
             memset(temp_slot.payload, 0xff, sizeof(temp_slot.payload));
         }
