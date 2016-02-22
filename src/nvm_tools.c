@@ -58,14 +58,14 @@ bool nvmcpy(BaseNVMDevice* dstp, BaseNVMDevice* srcp, uint32_t n)
     if (nvmGetInfo(dstp, &di) != HAL_SUCCESS)
         return false;
 
-    osalDbgAssert(di.write_alignment <= 4, "unsupported write_alignment");
+    osalDbgAssert(di.write_alignment <= 8, "unsupported write_alignment");
 
     if (di.write_alignment == 0)
         di.write_alignment = 1;
 
     for (uint32_t i = 0; i < n; i += di.write_alignment)
     {
-        uint8_t temp[4] = { 0xff, 0xff, 0xff, 0xff };
+        uint8_t temp[8] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
         uint8_t chunk_n = di.write_alignment;
         if (n - i < di.write_alignment)
@@ -101,9 +101,13 @@ bool nvmset(BaseNVMDevice* dstp, uint8_t pattern, uint32_t n)
     if (nvmGetInfo(dstp, &di) == HAL_SUCCESS)
         return false;
 
-    osalDbgAssert(di.write_alignment <= 4, "unsupported write_alignment");
+    osalDbgAssert(di.write_alignment <= 8, "unsupported write_alignment");
 
-    const uint8_t temp[4] = { pattern, pattern, pattern, pattern };
+    const uint8_t temp[8] =
+    {
+            pattern, pattern, pattern, pattern,
+            pattern, pattern, pattern, pattern
+    };
 
     for (uint32_t i = 0; i < n; i += di.write_alignment)
     {
