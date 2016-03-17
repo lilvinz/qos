@@ -89,7 +89,7 @@ void chThdSleepPeriod(systime_t *previous, systime_t period)
  *
  * @api
  */
-eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
+eventmask_t chEvtWaitAnyPeriod(eventmask_t events, systime_t *previous,
         systime_t period)
 {
     chDbgCheck(period != TIME_INFINITE && previous != NULL);
@@ -101,9 +101,9 @@ eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
     chSysLock();
 
     /* Check if event is already pending. */
-    if ((m = (ctp->p_epending & mask)) != 0)
+    if ((m = (ctp->epending & events)) != 0)
     {
-        ctp->p_epending &= ~m;
+        ctp->epending &= ~m;
         chSysUnlock();
         /* If we are woken because of an event, do not update previous time. */
         return m;
@@ -118,7 +118,7 @@ eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
 
     if (mustDelay)
     {
-        ctp->p_u.ewmask = mask;
+        ctp->u.ewmask = events;
         if (chSchGoSleepTimeoutS(CH_STATE_WTOREVT, future - now) < MSG_OK)
         {
             chSysUnlock();
@@ -126,8 +126,8 @@ eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
             *previous = future;
             return (eventmask_t)0;
         }
-        m = ctp->p_epending & mask;
-        ctp->p_epending &= ~m;
+        m = ctp->epending & events;
+        ctp->epending &= ~m;
 
         chSysUnlock();
         /* If we are woken because of an event, do not update previous time. */
