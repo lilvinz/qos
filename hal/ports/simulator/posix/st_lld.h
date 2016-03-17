@@ -27,6 +27,8 @@
 #ifndef _ST_LLD_H_
 #define _ST_LLD_H_
 
+#include <time.h>
+
 /*===========================================================================*/
 /* Driver constants.                                                         */
 /*===========================================================================*/
@@ -110,7 +112,10 @@ extern "C" {
  */
 static inline systime_t st_lld_get_counter(void) {
 
-  return (systime_t)0;
+  struct timespec ts;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+
+  return (systime_t)ts.tv_nsec;
 }
 
 /**

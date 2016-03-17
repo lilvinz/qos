@@ -143,6 +143,14 @@ SECTIONS
   .got            : { *(.got) *(.igot) }
   . = DATA_SEGMENT_RELRO_END (12, .);
   .got.plt        : { *(.got.plt)  *(.igot.plt) }
+  .stacks :
+  {
+    . = ALIGN(8);
+    __stacks_base__ = .;
+    __main_thread_stack_base__ = .;
+    . = ALIGN(8);
+    __stacks_end__ = .;
+  }
   .data           :
   {
     *(.data .data.* .gnu.linkonce.d.*)

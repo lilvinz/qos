@@ -39,6 +39,34 @@
 /*===========================================================================*/
 
 /**
+ * @name    Port Capabilities and Constants
+ * @{
+ */
+/**
+ * @brief   This port supports a realtime counter.
+ */
+#define PORT_SUPPORTS_RT                TRUE
+
+/**
+ * @brief   Natural alignment constant.
+ * @note    It is the minimum alignment for pointer-size variables.
+ */
+#define PORT_NATURAL_ALIGN              sizeof (void *)
+
+/**
+ * @brief   Stack alignment constant.
+ * @note    It is the alignement required for the stack pointer.
+ */
+#define PORT_STACK_ALIGN                sizeof (stkalign_t)
+
+/**
+ * @brief   Working Areas alignment constant.
+ * @note    It is the alignment to be enforced for thread working areas.
+ */
+#define PORT_WORKING_AREA_ALIGN         sizeof (stkalign_t)
+/** @} */
+
+/**
  * @name    Architecture and Compiler
  * @{
  */
@@ -53,19 +81,14 @@
 #define PORT_ARCHITECTURE_NAME          "SIMIA32 Architecture"
 
 /**
- * @brief   Compiler name and version.
+ * @brief   Name of the architecture variant (optional).
  */
-#if defined(__GNUC__) || defined(__DOXYGEN__)
-#define PORT_COMPILER_NAME              "GCC " __VERSION__
-
-#else
-#error "unsupported compiler"
-#endif
+#define PORT_CORE_VARIANT_NAME          "x86"
 
 /**
- * @brief   This port supports a realtime counter.
+ * @brief   Name of the compiler supported by this port.
  */
-#define PORT_SUPPORTS_RT                FALSE
+#define PORT_COMPILER_NAME              "GCC " __VERSION__
 
 /**
  * @brief   Port-specific information string.
@@ -116,10 +139,6 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
-#if CH_DBG_ENABLE_STACK_CHECK
-#error "option CH_DBG_ENABLE_STACK_CHECK not supported by this port"
-#endif
-
 #if !defined(_GNU_SOURCE)
 #error "this port requires you to add -D_GNU_SOURCE to your CFLAGS"
 #endif
@@ -127,10 +146,6 @@
 /*===========================================================================*/
 /* Module data structures and types.                                         */
 /*===========================================================================*/
-
-/* The following code is not processed when the file is included from an
-   asm module.*/
-#if !defined(_FROM_ASM_)
 
 /**
  * @brief   Type of stack and memory alignment enforcement.
@@ -162,11 +177,9 @@ struct port_intctx {
  * @details This structure usually contains just the saved stack pointer
  *          defined as a pointer to a @p port_intctx structure.
  */
-struct context {
+struct port_context {
   ucontext_t uc;
 };
-
-#endif /* !defined(_FROM_ASM_) */
 
 /*===========================================================================*/
 /* Module macros.                                                            */
@@ -177,15 +190,13 @@ struct context {
  * @details This code usually setup the context switching frame represented
  *          by an @p port_intctx structure.
  */
-#define PORT_SETUP_CONTEXT(tp, workspace, wsize, pf, arg) {             \
-  if (getcontext(&tp->p_ctx.uc) < 0)                                    \
-    chSysHalt("getcontext() failed");                                   \
-  tp->p_ctx.uc.uc_stack.ss_sp = workspace;                              \
-  tp->p_ctx.uc.uc_stack.ss_size = wsize;                                \
-  tp->p_ctx.uc.uc_stack.ss_flags = 0;                                   \
-  tp->p_ctx.uc.uc_mcontext.gregs[REG_ECX] = (uint32_t)pf;               \
-  tp->p_ctx.uc.uc_mcontext.gregs[REG_EDX] = (uint32_t)arg;              \
-  makecontext(&tp->p_ctx.uc, (void(*)(void))_port_thread_start, 0);     \
+#define PORT_SETUP_CONTEXT(tp, wbase, wtop, pf, arg) {                      \
+  if (getcontext(&tp->ctx.uc) < 0)                                          \
+    chSysHalt("getcontext() failed");                                       \
+  tp->ctx.uc.uc_stack.ss_sp = wbase;                                        \
+  tp->ctx.uc.uc_stack.ss_size = (uint8_t*)wtop - (uint8_t*)wbase;           \
+  tp->ctx.uc.uc_stack.ss_flags = 0;                                         \
+  makecontext(&tp->ctx.uc, (void(*)(void))_port_thread_start, 2, pf, arg);  \
 }
 
 /**
@@ -197,14 +208,15 @@ struct context {
                          ((size_t)(n)) + ((size_t)(PORT_INT_REQUIRED_STACK)))
 
 /**
- * @brief   Priority level verification macro.
+ * @brief   Static working area allocation.
+ * @details This macro is used to allocate a static thread working area
+ *          aligned as both position and size.
+ *
+ * @param[in] s         the name to be assigned to the stack array
+ * @param[in] n         the stack size to be assigned to the thread
  */
-#define PORT_IRQ_IS_VALID_PRIORITY(n) false
-
-/**
- * @brief   Priority level verification macro.
- */
-#define PORT_IRQ_IS_VALID_KERNEL_PRIORITY(n) false
+#define PORT_WORKING_AREA(s, n)                                             \
+  stkalign_t s[THD_WORKING_AREA_SIZE(n) / sizeof (stkalign_t)]
 
 /**
  * @brief   IRQ prologue code.
@@ -224,7 +236,6 @@ struct context {
   port_isr_context_flag = false;                                            \
   return chSchIsPreemptionRequired();                                       \
 }
-
 
 /**
  * @brief   IRQ handler function declaration.
@@ -254,8 +265,8 @@ struct context {
 #define port_switch(ntp, otp) _port_switch(ntp, otp)
 #else
 #define port_switch(ntp, otp) {                                             \
-  register struct port_intctx *sp asm ("%r1");                              \
-  if ((stkalign_t *)(sp - 1) < otp->p_stklimit)                             \
+  register struct port_intctx *sp asm ("%esp");                             \
+  if ((stkalign_t *)(sp - 1) < otp->stklimit)                               \
     chSysHalt("stack overflow");                                            \
   _port_switch(ntp, otp);                                                   \
 }
@@ -279,7 +290,8 @@ extern "C" {
   void chSysHalt(const char *reason);
   /* Imports from chcore.c */
   void _port_switch(thread_t *ntp, thread_t *otp);
-  void _port_thread_start(void);
+  void _port_thread_start(void (*pf)(void*), void* arg);
+  rtcnt_t port_rt_get_counter_value(void);
 #ifdef __cplusplus
 }
 #endif
@@ -446,16 +458,6 @@ static inline void port_enable(void) {
  */
 static inline void port_wait_for_interrupt(void) {
 
-}
-
-/**
- * @brief   Returns the current value of the realtime counter.
- *
- * @return              The realtime counter value.
- */
-static inline rtcnt_t port_rt_get_counter_value(void) {
-
-  return 0;
 }
 
 /*===========================================================================*/

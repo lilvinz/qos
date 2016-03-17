@@ -28,6 +28,8 @@
 #include "ch.h"
 #include "osal.h"
 
+#include <time.h>
+
 /*===========================================================================*/
 /* Module local definitions.                                                 */
 /*===========================================================================*/
@@ -53,7 +55,7 @@ syssts_t port_irq_sts;
 
 static void _setcontext(void *arg) {
   thread_t *ntp = (thread_t*)arg;
-  if (setcontext(&ntp->p_ctx.uc) < 0)
+  if (setcontext(&ntp->ctx.uc) < 0)
     chSysHalt("setcontext() failed");
 }
 
@@ -72,6 +74,7 @@ static void _setcontext(void *arg) {
  * @param[in] otp       the thread to be switched out
  */
 void _port_switch(thread_t *ntp, thread_t *otp) {
+
   /* Create temporary context to perform swap. */
   static uint8_t tempstack[PORT_INT_REQUIRED_STACK];
   ucontext_t tempctx;
@@ -83,7 +86,7 @@ void _port_switch(thread_t *ntp, thread_t *otp) {
   makecontext(&tempctx, (void(*)(void))_setcontext, 1, ntp);
 
   /* Save running thread, jump to temporary context. */
-  if (swapcontext(&otp->p_ctx.uc, &tempctx) < 0)
+  if (swapcontext(&otp->ctx.uc, &tempctx) < 0)
     chSysHalt("swapcontext() failed");
 }
 
@@ -92,16 +95,24 @@ void _port_switch(thread_t *ntp, thread_t *otp) {
  * @details If the work function returns @p chThdExit() is automatically
  *          invoked.
  */
-void _port_thread_start(void) {
-  asm volatile ("push %ecx                                      \n\t"
-                "push %edx");
+void _port_thread_start(void (*pf)(void*), void* arg) {
   osalSysUnlock();
-  asm volatile ("pop %edx                                       \n\t"
-                "pop %ecx                                       \n\t"
-                "push %edx                                      \n\t"
-                "call *%ecx                                     \n\t"
-                "push %eax                                      \n\t"
-                "call chThdExit");
+  pf(arg);
+  chThdExit(0);
+  while (1);
+}
+
+/**
+ * @brief   Returns the current value of the realtime counter.
+ *
+ * @return              The realtime counter value.
+ */
+rtcnt_t port_rt_get_counter_value(void) {
+
+  struct timespec ts;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+
+  return (rtcnt_t)ts.tv_nsec;
 }
 
 /** @} */
