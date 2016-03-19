@@ -10,7 +10,10 @@
 
 #if HAL_USE_MS58XX || defined(__DOXYGEN__)
 
+#include "nelems.h"
+
 #include <string.h>
+
 /*
  * @todo    - add sanity check for calibration values
  *          - add conversion error detection and recovery
@@ -128,7 +131,10 @@ void ms58xxStart(MS58XXDriver* ms58xxp, const MS58XXConfig* configp)
     }
 
     /* Read calibration data. */
-    for (size_t i = 0; i < 8; ++i)
+    for (size_t i = 0; i <
+        (ms58xxp->configp->chip_type == MS58XX_TYPE_58XX ? NELEMS(ms58xxp->calibration) :
+        ms58xxp->configp->chip_type == MS58XX_TYPE_5837 ? 7 :
+        0); ++i)
     {
         const uint8_t txbuf[] = { MS58XX_COMMAND_READ_PROM + (i << 1) };
         uint8_t rxbuf[] = { 0x00, 0x00 };
@@ -153,11 +159,23 @@ void ms58xxStart(MS58XXDriver* ms58xxp, const MS58XXConfig* configp)
 
     /* Verify crc. */
     {
-        uint16_t n_rem = 0x00;
-        uint16_t crc_read = ms58xxp->calibration[MS58XX_CAL_7_CRC];
-        ms58xxp->calibration[MS58XX_CAL_7_CRC] =
-                ms58xxp->calibration[MS58XX_CAL_7_CRC] & 0xff00;
+        /* Backup and mask crc from rom values. */
+        uint16_t crc_read = 0;
+        switch (ms58xxp->configp->chip_type)
+        {
+        case MS58XX_TYPE_58XX:
+            crc_read = ms58xxp->calibration[MS58XX_CAL_7_CRC];
+            ms58xxp->calibration[MS58XX_CAL_7_CRC] =
+                    ms58xxp->calibration[MS58XX_CAL_7_CRC] & 0xff00;
+            break;
+        case MS58XX_TYPE_5837:
+            crc_read = ms58xxp->calibration[MS58XX_CAL_0_RESERVED];
+            ms58xxp->calibration[MS58XX_CAL_0_RESERVED] =
+                    ms58xxp->calibration[MS58XX_CAL_0_RESERVED] & 0x0fff;
+            break;
+        }
 
+        uint16_t n_rem = 0x00;
         for (size_t cnt = 0; cnt < 16; ++cnt)
         {
             if (cnt % 2 == 1)
@@ -178,12 +196,26 @@ void ms58xxStart(MS58XXDriver* ms58xxp, const MS58XXConfig* configp)
             }
         }
         n_rem = (n_rem >> 12) & 0x000f;
-        ms58xxp->calibration[MS58XX_CAL_7_CRC] = crc_read;
 
-        if (n_rem != (ms58xxp->calibration[MS58XX_CAL_7_CRC] & 0x0f))
+        /* Restore backed up crc and check result. */
+        switch (ms58xxp->configp->chip_type)
         {
-            ms58xxp->state = MS58XX_STOP;
-            return;
+        case MS58XX_TYPE_58XX:
+            ms58xxp->calibration[MS58XX_CAL_7_CRC] = crc_read;
+            if (n_rem != (ms58xxp->calibration[MS58XX_CAL_7_CRC] & 0x0f))
+            {
+                ms58xxp->state = MS58XX_STOP;
+                return;
+            }
+            break;
+        case MS58XX_TYPE_5837:
+            ms58xxp->calibration[MS58XX_CAL_0_RESERVED] = crc_read;
+            if (n_rem != ((ms58xxp->calibration[MS58XX_CAL_0_RESERVED] >> 12) & 0x0f))
+            {
+                ms58xxp->state = MS58XX_STOP;
+                return;
+            }
+            break;
         }
     }
 

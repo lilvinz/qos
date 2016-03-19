@@ -46,6 +46,15 @@
 /*===========================================================================*/
 
 /**
+ * @brief   Possible values for chip type.
+ */
+typedef enum
+{
+    MS58XX_TYPE_58XX = 0,
+    MS58XX_TYPE_5837,
+} ms58xxchiptype_t;
+
+/**
  * @brief   Possible values for api oversampling argument.
  */
 enum ms58xx_osr_e
@@ -55,6 +64,7 @@ enum ms58xx_osr_e
     MS58XX_OSR_1024 = 4,
     MS58XX_OSR_2048 = 6,
     MS58XX_OSR_4096 = 8,
+    MS58XX_OSR_8192 = 10,
 };
 
 /**
@@ -84,6 +94,7 @@ typedef struct
     I2CDriver* i2cp;
     uint8_t i2c_address;
     systime_t i2c_timeout;
+    ms58xxchiptype_t chip_type;
 } MS58XXConfig;
 
 /**
