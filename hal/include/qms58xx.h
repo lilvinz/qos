@@ -65,7 +65,7 @@ typedef enum
     MS58XX_UNINIT = 0,              /**< Not initialized.                   */
     MS58XX_STOP = 1,                /**< Stopped.                           */
     MS58XX_READY = 3,               /**< Device ready.                      */
-    MS58XX_ACTIVE= 4,               /**< Device converting.                 */
+    MS58XX_ACTIVE = 4,              /**< Device converting.                 */
 } ms58xxstate_t;
 
 /**
