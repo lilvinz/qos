@@ -752,6 +752,10 @@ void flash_lld_write(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
  */
 void flash_lld_erase_sector(FLASHDriver* flashp, uint32_t startaddr)
 {
+    FLASHSectorInfo info;
+    if (flash_lld_addr_to_sector(startaddr, &info) != HAL_SUCCESS)
+        return;
+
     flash_lld_cr_unlock(flashp);
 
     /* Set psize. */
@@ -760,8 +764,6 @@ void flash_lld_erase_sector(FLASHDriver* flashp, uint32_t startaddr)
     flashp->flash->CR |= psize;
 
     /* Set sector. */
-    FLASHSectorInfo info;
-    flash_lld_addr_to_sector(startaddr, &info);
     flashp->flash->CR &= ~(FLASH_CR_SNB_3 | FLASH_CR_SNB_2 | FLASH_CR_SNB_1 |
             FLASH_CR_SNB_0);
     flashp->flash->CR |= flash_sector_infos[info.sector].sector_bits;
@@ -856,7 +858,9 @@ void flash_lld_get_info(FLASHDriver* flashp, NVMDeviceInfo* nvmdip)
 void flash_lld_writeprotect_sector(FLASHDriver* flashp, uint32_t startaddr)
 {
     FLASHSectorInfo info;
-    flash_lld_addr_to_sector(startaddr, &info);
+    if (flash_lld_addr_to_sector(startaddr, &info) != HAL_SUCCESS)
+        return;
+
     flash_lld_ob_wrp_set(flashp, (1 << info.sector));
 }
 
@@ -883,7 +887,9 @@ void flash_lld_writeprotect_mass(FLASHDriver* flashp)
 void flash_lld_writeunprotect_sector(FLASHDriver* flashp, uint32_t startaddr)
 {
     FLASHSectorInfo info;
-    flash_lld_addr_to_sector(startaddr, &info);
+    if (flash_lld_addr_to_sector(startaddr, &info) != HAL_SUCCESS)
+        return;
+
     flash_lld_ob_wrp_clear(flashp, (1 << info.sector));
 }
 
@@ -979,7 +985,9 @@ void flash_lld_ob_user(FLASHDriver* flashp, uint8_t user)
 void flash_lld1_writeprotect_sector(FLASHDriver* flashp, uint32_t startaddr)
 {
     FLASHSectorInfo info;
-    flash_lld_addr_to_sector(startaddr, &info);
+    if (flash_lld_addr_to_sector(startaddr, &info) != HAL_SUCCESS)
+        return;
+
     flash_lld_ob1_wrp_set(flashp, (1 << info.sector));
 }
 
@@ -1006,7 +1014,9 @@ void flash_lld1_writeprotect_mass(FLASHDriver* flashp)
 void flash_lld1_writeunprotect_sector(FLASHDriver* flashp, uint32_t startaddr)
 {
     FLASHSectorInfo info;
-    flash_lld_addr_to_sector(startaddr, &info);
+    if (flash_lld_addr_to_sector(startaddr, &info) != HAL_SUCCESS)
+        return;
+
     flash_lld_ob1_wrp_clear(flashp, (1 << info.sector));
 }
 
