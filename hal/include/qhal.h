@@ -57,6 +57,7 @@
 #include "qhal_serial_fdx.h"
 #include "qhal_ms58xx.h"
 #include "qhal_bq275xx.h"
+#include "qhal_ads111x.h"
 
 /*===========================================================================*/
 /* External declarations.                                                    */

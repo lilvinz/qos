@@ -104,6 +104,9 @@ void qhalInit(void)
 #if HAL_USE_BQ275XX || defined(__DOXYGEN__)
     bq275xxInit();
 #endif
+#if HAL_USE_ADS111X || defined(__DOXYGEN__)
+    ads111xInit();
+#endif
 }
 
 /** @} */
