@@ -13,6 +13,10 @@
 
 #include <stdio.h>
 
+#if HAS_FATFS
+#include "ff.h"
+#endif /* HAS_FATFS */
+
 /*===========================================================================*/
 /* Driver constants.                                                         */
 /*===========================================================================*/
@@ -96,7 +100,11 @@ typedef struct
     /**
      * @brief Current configuration data.
     */
+#if HAS_FATFS
+    FIL file;
+#else /* HAS_FATFS */
     FILE* file;
+#endif /* HAS_FATFS */
 #if NVM_FILE_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
     /**
      * @brief mutex_t protecting the device.
