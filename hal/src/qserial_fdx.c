@@ -346,7 +346,7 @@ void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
 
 #if defined(_CHIBIOS_RT_)
     /* Creates the data pump thread. Note, it is created only once.*/
-    if (gdsimp->tr == NULL)
+    if (sfdxdp->tr == NULL)
     {
         const thread_descriptor_t sfdxd_pump_descriptor = {
             .name = "sfdxd_pump",
@@ -356,7 +356,7 @@ void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
             .funcp = sfdxd_pump,
             .arg = sfdxdp
         };
-        gdsimp->tr = chThdCreateI(&sfdxd_pump_descriptor);
+        sfdxdp->tr = chThdCreateI(&sfdxd_pump_descriptor);
         chSchRescheduleS();
     }
 #endif
