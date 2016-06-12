@@ -179,6 +179,7 @@ msg_t chSymQGetTimeout(symmetric_queue_t *sqp, systime_t timeout)
 {
     osalSysLock();
     msg_t result = chSymQGetTimeoutS(sqp, timeout);
+    osalOsRescheduleS();
     osalSysUnlock();
 
     return result;
@@ -241,6 +242,7 @@ size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
         /* Wake first eventually pending writer. */
         osalThreadDequeueNextI(&sqp->q_writers, Q_OK);
 
+        osalOsRescheduleS();
         osalSysUnlock(); /* Gives a preemption chance in a controlled point.*/
         r++;
         if (--n == 0)
@@ -382,6 +384,7 @@ msg_t chSymQPutTimeout(symmetric_queue_t *sqp, uint8_t b, systime_t timeout)
 {
     osalSysLock();
     msg_t result = chSymQPutTimeoutS(sqp, b, timeout);
+    osalOsRescheduleS();
     osalSysUnlock();
 
     return result;
@@ -444,6 +447,7 @@ size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
         /* Wake first eventually pending reader. */
         osalThreadDequeueNextI(&sqp->q_readers, Q_OK);
 
+        osalOsRescheduleS();
         osalSysUnlock(); /* Gives a preemption chance in a controlled point.*/
         w++;
         if (--n == 0)
