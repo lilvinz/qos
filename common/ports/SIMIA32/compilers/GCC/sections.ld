@@ -3,6 +3,7 @@ OUTPUT_FORMAT("elf32-i386", "elf32-i386",
           "elf32-i386")
 OUTPUT_ARCH(i386)
 ENTRY(_start)
+SEARCH_DIR("/usr/i386-linux-gnu/lib32"); SEARCH_DIR("/usr/x86_64-linux-gnu/lib32"); SEARCH_DIR("=/usr/local/lib/i386-linux-gnu"); SEARCH_DIR("=/usr/local/lib32"); SEARCH_DIR("=/lib/i386-linux-gnu"); SEARCH_DIR("=/lib32"); SEARCH_DIR("=/usr/lib/i386-linux-gnu"); SEARCH_DIR("=/usr/lib32"); SEARCH_DIR("=/usr/local/lib"); SEARCH_DIR("=/lib"); SEARCH_DIR("=/usr/lib");
 SECTIONS
 {
   /* Read-only sections, merged into text segment: */
@@ -22,7 +23,7 @@ SECTIONS
       *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)
       *(.rel.fini)
       *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)
-      *(.rel.data.rel.ro* .rel.gnu.linkonce.d.rel.ro.*)
+      *(.rel.data.rel.ro .rel.data.rel.ro.* .rel.gnu.linkonce.d.rel.ro.*)
       *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)
       *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)
       *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)
@@ -41,23 +42,23 @@ SECTIONS
     }
   .init           :
   {
-    KEEP (*(.init))
-  } =0x90909090
+    KEEP (*(SORT_NONE(.init)))
+  }
   .plt            : { *(.plt) *(.iplt) }
   .text           :
   {
-    *(.text.unlikely .text.*_unlikely)
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)
     *(.text.exit .text.exit.*)
     *(.text.startup .text.startup.*)
     *(.text.hot .text.hot.*)
     *(.text .stub .text.* .gnu.linkonce.t.*)
     /* .gnu.warning sections are handled specially by elf32.em.  */
     *(.gnu.warning)
-  } =0x90909090
+  }
   .fini           :
   {
-    KEEP (*(.fini))
-  } =0x90909090
+    KEEP (*(SORT_NONE(.fini)))
+  }
   PROVIDE (__etext = .);
   PROVIDE (_etext = .);
   PROVIDE (etext = .);
@@ -90,16 +91,14 @@ SECTIONS
   {
     PROVIDE_HIDDEN (__init_array_start = .);
     KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
-    KEEP (*(.init_array))
-    KEEP (*(EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))
+    KEEP (*(.init_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))
     PROVIDE_HIDDEN (__init_array_end = .);
   }
   .fini_array     :
   {
     PROVIDE_HIDDEN (__fini_array_start = .);
     KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
-    KEEP (*(.fini_array))
-    KEEP (*(EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
+    KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
     PROVIDE_HIDDEN (__fini_array_end = .);
   }
   .ctors          :
@@ -131,26 +130,12 @@ SECTIONS
     KEEP (*(SORT(.dtors.*)))
     KEEP (*(.dtors))
   }
-  .initcall : ALIGN(4)
-  {
-    __module_initcall_start = .;
-    KEEP(*(SORT(.initcall.*)))
-    __module_initcall_end = .;
-  }
   .jcr            : { KEEP (*(.jcr)) }
-  .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro* .gnu.linkonce.d.rel.ro.*) }
+  .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*) }
   .dynamic        : { *(.dynamic) }
   .got            : { *(.got) *(.igot) }
-  . = DATA_SEGMENT_RELRO_END (12, .);
+  . = DATA_SEGMENT_RELRO_END (SIZEOF (.got.plt) >= 12 ? 12 : 0, .);
   .got.plt        : { *(.got.plt)  *(.igot.plt) }
-  .stacks :
-  {
-    . = ALIGN(8);
-    __stacks_base__ = .;
-    __main_thread_stack_base__ = .;
-    . = ALIGN(8);
-    __stacks_end__ = .;
-  }
   .data           :
   {
     *(.data .data.* .gnu.linkonce.d.*)
@@ -158,6 +143,7 @@ SECTIONS
   }
   .data1          : { *(.data1) }
   _edata = .; PROVIDE (edata = .);
+  . = .;
   __bss_start = .;
   .bss            :
   {
@@ -172,6 +158,7 @@ SECTIONS
    . = ALIGN(. != 0 ? 32 / 8 : 1);
   }
   . = ALIGN(32 / 8);
+  . = SEGMENT_START("ldata-segment", .);
   . = ALIGN(32 / 8);
   _end = .; PROVIDE (end = .);
   . = DATA_SEGMENT_END (.);
@@ -198,7 +185,7 @@ SECTIONS
   /* DWARF 2 */
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }
   .debug_abbrev   0 : { *(.debug_abbrev) }
-  .debug_line     0 : { *(.debug_line) }
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }
   .debug_frame    0 : { *(.debug_frame) }
   .debug_str      0 : { *(.debug_str) }
   .debug_loc      0 : { *(.debug_loc) }
@@ -211,6 +198,22 @@ SECTIONS
   /* DWARF 3 */
   .debug_pubtypes 0 : { *(.debug_pubtypes) }
   .debug_ranges   0 : { *(.debug_ranges) }
+  /* DWARF Extension.  */
+  .debug_macro    0 : { *(.debug_macro) }
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }
   /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
+  .initcall ALIGN(4) : ALIGN(4)
+  {
+    __module_initcall_start = .;
+    KEEP(*(SORT(.initcall.*)))
+    __module_initcall_end = .;
+  }
+  .stacks :
+  {
+    . = ALIGN(8);
+    __stacks_base__ = .;
+    __main_thread_stack_base__ = .;
+    . = ALIGN(8);
+    __stacks_end__ = .;
+  }
 }
