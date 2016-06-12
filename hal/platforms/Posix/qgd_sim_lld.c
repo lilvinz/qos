@@ -236,6 +236,7 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
         {
             chThdResumeI(gdsimp->thd_wait);
             gdsimp->thd_wait = NULL;
+            chSchRescheduleS();
         }
     }
 }
