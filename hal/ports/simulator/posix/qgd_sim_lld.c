@@ -121,6 +121,8 @@ void gdsim_lld_object_init(GDSimDriver* gdsimp)
 {
 #if defined(_CHIBIOS_RT_)
     gdsimp->tr = NULL;
+    gdsimp->wait = NULL;
+
     /* Filling the thread working area here because the function
        @p chThdCreateI() does not do it.*/
 #if CH_DBG_FILL_THREADS
@@ -237,8 +239,12 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
                 .arg = gdsimp
             };
             gdsimp->tr = chThdCreateI(&gdsim_lld_pump_descriptor);
-            osalOsRescheduleS();
         }
+        else if (gdsimp->wait != NULL)
+        {
+            chThdResumeS(&gdsimp->wait, MSG_OK);
+        }
+        osalOsRescheduleS();
 #endif
     }
 }
