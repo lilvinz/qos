@@ -78,6 +78,7 @@ static void sfdxd_send(SerialFdxDriver* sfdxdp)
     osalSysLock();
     if ((sfdxdp->connected == TRUE) && (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE))
         chnAddFlagsI(sfdxdp, CHN_OUTPUT_EMPTY);
+    osalOsRescheduleS();
     osalSysUnlock();
 }
 
@@ -134,6 +135,7 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
                     {
                         chnAddFlagsI(sfdxdp, SFDX_OVERRUN_ERROR);
                     }
+                    osalOsRescheduleS();
                     osalSysUnlock();
                 }
                 foundEsc = FALSE;
@@ -146,6 +148,7 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
     {
         osalSysLock();
         chnAddFlagsI(sfdxdp, SFDX_FRAMING_ERROR);
+        osalOsRescheduleS();
         osalSysUnlock();
     }
     return c;
@@ -169,6 +172,7 @@ static void sfdxd_pump(void* parameters)
         osalSysLock();
         if (sfdxdp->state == SFDXD_STOP)
             chThdSuspendS(&sfdxdp->wait);
+        osalOsRescheduleS();
         osalSysUnlock();
 
         if (sfdxdp->configp->type == SFDXD_MASTER)
@@ -196,6 +200,7 @@ static void sfdxd_pump(void* parameters)
             sfdxdp->connected = TRUE;
             chnAddFlagsI(sfdxdp, CHN_CONNECTED);
 
+            osalOsRescheduleS();
             osalSysUnlock();
         }
         else if ((receiveResult == Q_TIMEOUT) &&
@@ -208,6 +213,7 @@ static void sfdxd_pump(void* parameters)
             chSymQResetI(&sfdxdp->oqueue);
             chSymQResetI(&sfdxdp->iqueue);
 
+            osalOsRescheduleS();
             osalSysUnlock();
         }
     }
@@ -357,7 +363,7 @@ void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
             .arg = sfdxdp
         };
         sfdxdp->tr = chThdCreateI(&sfdxd_pump_descriptor);
-        chSchRescheduleS();
+        osalOsRescheduleS();
     }
 #endif
 
@@ -389,7 +395,7 @@ void sfdxdStop(SerialFdxDriver* sfdxdp)
 
     chSymQResetI(&sfdxdp->oqueue);
     chSymQResetI(&sfdxdp->iqueue);
-    chSchRescheduleS();
+    osalOsRescheduleS();
     osalSysUnlock();
 }
 #endif /* HAL_USE_SERIAL_FDX */
