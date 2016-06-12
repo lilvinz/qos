@@ -172,7 +172,6 @@ static void sfdxd_pump(void* parameters)
         osalSysLock();
         if (sfdxdp->state == SFDXD_STOP)
             chThdSuspendS(&sfdxdp->wait);
-        osalOsRescheduleS();
         osalSysUnlock();
 
         if (sfdxdp->configp->type == SFDXD_MASTER)
@@ -307,7 +306,6 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
     osalEventObjectInit(&sfdxdp->event);
     sfdxdp->state = SFDXD_STOP;
     sfdxdp->connected = FALSE;
-    sfdxdp->wait = NULL;
 
     chSymQObjectInit(&sfdxdp->iqueue, sfdxdp->ib,
             sizeof(sfdxdp->ib));
@@ -317,6 +315,8 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
 
 #if defined(_CHIBIOS_RT_)
     sfdxdp->tr = NULL;
+    sfdxdp->wait = NULL;
+
     /* Filling the thread working area here because the function
        @p chThdCreateI() does not do it.*/
 #if CH_DBG_FILL_THREADS
@@ -363,8 +363,12 @@ void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
             .arg = sfdxdp
         };
         sfdxdp->tr = chThdCreateI(&sfdxd_pump_descriptor);
-        osalOsRescheduleS();
     }
+    else if (sfdxdp->wait != NULL)
+    {
+        osalThreadResumeI(&sfdxdp->wait, MSG_OK);
+    }
+    osalOsRescheduleS();
 #endif
 
     osalSysUnlock();
