@@ -34,25 +34,11 @@
 
 #if OSAL_ST_MODE == OSAL_ST_MODE_FREERUNNING
 
-#if ST_CLOCK_SRC % OSAL_ST_FREQUENCY != 0
-#error "the selected ST frequency is not obtainable because integer rounding"
-#endif
-
-#if (ST_CLOCK_SRC / OSAL_ST_FREQUENCY) - 1 > 0xFFFF
-#error "the selected ST frequency is not obtainable because TIM timer prescaler limits"
-#endif
+#error "Posix port doesn't support free-running timer yet."
 
 #endif /* OSAL_ST_MODE == OSAL_ST_MODE_FREERUNNING */
 
 #if OSAL_ST_MODE == OSAL_ST_MODE_PERIODIC
-
-#if STM32_HCLK % OSAL_ST_FREQUENCY != 0
-#error "the selected ST frequency is not obtainable because integer rounding"
-#endif
-
-#if (STM32_HCLK / OSAL_ST_FREQUENCY) - 1 > 0xFFFFFF
-#error "the selected ST frequency is not obtainable because SysTick timer counter limits"
-#endif
 
 #endif /* OSAL_ST_MODE == OSAL_ST_MODE_PERIODIC */
 
@@ -75,6 +61,10 @@
 /*===========================================================================*/
 /* Driver interrupt handlers.                                                */
 /*===========================================================================*/
+
+#if (OSAL_ST_MODE == OSAL_ST_MODE_FREERUNNING) || defined(__DOXYGEN__)
+
+#endif /* OSAL_ST_MODE == OSAL_ST_MODE_FREERUNNING */
 
 #if (OSAL_ST_MODE == OSAL_ST_MODE_PERIODIC) || defined(__DOXYGEN__)
 
@@ -110,10 +100,6 @@ static void port_tick_signal_handler_stub(int arg)
 }
 
 #endif /* OSAL_ST_MODE == OSAL_ST_MODE_PERIODIC */
-
-#if (OSAL_ST_MODE == OSAL_ST_MODE_FREERUNNING) || defined(__DOXYGEN__)
-
-#endif /* OSAL_ST_MODE == OSAL_ST_MODE_FREERUNNING */
 
 /*===========================================================================*/
 /* Driver exported functions.                                                */
