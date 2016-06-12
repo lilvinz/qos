@@ -139,6 +139,7 @@ void s485dStart(Serial485Driver *s485dp, const Serial485Config *config) {
   s485d_lld_start(s485dp, config);
   s485dp->state = S485D_READY;
   chnAddFlagsI(s485dp, CHN_CONNECTED);
+  osalOsRescheduleS();
   osalSysUnlock();
 }
 
@@ -163,7 +164,7 @@ void s485dStop(Serial485Driver *s485dp) {
   s485dp->state = S485D_STOP;
   chOQResetI(&s485dp->oqueue);
   chIQResetI(&s485dp->iqueue);
-  chSchRescheduleS();
+  osalOsRescheduleS();
   osalSysUnlock();
 }
 
