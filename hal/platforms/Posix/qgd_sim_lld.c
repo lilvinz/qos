@@ -61,10 +61,7 @@ static msg_t gdsim_lld_pump(void* p)
         /* Nothing to do, going to sleep.*/
         chSysLock();
         if ((gdsimp->state == GD_STOP))
-        {
-            gdsimp->thd_wait = chThdSelf();
             chSchGoSleepS(THD_STATE_SUSPENDED);
-        }
         chSysUnlock();
 
         while ((e = xcb_poll_for_event(gdsimp->xcb_connection)) != NULL)
@@ -119,7 +116,6 @@ void gdsim_lld_init(void)
 void gdsim_lld_object_init(GDSimDriver* gdsimp)
 {
     gdsimp->thd_ptr = NULL;
-    gdsimp->thd_wait = NULL;
 
     /* Filling the thread working area here because the function
        @p chThdCreateI() does not do it. */
@@ -228,16 +224,13 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
 
         /* Creates the data pump thread in a suspended state. */
         if (gdsimp->thd_ptr == NULL)
-            gdsimp->thd_ptr = gdsimp->thd_wait =
+            gdsimp->thd_ptr =
                     chThdCreateI(gdsimp->wa_pump, sizeof(gdsimp->wa_pump),
                             GD_SIM_THREAD_PRIO, gdsim_lld_pump, gdsimp);
 
-        if (gdsimp->thd_wait != NULL)
-        {
-            chThdResumeI(gdsimp->thd_wait);
-            gdsimp->thd_wait = NULL;
-            chSchRescheduleS();
-        }
+        chThdResumeI(gdsimp->thd_ptr);
+
+        chSchRescheduleS();
     }
 }
 
