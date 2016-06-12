@@ -231,6 +231,7 @@ msg_t chSymQGetTimeout(SymmetricQueue *sqp, systime_t timeout)
 {
     chSysLock();
     msg_t result = chSymQGetTimeoutS(sqp, timeout);
+    chSchRescheduleS();
     chSysUnlock();
 
     return result;
@@ -294,6 +295,7 @@ size_t chSymQReadTimeoutS(SymmetricQueue *sqp, uint8_t *bp,
         if (notempty(&sqp->q_writers))
             chSchReadyI(fifo_remove(&sqp->q_writers))->p_u.rdymsg = Q_OK;
 
+        chSchRescheduleS();
         chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
         r++;
         if (--n == 0)
@@ -438,6 +440,7 @@ msg_t chSymQPutTimeout(SymmetricQueue *sqp, uint8_t b, systime_t timeout)
 {
     chSysLock();
     msg_t result = chSymQPutTimeoutS(sqp, b, timeout);
+    chSchRescheduleS();
     chSysUnlock();
 
     return result;
@@ -501,6 +504,7 @@ size_t chSymQWriteTimeoutS(SymmetricQueue *sqp, const uint8_t *bp,
         if (notempty(&sqp->q_readers))
             chSchReadyI(fifo_remove(&sqp->q_readers))->p_u.rdymsg = Q_OK;
 
+        chSchRescheduleS();
         chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
         w++;
         if (--n == 0)
