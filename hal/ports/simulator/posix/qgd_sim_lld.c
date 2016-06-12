@@ -237,7 +237,7 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
                 .arg = gdsimp
             };
             gdsimp->tr = chThdCreateI(&gdsim_lld_pump_descriptor);
-            chSchRescheduleS();
+            osalOsRescheduleS();
         }
 #endif
     }
