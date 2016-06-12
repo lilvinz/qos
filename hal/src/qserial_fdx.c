@@ -79,6 +79,7 @@ static void sfdxd_send(SerialFdxDriver* sfdxdp)
     chSysLock();
     if ((sfdxdp->connected == TRUE) && (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE))
         chnAddFlagsI(sfdxdp, CHN_OUTPUT_EMPTY);
+    chSchRescheduleS();
     chSysUnlock();
 }
 
@@ -135,6 +136,7 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
                     {
                         chnAddFlagsI(sfdxdp, SFDX_OVERRUN_ERROR);
                     }
+                    chSchRescheduleS();
                     chSysUnlock();
                 }
                 foundEsc = FALSE;
@@ -147,6 +149,7 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
     {
         chSysLock();
         chnAddFlagsI(sfdxdp, SFDX_FRAMING_ERROR);
+        chSchRescheduleS();
         chSysUnlock();
     }
     return c;
@@ -194,6 +197,7 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
                 sfdxdp->connected = TRUE;
                 chnAddFlagsI(sfdxdp, CHN_CONNECTED);
 
+                chSchRescheduleS();
                 chSysUnlock();
             }
             else if ((receiveResult == Q_TIMEOUT) &&
@@ -206,6 +210,7 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
                 chSymQResetI(&sfdxdp->oqueue);
                 chSymQResetI(&sfdxdp->iqueue);
 
+                chSchRescheduleS();
                 chSysUnlock();
             }
         }
@@ -365,6 +370,7 @@ void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
         sfdxdp->thd_wait = NULL;
     }
 
+    chSchRescheduleS();
     chSysUnlock();
 }
 
