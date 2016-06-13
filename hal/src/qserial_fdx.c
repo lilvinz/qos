@@ -79,6 +79,7 @@ static void sfdxd_send(SerialFdxDriver* sfdxdp)
     chSysLock();
     if ((sfdxdp->connected == TRUE) && (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE))
         chnAddFlagsI(sfdxdp, CHN_OUTPUT_EMPTY);
+    chSchRescheduleS();
     chSysUnlock();
 }
 
@@ -135,6 +136,7 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
                     {
                         chnAddFlagsI(sfdxdp, SFDX_OVERRUN_ERROR);
                     }
+                    chSchRescheduleS();
                     chSysUnlock();
                 }
                 foundEsc = FALSE;
@@ -147,6 +149,7 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
     {
         chSysLock();
         chnAddFlagsI(sfdxdp, SFDX_FRAMING_ERROR);
+        chSchRescheduleS();
         chSysUnlock();
     }
     return c;
@@ -194,6 +197,7 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
                 sfdxdp->connected = TRUE;
                 chnAddFlagsI(sfdxdp, CHN_CONNECTED);
 
+                chSchRescheduleS();
                 chSysUnlock();
             }
             else if ((receiveResult == Q_TIMEOUT) &&
@@ -206,6 +210,7 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
                 chSymQResetI(&sfdxdp->oqueue);
                 chSymQResetI(&sfdxdp->iqueue);
 
+                chSchRescheduleS();
                 chSysUnlock();
             }
         }
@@ -213,7 +218,6 @@ __attribute__((noreturn)) static msg_t sfdxd_pump(void* parameters)
         {
             /* Nothing to do. Going to sleep. */
             chSysLock();
-            sfdxdp->thd_wait = chThdSelf();
             chSchGoSleepS(THD_STATE_SUSPENDED);
             chSysUnlock();
         }
@@ -309,7 +313,6 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
     sfdxdp->state = SFDXD_STOP;
     sfdxdp->connected = FALSE;
     sfdxdp->thd_ptr = NULL;
-    sfdxdp->thd_wait = NULL;
 
     chSymQInit(&sfdxdp->iqueue, sfdxdp->ib,
             sizeof(sfdxdp->ib));
@@ -354,17 +357,15 @@ void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
     sfdxdp->connected = FALSE;
 
     if (sfdxdp->thd_ptr == NULL)
-        sfdxdp->thd_ptr = sfdxdp->thd_wait = chThdCreateI(sfdxdp->wa_pump,
+        sfdxdp->thd_ptr = chThdCreateI(sfdxdp->wa_pump,
             sizeof sfdxdp->wa_pump,
             SERIAL_FDX_THREAD_PRIO,
             sfdxd_pump,
             sfdxdp);
-    if (sfdxdp->thd_wait != NULL)
-    {
-        chThdResumeI(sfdxdp->thd_wait);
-        sfdxdp->thd_wait = NULL;
-    }
 
+    chThdResumeI(sfdxdp->thd_ptr);
+
+    chSchRescheduleS();
     chSysUnlock();
 }
 

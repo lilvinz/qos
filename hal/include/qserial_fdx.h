@@ -215,10 +215,6 @@ struct SerialFdxDriver
      */
     Thread* thd_ptr;
     /**
-     * @brief   Pointer to the thread when it is sleeping or @p NULL.
-     */
-    Thread* thd_wait;
-    /**
      * @brief   Working area for the dedicated data pump thread;
      */
     WORKING_AREA(wa_pump, SERIAL_FDX_THREAD_STACK_SIZE);
