@@ -40,6 +40,10 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
+#if !defined(_CHIBIOS_RT_)
+#error "GD_SIM requires ChibiOS RT"
+#endif
+
 #if !CH_CFG_USE_WAITEXIT
 #error "GD_SIM requires CH_CFG_USE_WAITEXIT"
 #endif
