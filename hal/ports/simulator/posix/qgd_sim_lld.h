@@ -40,6 +40,10 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
+#if !defined(_CHIBIOS_RT_)
+#error "GD_SIM requires ChibiOS RT"
+#endif
+
 #if !CH_CFG_USE_WAITEXIT
 #error "GD_SIM requires CH_CFG_USE_WAITEXIT"
 #endif
@@ -101,15 +105,15 @@ typedef struct
      */
     mutex_t mutex;
 #endif /* GD_SIM_USE_MUTUAL_EXCLUSION */
-    /**
-     * @brief   Pointer to the thread when it is sleeping or @p NULL.
-     */
-    thread_reference_t            wait;
 #if defined(_CHIBIOS_RT_)
     /**
      * @brief   Pointer to the thread.
      */
     thread_reference_t            tr;
+    /**
+     * @brief   Pointer to the thread when it is sleeping or @p NULL.
+     */
+    thread_reference_t            wait;
     /**
      * @brief   Working area for the dedicated data pump thread;
      */

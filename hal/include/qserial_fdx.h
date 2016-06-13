@@ -113,6 +113,10 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
+#if !defined(_CHIBIOS_RT_)
+#error "Serial fdx requires ChibiOS RT"
+#endif
+
 #if !CH_CFG_USE_QUEUES || !CH_CFG_USE_EVENTS
 #error "Serial fdx requires CH_CFG_USE_QUEUES and CH_CFG_USE_EVENTS"
 #endif
@@ -210,15 +214,15 @@ struct SerialFdxDriver
     const struct SerialFdxDriverVMT* vmt;
     _serial_fdx_driver_data
     const SerialFdxConfig* configp;
-    /**
-     * @brief   Pointer to the thread when it is sleeping or @p NULL.
-     */
-    thread_reference_t            wait;
 #if defined(_CHIBIOS_RT_)
     /**
      * @brief   Pointer to the thread.
      */
     thread_reference_t            tr;
+    /**
+     * @brief   Pointer to the thread when it is sleeping or @p NULL.
+     */
+    thread_reference_t            wait;
     /**
      * @brief   Working area for the dedicated data pump thread;
      */

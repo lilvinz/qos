@@ -78,6 +78,7 @@ static void sfdxd_send(SerialFdxDriver* sfdxdp)
     osalSysLock();
     if ((sfdxdp->connected == TRUE) && (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE))
         chnAddFlagsI(sfdxdp, CHN_OUTPUT_EMPTY);
+    osalOsRescheduleS();
     osalSysUnlock();
 }
 
@@ -134,6 +135,7 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
                     {
                         chnAddFlagsI(sfdxdp, SFDX_OVERRUN_ERROR);
                     }
+                    osalOsRescheduleS();
                     osalSysUnlock();
                 }
                 foundEsc = FALSE;
@@ -146,6 +148,7 @@ static msg_t sfdxd_receive(SerialFdxDriver* sfdxdp, systime_t timeout)
     {
         osalSysLock();
         chnAddFlagsI(sfdxdp, SFDX_FRAMING_ERROR);
+        osalOsRescheduleS();
         osalSysUnlock();
     }
     return c;
@@ -196,6 +199,7 @@ static void sfdxd_pump(void* parameters)
             sfdxdp->connected = TRUE;
             chnAddFlagsI(sfdxdp, CHN_CONNECTED);
 
+            osalOsRescheduleS();
             osalSysUnlock();
         }
         else if ((receiveResult == Q_TIMEOUT) &&
@@ -208,6 +212,7 @@ static void sfdxd_pump(void* parameters)
             chSymQResetI(&sfdxdp->oqueue);
             chSymQResetI(&sfdxdp->iqueue);
 
+            osalOsRescheduleS();
             osalSysUnlock();
         }
     }
@@ -301,7 +306,6 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
     osalEventObjectInit(&sfdxdp->event);
     sfdxdp->state = SFDXD_STOP;
     sfdxdp->connected = FALSE;
-    sfdxdp->wait = NULL;
 
     chSymQObjectInit(&sfdxdp->iqueue, sfdxdp->ib,
             sizeof(sfdxdp->ib));
@@ -311,6 +315,8 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
 
 #if defined(_CHIBIOS_RT_)
     sfdxdp->tr = NULL;
+    sfdxdp->wait = NULL;
+
     /* Filling the thread working area here because the function
        @p chThdCreateI() does not do it.*/
 #if CH_DBG_FILL_THREADS
@@ -357,8 +363,12 @@ void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
             .arg = sfdxdp
         };
         sfdxdp->tr = chThdCreateI(&sfdxd_pump_descriptor);
-        chSchRescheduleS();
     }
+    else if (sfdxdp->wait != NULL)
+    {
+        osalThreadResumeI(&sfdxdp->wait, MSG_OK);
+    }
+    osalOsRescheduleS();
 #endif
 
     osalSysUnlock();
@@ -389,7 +399,7 @@ void sfdxdStop(SerialFdxDriver* sfdxdp)
 
     chSymQResetI(&sfdxdp->oqueue);
     chSymQResetI(&sfdxdp->iqueue);
-    chSchRescheduleS();
+    osalOsRescheduleS();
     osalSysUnlock();
 }
 #endif /* HAL_USE_SERIAL_FDX */
