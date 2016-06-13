@@ -10,8 +10,6 @@
 
 #if HAL_USE_NVM_FILE || defined(__DOXYGEN__)
 
-#include "static_assert.h"
-
 #include <string.h>
 
 /*
@@ -106,6 +104,39 @@ void nvmfileStart(NVMFileDriver* nvmfilep, const NVMFileConfig* config)
 
     nvmfilep->config = config;
 
+#if HAS_FATFS
+    FRESULT result;
+    result = f_open(&nvmfilep->file, nvmfilep->config->file_name,
+            FA_READ | FA_WRITE | FA_OPEN_EXISTING);
+
+    if (result != FR_OK)
+    {
+        result = f_open(&nvmfilep->file, nvmfilep->config->file_name,
+                FA_READ | FA_WRITE | FA_CREATE_NEW);
+
+        if (result != FR_OK)
+            return;
+    }
+
+    size_t current_size = f_size(&nvmfilep->file);
+    size_t desired_size =
+            nvmfilep->config->sector_size * nvmfilep->config->sector_num;
+
+    result = f_lseek(&nvmfilep->file, current_size);
+
+    if (result != FR_OK)
+        return;
+
+    if (current_size < desired_size)
+    {
+        static const uint8_t erased = 0xff;
+        for (size_t i = current_size; i < desired_size; ++i)
+            if (f_write(&nvmfilep->file, &erased, 1, NULL) != FR_OK)
+                return;
+        if (f_sync(&nvmfilep->file) != FR_OK)
+            return;
+    }
+#else /* HAS_FATFS */
     nvmfilep->file = fopen(nvmfilep->config->file_name, "r+b");
 
     if (nvmfilep->file == NULL)
@@ -136,6 +167,7 @@ void nvmfileStart(NVMFileDriver* nvmfilep, const NVMFileConfig* config)
         if (fflush(nvmfilep->file) != 0)
             return;
     }
+#endif /* HAS_FATFS */
 
     nvmfilep->state = NVM_READY;
 }
@@ -154,10 +186,15 @@ void nvmfileStop(NVMFileDriver* nvmfilep)
     osalDbgAssert((nvmfilep->state == NVM_STOP) || (nvmfilep->state == NVM_READY),
             "invalid state");
 
+#if HAS_FATFS
+    f_close(&nvmfilep->file);
+#else /* HAS_FATFS */
     if (nvmfilep->file != NULL)
         fclose(nvmfilep->file);
 
     nvmfilep->file = NULL;
+#endif /* HAS_FATFS */
+
     nvmfilep->state = NVM_STOP;
 }
 
@@ -191,11 +228,19 @@ bool nvmfileRead(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n,
     /* Read operation in progress. */
     nvmfilep->state = NVM_READING;
 
+#if HAS_FATFS
+    if (f_lseek(&nvmfilep->file, startaddr) != FR_OK)
+        return HAL_FAILED;
+
+    if (f_read(&nvmfilep->file, buffer, n, NULL) != FR_OK)
+        return HAL_FAILED;
+#else /* HAS_FATFS */
     if (fseek(nvmfilep->file, startaddr, SEEK_SET) != 0)
         return HAL_FAILED;
 
     if (fread(buffer, 1, n, nvmfilep->file) != n)
         return HAL_FAILED;
+#endif /* HAS_FATFS */
 
     /* Read operation finished. */
     nvmfilep->state = NVM_READY;
@@ -233,11 +278,19 @@ bool nvmfileWrite(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n,
     /* Write operation in progress. */
     nvmfilep->state = NVM_WRITING;
 
+#if HAS_FATFS
+    if (f_lseek(&nvmfilep->file, startaddr) != FR_OK)
+        return HAL_FAILED;
+
+    if (f_write(&nvmfilep->file, buffer, n, NULL) != FR_OK)
+        return HAL_FAILED;
+#else /* HAS_FATFS */
     if (fseek(nvmfilep->file, startaddr, SEEK_SET) != 0)
         return HAL_FAILED;
 
     if (fwrite(buffer, 1, n, nvmfilep->file) != n)
         return HAL_FAILED;
+#endif /* HAS_FATFS */
 
     return HAL_SUCCESS;
 }
@@ -273,6 +326,20 @@ bool nvmfileErase(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n)
     uint32_t first_sector_addr =
             startaddr - (startaddr % nvmfilep->config->sector_size);
 
+#if HAS_FATFS
+    if (f_lseek(&nvmfilep->file, first_sector_addr) != FR_OK)
+        return HAL_FAILED;
+
+    for (uint32_t addr = first_sector_addr;
+            addr < startaddr + n;
+            addr += nvmfilep->config->sector_size)
+    {
+        static const uint8_t erased = 0xff;
+        for (size_t i = 0; i < nvmfilep->config->sector_size; ++i)
+            if (f_write(&nvmfilep->file, &erased, sizeof(erased), NULL) != FR_OK)
+                return HAL_FAILED;
+    }
+#else /* HAS_FATFS */
     if (fseek(nvmfilep->file, first_sector_addr, SEEK_SET) != 0)
         return HAL_FAILED;
 
@@ -285,6 +352,7 @@ bool nvmfileErase(NVMFileDriver* nvmfilep, uint32_t startaddr, uint32_t n)
             if (fwrite(&erased, 1, sizeof(erased), nvmfilep->file) != sizeof(erased))
                 return HAL_FAILED;
     }
+#endif /* HAS_FATFS */
 
     return HAL_SUCCESS;
 }
@@ -312,6 +380,20 @@ bool nvmfileMassErase(NVMFileDriver* nvmfilep)
     /* Erase operation in progress. */
     nvmfilep->state = NVM_ERASING;
 
+#if HAS_FATFS
+    for (uint32_t addr = 0;
+            addr < nvmfilep->config->sector_size * nvmfilep->config->sector_num;
+            addr += nvmfilep->config->sector_size)
+    {
+        if (f_lseek(&nvmfilep->file, addr) != FR_OK)
+            return HAL_FAILED;
+
+        static const uint8_t erased = 0xff;
+        for (size_t i = 0; i < nvmfilep->config->sector_size; ++i)
+            if (f_write(&nvmfilep->file, &erased, sizeof(erased), NULL) != FR_OK)
+                return HAL_FAILED;
+    }
+#else /* HAS_FATFS */
     for (uint32_t addr = 0;
             addr < nvmfilep->config->sector_size * nvmfilep->config->sector_num;
             addr += nvmfilep->config->sector_size)
@@ -324,6 +406,7 @@ bool nvmfileMassErase(NVMFileDriver* nvmfilep)
             if (fwrite(&erased, 1, sizeof(erased), nvmfilep->file) != sizeof(erased))
                 return HAL_FAILED;
     }
+#endif /* HAS_FATFS */
 
     return HAL_SUCCESS;
 }
@@ -348,8 +431,13 @@ bool nvmfileSync(NVMFileDriver* nvmfilep)
     if (nvmfilep->state == NVM_READY)
         return HAL_SUCCESS;
 
+#if HAS_FATFS
+    if (f_sync(&nvmfilep->file) != FR_OK)
+        return HAL_FAILED;
+#else /* HAS_FATFS */
     if (fflush(nvmfilep->file) != 0)
         return HAL_FAILED;
+#endif /* HAS_FATFS */
 
     /* No more operation in progress. */
     nvmfilep->state = NVM_READY;
