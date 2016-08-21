@@ -38,6 +38,4 @@ CHIBIOS_STREAMS_DIR := $(CHIBIOS_DIR)/os/hal/lib/streams
 CSRC += $(wildcard $(CHIBIOS_STREAMS_DIR)/*.c)
 EXTRAINCDIRS += $(CHIBIOS_STREAMS_DIR)
 
-include $(CHIBIOS_DIR)/os/various/shell/shell.mk
-
 include $(QHAL_DIR)/../library.mk

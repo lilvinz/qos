@@ -101,9 +101,9 @@ eventmask_t chEvtWaitAnyPeriod(eventmask_t events, systime_t *previous,
     chSysLock();
 
     /* Check if event is already pending. */
-    if ((m = (ctp->epending & events)) != 0)
+    if ((m = (ctp->p_epending & events)) != 0)
     {
-        ctp->epending &= ~m;
+        ctp->p_epending &= ~m;
         chSysUnlock();
         /* If we are woken because of an event, do not update previous time. */
         return m;
@@ -118,7 +118,7 @@ eventmask_t chEvtWaitAnyPeriod(eventmask_t events, systime_t *previous,
 
     if (mustDelay)
     {
-        ctp->u.ewmask = events;
+        ctp->p_u.ewmask = events;
         if (chSchGoSleepTimeoutS(CH_STATE_WTOREVT, future - now) < MSG_OK)
         {
             chSysUnlock();
@@ -126,8 +126,8 @@ eventmask_t chEvtWaitAnyPeriod(eventmask_t events, systime_t *previous,
             *previous = future;
             return (eventmask_t)0;
         }
-        m = ctp->epending & events;
-        ctp->epending &= ~m;
+        m = ctp->p_epending & events;
+        ctp->p_epending &= ~m;
 
         chSysUnlock();
         /* If we are woken because of an event, do not update previous time. */

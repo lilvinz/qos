@@ -17,7 +17,7 @@ EXTRAINCDIRS += $(QHAL_STM32L4XX_DIR)/../LLD/USARTv2
 EXTRAINCDIRS += $(QHAL_STM32L4XX_DIR)/../LLD/RTCv2
 
 # ChibiOS
-include $(CHIBIOS_DIR)/os/common/startup/ARMCMx/compilers/GCC/mk/startup_stm32l4xx.mk
+include $(CHIBIOS_DIR)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32l4xx.mk
 include $(CHIBIOS_DIR)/community/os/hal/ports/STM32/STM32L4xx/platform.mk
 
 include $(QHAL_STM32L4XX_DIR)/../library.mk

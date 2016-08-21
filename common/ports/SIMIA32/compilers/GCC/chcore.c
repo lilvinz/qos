@@ -55,7 +55,7 @@ syssts_t port_irq_sts;
 
 static void _setcontext(void *arg) {
   thread_t *ntp = (thread_t*)arg;
-  if (setcontext(&ntp->ctx.uc) < 0)
+  if (setcontext(&ntp->p_ctx.uc) < 0)
     chSysHalt("setcontext() failed");
 }
 
@@ -86,7 +86,7 @@ void _port_switch(thread_t *ntp, thread_t *otp) {
   makecontext(&tempctx, (void(*)(void))_setcontext, 1, ntp);
 
   /* Save running thread, jump to temporary context. */
-  if (swapcontext(&otp->ctx.uc, &tempctx) < 0)
+  if (swapcontext(&otp->p_ctx.uc, &tempctx) < 0)
     chSysHalt("swapcontext() failed");
 }
 
