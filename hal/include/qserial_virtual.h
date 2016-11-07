@@ -122,6 +122,16 @@ struct SerialVirtualDriver
 /* Driver macros.                                                            */
 /*===========================================================================*/
 
+/**
+ * @brief   Returns the far pointer of a virtual serial channel end point.
+ *
+ * @param[in] ip        pointer to a @p SerialVirtualDriver or derived class
+ * @return              pointer to a @p SerialVirtualDriver or derived class
+ *
+ * @api
+ */
+#define sdvirtualGetFarPoint(ip) ((ip)->configp->farp)
+
 /*===========================================================================*/
 /* External declarations.                                                    */
 /*===========================================================================*/
