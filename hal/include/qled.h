@@ -96,10 +96,15 @@ extern "C"
     void ledStart(LedDriver* ledp, const LedConfig* config);
     void ledStop(LedDriver* ledp);
     void ledOn(LedDriver* ledp);
+    void ledOnI(LedDriver* ledp);
     void ledOff(LedDriver* ledp);
+    void ledOffI(LedDriver* ledp);
     void ledToggle(LedDriver* ledp);
+    void ledToggleI(LedDriver* ledp);
     void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop);
+    void ledBlinkI(LedDriver* ledp, systime_t on, systime_t off, int32_t loop);
     bool ledIsLedOn(LedDriver* ledp);
+    bool ledIsLedOnI(LedDriver* ledp);
 #ifdef __cplusplus
 }
 #endif

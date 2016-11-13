@@ -168,12 +168,26 @@ void ledStop(LedDriver* ledp)
  */
 void ledOn(LedDriver* ledp)
 {
+    osalSysLock();
+    ledOnI(ledp);
+    osalSysUnlock();
+}
+
+/**
+ * @brief   Switches LED on.
+ *
+ * @param[in] ledp      pointer to a @p LedDriver object
+ *
+ * @iclass
+ */
+void ledOnI(LedDriver* ledp)
+{
     osalDbgCheck(ledp != NULL);
     /* Verify device status. */
     osalDbgAssert(ledp->state >= LED_READY, "invalid state");
 
     /* Reset blink timer in case it is armed. */
-    chVTReset(&ledp->blink_vt);
+    chVTResetI(&ledp->blink_vt);
 
     led_on(ledp);
 }
@@ -187,12 +201,26 @@ void ledOn(LedDriver* ledp)
  */
 void ledOff(LedDriver* ledp)
 {
+    osalSysLock();
+    ledOffI(ledp);
+    osalSysUnlock();
+}
+
+/**
+ * @brief   Switches LED off.
+ *
+ * @param[in] ledp      pointer to a @p LedDriver object
+ *
+ * @iclass
+ */
+void ledOffI(LedDriver* ledp)
+{
     osalDbgCheck(ledp != NULL);
     /* Verify device status. */
     osalDbgAssert(ledp->state >= LED_READY, "invalid state");
 
     /* Reset blink timer in case it is armed. */
-    chVTReset(&ledp->blink_vt);
+    chVTResetI(&ledp->blink_vt);
 
     led_off(ledp);
 }
@@ -206,12 +234,26 @@ void ledOff(LedDriver* ledp)
  */
 void ledToggle(LedDriver* ledp)
 {
+    osalSysLock();
+    ledToggleI(ledp);
+    osalSysUnlock();
+}
+
+/**
+ * @brief   Toggle LED state.
+ *
+ * @param[in] ledp      pointer to a @p LedDriver object
+ *
+ * @iclass
+ */
+void ledToggleI(LedDriver* ledp)
+{
     osalDbgCheck(ledp != NULL);
     /* Verify device status. */
     osalDbgAssert(ledp->state >= LED_READY, "invalid state");
 
     /* Reset blink timer in case it is armed. */
-    chVTReset(&ledp->blink_vt);
+    chVTResetI(&ledp->blink_vt);
 
     palTogglePad(ledp->config->ledport, ledp->config->ledpad);
 }
@@ -228,6 +270,23 @@ void ledToggle(LedDriver* ledp)
  */
 void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop)
 {
+    osalSysLock();
+    ledBlinkI(ledp, on, off, loop);
+    osalSysUnlock();
+}
+
+/**
+ * @brief   Blink LED with defined period and number of loops.
+ *
+ * @param[in] ledp      pointer to a @p LedDriver object
+ * @param[in] on        time specifier for led on duration
+ * @param[in] off       time specifier for led off duration
+ * @param[in] loop      number of blink periods or <= 0 for infinite loop
+ *
+ * @iclass
+ */
+void ledBlinkI(LedDriver* ledp, systime_t on, systime_t off, int32_t loop)
+{
     osalDbgCheck(ledp != NULL);
     /* Verify device status. */
     osalDbgAssert(ledp->state >= LED_READY, "invalid state");
@@ -238,8 +297,6 @@ void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop)
     if (loop <= 0)
         loop = -1;
 
-    osalSysLock();
-
     ledp->blink_on = on;
     ledp->blink_off = off;
     ledp->blink_loop = loop;
@@ -248,8 +305,6 @@ void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop)
     chVTSetI(&ledp->blink_vt, ledp->blink_on, blink_timer_on_cb, ledp);
 
     led_on(ledp);
-
-    osalSysUnlock();
 }
 
 /**
@@ -264,6 +319,26 @@ void ledBlink(LedDriver* ledp, systime_t on, systime_t off, int32_t loop)
  * @api
  */
 bool ledIsLedOn(LedDriver* ledp)
+{
+    osalSysLock();
+    bool result = ledIsLedOnI(ledp);
+    osalSysUnlock();
+
+    return result;
+}
+
+/**
+ * @brief   Request current LED state.
+ *
+ * @param[in] ledp      pointer to a @p LedDriver object
+ *
+ * @return              The logical status of the led.
+ * @retval TRUE         The led is logically on.
+ * @retval FALSE        The led is logically off.
+ *
+ * @iclass
+ */
+bool ledIsLedOnI(LedDriver* ledp)
 {
     osalDbgCheck(ledp != NULL);
     /* Verify device status. */
