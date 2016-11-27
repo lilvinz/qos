@@ -37,6 +37,8 @@ static const struct GDSimDriverVMT gd_sim_vmt =
             gdsimStreamStart,
     .stream_write =
             (void (*)(void*, const color_t[], size_t))gdsimStreamWrite,
+    .stream_color =
+            (void (*)(void*, const color_t, uint16_t))gdsimStreamColor,
     .stream_end = (void (*)(void*))gdsimStreamEnd,
     .rect_fill = (void (*)(void*, coord_t, coord_t, coord_t, coord_t, color_t))
             gdsimRectFill,
@@ -194,6 +196,32 @@ void gdsimStreamWrite(GDSimDriver* gdsimp, const color_t data[], size_t n)
                 gdsimp->stream_left + gdsimp->stream_pos % gdsimp->stream_width,
                 gdsimp->stream_top + gdsimp->stream_pos / gdsimp->stream_width,
                 data[i]);
+
+        ++gdsimp->stream_pos;
+    }
+}
+
+/**
+ * @brief   Write a color n times in stream mode.
+ *
+ * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ * @param[in] color     color to write
+ * @param[in] n         number of times to write color
+ *
+ * @api
+ */
+void gdsimStreamColor(GDSimDriver* gdsimp, const color_t color, uint16_t n)
+{
+    osalDbgCheck(gdsimp != NULL);
+    /* Verify device status. */
+    osalDbgAssert(gdsimp->state >= GD_ACTIVE, "invalid state");
+
+    for (size_t i = 0; i < n; ++i)
+    {
+        gdsim_lld_pixel_set(gdsimp,
+                gdsimp->stream_left + gdsimp->stream_pos % gdsimp->stream_width,
+                gdsimp->stream_top + gdsimp->stream_pos / gdsimp->stream_width,
+                color);
 
         ++gdsimp->stream_pos;
     }

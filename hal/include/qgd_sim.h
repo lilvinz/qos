@@ -65,6 +65,7 @@ extern "C" {
     void gdsimStreamStart(GDSimDriver* gdsimp, coord_t left, coord_t top,
             coord_t width, coord_t height);
     void gdsimStreamWrite(GDSimDriver* gdsimp, const color_t data[], size_t n);
+    void gdsimStreamColor(GDSimDriver* gdsimp, const color_t color, uint16_t n);
     void gdsimStreamEnd(GDSimDriver* gdsimp);
     void gdsimRectFill(GDSimDriver* gdsimp, coord_t left, coord_t top,
             coord_t width, coord_t height, color_t color);

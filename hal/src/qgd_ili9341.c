@@ -36,6 +36,8 @@ static const struct GDILI9341DriverVMT gd_sim_vmt =
             gdili9341StreamStart,
     .stream_write =
             (void (*)(void*, const color_t[], size_t))gdili9341StreamWrite,
+    .stream_color =
+            (void (*)(void*, const color_t, uint16_t))gdili9341StreamColor,
     .stream_end = (void (*)(void*))gdili9341StreamEnd,
     .rect_fill = (void (*)(void*, coord_t, coord_t, coord_t, coord_t, color_t))
             gdili9341RectFill,
@@ -288,6 +290,25 @@ void gdili9341StreamWrite(GDILI9341Driver* gdili9341p, const color_t data[],
 }
 
 /**
+ * @brief   Write a color n times in stream mode.
+ *
+ * @param[in] ip            pointer to a @p BaseGDDevice or derived class
+ * @param[in] color         color to write
+ * @param[in] n             number of times to write color
+ *
+ * @api
+ */
+void gdili9341StreamColor(GDILI9341Driver* gdili9341p, const color_t color,
+        uint16_t n)
+{
+    osalDbgCheck(gdili9341p != NULL);
+    /* Verify device status. */
+    osalDbgAssert(gdili9341p->state >= GD_ACTIVE, "invalid state");
+
+    gdili9341p->config->write_color_cb(color, n);
+}
+
+/**
  * @brief   End stream mode writing.
  *
  * @param[in] gdili9341p    pointer to the @p GDILI9341Driver object
@@ -323,16 +344,15 @@ void gdili9341RectFill(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
 
     gdili9341StreamStart(gdili9341p, left, top, width, height);
 
-    const color_t temp[] =
+    size_t size = (size_t)width * height;
+
+    while (size > 0xffff)
     {
-        color, color, color, color, color, color, color, color,
-        color, color, color, color, color, color, color, color,
-    };
-
-    const size_t n = (size_t)width * height;
-
-    for (size_t i = 0; i < n; i += NELEMS(temp))
-        gdili9341StreamWrite(gdili9341p, temp, NELEMS(temp));
+        gdili9341StreamColor(gdili9341p, color, 0xffff);
+        size -= 0xffff;
+    }
+    if (size)
+        gdili9341StreamColor(gdili9341p, color, size);
 
     gdili9341StreamEnd(gdili9341p);
 }
