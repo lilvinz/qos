@@ -56,7 +56,6 @@ static uint32_t convert_color(color_t color)
  *
  * @notapi
  */
-__attribute__((noreturn))
 static void gdsim_lld_pump(void* p)
 {
     GDSimDriver* gdsimp = (GDSimDriver*)p;
