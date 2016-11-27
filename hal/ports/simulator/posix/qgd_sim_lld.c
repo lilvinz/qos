@@ -56,7 +56,6 @@ static uint32_t convert_color(color_t color)
  *
  * @notapi
  */
-__attribute__((noreturn))
 static void gdsim_lld_pump(void* p)
 {
     GDSimDriver* gdsimp = (GDSimDriver*)p;
@@ -71,7 +70,6 @@ static void gdsim_lld_pump(void* p)
         osalSysLock();
         if (gdsimp->state == GD_STOP)
             chThdSuspendS(&gdsimp->wait);
-        osalSysUnlock();
 
         xcb_generic_event_t* e;
         while ((e = xcb_poll_for_event(gdsimp->xcb_connection)) != NULL)
@@ -98,6 +96,7 @@ static void gdsim_lld_pump(void* p)
             /* Free the generic event. */
             free(e);
         }
+        osalSysUnlock();
 
         osalThreadSleepMilliseconds(10);
     }
@@ -278,7 +277,11 @@ void gdsim_lld_stop(GDSimDriver* gdsimp)
 void gdsim_lld_pixel_set(GDSimDriver* gdsimp, coord_t x, coord_t y,
         color_t color)
 {
+    osalSysLock();
+
     xcb_image_put_pixel(gdsimp->xcb_image, x, y, convert_color(color));
+
+    osalSysUnlock();
 }
 
 /**
@@ -296,9 +299,13 @@ void gdsim_lld_pixel_set(GDSimDriver* gdsimp, coord_t x, coord_t y,
 void gdsim_lld_rect_fill(GDSimDriver* gdsimp, coord_t left, coord_t top,
         coord_t width, coord_t height, color_t color)
 {
+    osalSysLock();
+
     for (coord_t y = top; y < top + height; ++y)
         for (size_t x = left; x < left + width; ++x)
             xcb_image_put_pixel(gdsimp->xcb_image, x, y, convert_color(color));
+
+    osalSysUnlock();
 }
 
 /**
@@ -331,6 +338,8 @@ bool gdsim_lld_get_info(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
 void gdsim_lld_flush(GDSimDriver* gdsimp, coord_t left, coord_t top,
         coord_t width, coord_t height)
 {
+    osalSysLock();
+
     /* Create subimage for to be flushed area. */
     xcb_image_t* sub_image = xcb_image_subimage(
             gdsimp->xcb_image,
@@ -371,6 +380,8 @@ void gdsim_lld_flush(GDSimDriver* gdsimp, coord_t left, coord_t top,
 
     xcb_image_destroy(sub_image);
     xcb_image_destroy(native_image);
+
+    osalSysUnlock();
 }
 
 #endif /* HAL_USE_GD_SIM */
