@@ -162,6 +162,7 @@ typedef struct
     void (*write_cmd_cb)(const uint8_t cmd);
     void (*write_parm_cb)(const uint8_t data[], size_t n);
     void (*write_mem_cb)(const color_t data[], size_t n);
+    void (*write_color_cb)(const color_t color, uint16_t n);
     void (*read_parm_cb)(uint8_t data[], size_t n);
     /**
      * @brief Configuration callback
@@ -236,6 +237,7 @@ extern "C" {
     void gdili9341StreamStart(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
             coord_t width, coord_t height);
     void gdili9341StreamWrite(GDILI9341Driver* gdili9341p, const color_t data[], size_t n);
+    void gdili9341StreamColor(GDILI9341Driver* gdili9341p, const color_t color, uint16_t n);
     void gdili9341StreamEnd(GDILI9341Driver* gdili9341p);
     void gdili9341RectFill(GDILI9341Driver* gdili9341p, coord_t left, coord_t top,
             coord_t width, coord_t height, color_t color);

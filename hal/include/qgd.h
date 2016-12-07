@@ -103,10 +103,11 @@ typedef struct
     void (*stream_start)(void *instance, coord_t left, coord_t top,           \
             coord_t width, coord_t height);                                   \
     void (*stream_write)(void *instance, const color_t data[], size_t n);     \
+    void (*stream_color)(void *instance, const color_t color, uint16_t);      \
     void (*stream_end)(void *instance);                                       \
     void (*rect_fill)(void *instance, coord_t left, coord_t top,              \
             coord_t width, coord_t height, color_t color);                    \
-    bool (*get_info)(void *instance, GDDeviceInfo *gddip);                  \
+    bool (*get_info)(void *instance, GDDeviceInfo *gddip);                    \
     /* End of mandatory functions. */                                         \
     /* Acquire device if supported by underlying driver.*/                    \
     void (*acquire)(void *instance);                                          \
@@ -196,6 +197,17 @@ typedef struct
  * @api
  */
 #define gdStreamWrite(ip, data, n) ((ip)->vmt->stream_write(ip, data, n))
+
+/**
+ * @brief   Write a color n times in stream mode.
+ *
+ * @param[in] ip        pointer to a @p BaseGDDevice or derived class
+ * @param[in] color     color to write
+ * @param[in] n         number of times to write color
+ *
+ * @api
+ */
+#define gdStreamColor(ip, color, n) ((ip)->vmt->stream_color(ip, color, n))
 
 /**
  * @brief   End stream mode writing.
