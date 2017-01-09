@@ -66,6 +66,10 @@ typedef struct
     */
     SPIDriver* spip;
     /**
+    * @brief SPI driver configuration for multi slave buses or NULL.
+    */
+    const SPIConfig* spi_cfgp;
+    /**
      * @brief Smallest erasable sector size in bytes.
      */
     uint32_t sector_size;
