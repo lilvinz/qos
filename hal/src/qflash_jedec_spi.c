@@ -75,6 +75,17 @@ static const struct FlashJedecSPIDriverVMT flash_jedec_spi_vmt =
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
+static void flash_jedec_spi_reconfigure(FlashJedecSPIDriver* fjsp)
+{
+#if !FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION || !SPI_USE_MUTUAL_EXCLUSION
+    /* Set slave specific bus configuration if defined. */
+    if (fjsp->config->spi_cfgp)
+        spiStart(fjsp->config->spip, fjsp->config->spi_cfgp);
+#else
+    (void)fjsp;
+#endif /* !FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION || !SPI_USE_MUTUAL_EXCLUSION */
+}
+
 static void flash_jedec_spi_write_enable(FlashJedecSPIDriver* fjsp)
 {
     chDbgCheck((fjsp != NULL), "flash_jedec_spi_write_enable");
@@ -112,6 +123,7 @@ static void flash_jedec_spi_write_disable(FlashJedecSPIDriver* fjsp)
 static void flash_jedec_spi_wait_busy(FlashJedecSPIDriver* fjsp)
 {
     chDbgCheck((fjsp != NULL), "flash_jedec_spi_wait_busy");
+
     spiSelect(fjsp->config->spip);
 
     static const uint8_t out[] =
@@ -526,6 +538,8 @@ bool_t fjsRead(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
     /* Read operation in progress. */
     fjsp->state = NVM_READING;
 
+    flash_jedec_spi_reconfigure(fjsp);
+
     spiSelect(fjsp->config->spip);
 
     const uint8_t out[] =
@@ -590,6 +604,8 @@ bool_t fjsWrite(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n,
     /* Write operation in progress. */
     fjsp->state = NVM_WRITING;
 
+    flash_jedec_spi_reconfigure(fjsp);
+
     uint32_t written = 0;
 
     while (written < n)
@@ -633,6 +649,8 @@ bool_t fjsErase(FlashJedecSPIDriver* fjsp, uint32_t startaddr, uint32_t n)
 
     /* Erase operation in progress. */
     fjsp->state = NVM_ERASING;
+
+    flash_jedec_spi_reconfigure(fjsp);
 
     uint32_t addr = startaddr - (startaddr % fjsp->config->sector_size);
 
@@ -689,6 +707,8 @@ bool_t fjsMassErase(FlashJedecSPIDriver* fjsp)
     /* Erase operation in progress. */
     fjsp->state = NVM_ERASING;
 
+    flash_jedec_spi_reconfigure(fjsp);
+
     /* Check if device supports erase command. */
     if (fjsp->config->cmd_sector_erase != 0x00)
     {
@@ -726,6 +746,8 @@ bool_t fjsSync(FlashJedecSPIDriver* fjsp)
     if (fjsp->state == NVM_READY)
         return CH_SUCCESS;
 
+    flash_jedec_spi_reconfigure(fjsp);
+
     flash_jedec_spi_wait_busy(fjsp);
 
     /* No more operation in progress. */
@@ -752,6 +774,8 @@ bool_t fjsGetInfo(FlashJedecSPIDriver* fjsp, NVMDeviceInfo* nvmdip)
     /* Verify device status. */
     chDbgAssert(fjsp->state >= NVM_READY, "fjsGetInfo(), #1",
             "invalid state");
+
+    flash_jedec_spi_reconfigure(fjsp);
 
     flash_jedec_spi_wait_busy(fjsp);
 
@@ -808,7 +832,12 @@ void fjsAcquireBus(FlashJedecSPIDriver* fjsp)
 #if SPI_USE_MUTUAL_EXCLUSION
     /* Acquire the underlying device as well. */
     spiAcquireBus(fjsp->config->spip);
+
+    /* Set slave specific bus configuration if defined. */
+    if (fjsp->config->spi_cfgp)
+        spiStart(fjsp->config->spip, fjsp->config->spi_cfgp);
 #endif /* SPI_USE_MUTUAL_EXCLUSION */
+
 #endif /* FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION */
 }
 
@@ -871,6 +900,8 @@ bool_t fjsWriteProtect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
     /* Protect as little of our address space as possible to
      satisfy request. */
 
+    flash_jedec_spi_reconfigure(fjsp);
+
     flash_jedec_spi_wait_busy(fjsp);
 
     uint8_t bp_mask = (1 << fjsp->config->bpbits_num) - 1;
@@ -918,6 +949,8 @@ bool_t fjsMassWriteProtect(FlashJedecSPIDriver* fjsp)
     if (fjsp->config->bpbits_num == 0)
         return CH_SUCCESS;
 
+    flash_jedec_spi_reconfigure(fjsp);
+
     /* set BP3 ... BP0 */
     flash_jedec_spi_sr_write(fjsp, 0x07 << 2);
 
@@ -954,6 +987,8 @@ bool_t fjsWriteUnprotect(FlashJedecSPIDriver* fjsp, uint32_t startaddr,
 
     /* Unprotect as little of our address space as possible to
      satisfy request. */
+
+    flash_jedec_spi_reconfigure(fjsp);
 
     flash_jedec_spi_wait_busy(fjsp);
 
@@ -1001,6 +1036,8 @@ bool_t fjsMassWriteUnprotect(FlashJedecSPIDriver* fjsp)
     /* Check if chip supports write protection. */
     if (fjsp->config->bpbits_num == 0)
         return CH_SUCCESS;
+
+    flash_jedec_spi_reconfigure(fjsp);
 
     flash_jedec_spi_sr_write(fjsp, 0x00);
 
