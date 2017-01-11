@@ -94,6 +94,9 @@ void qhalInit(void)
 #if HAL_USE_MS58XX || defined(__DOXYGEN__)
     ms58xxInit();
 #endif
+#if HAL_USE_SERIAL_SOFT || defined(__DOXYGEN__)
+    serialsoftInit();
+#endif
 }
 
 /** @} */

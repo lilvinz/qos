@@ -17,7 +17,7 @@
 #include "qhal.h"
 #include "qhalconf.h"
 
-#if (HAL_USE_QSERIALSOFT == TRUE) || defined(__DOXYGEN__)
+#if (HAL_USE_SERIAL_SOFT == TRUE) || defined(__DOXYGEN__)
 
 #include <string.h>
 #include <limits.h>
@@ -28,13 +28,13 @@
 /**
  * @brief     Local function declarations.
  */
-#if QSERIALSOFT_USE_TRANSMITTER
+#if SERIALSOFT_USE_TRANSMITTER
 static void qserialsoft_write_bit_cb(GPTDriver *gptd);
-#endif /* QSERIALSOFT_USE_TRANSMITTER */
-#if QSERIALSOFT_USE_RECEIVER
+#endif /* SERIALSOFT_USE_TRANSMITTER */
+#if SERIALSOFT_USE_RECEIVER
 static void qserialsoft_start_bit_cb(EXTDriver* extp, expchannel_t channel);
 static void qserialsoft_read_bit_cb(GPTDriver *gptd);
-#endif /* QSERIALSOFT_USE_RECEIVER */
+#endif /* SERIALSOFT_USE_RECEIVER */
 
 /*===========================================================================*/
 /* Driver exported variables.                                                */
@@ -42,7 +42,7 @@ static void qserialsoft_read_bit_cb(GPTDriver *gptd);
 /**
  * @brief qserialsoft driver identifier.
  */
-qserialsoftDriver QSERIALSOFTD1;
+SerialSoftDriver QSERIALSOFTD1;
 
 /*===========================================================================*/
 /* Driver local variables and types.                                         */
@@ -68,7 +68,7 @@ qserialsoftDriver QSERIALSOFTD1;
    parity */
 static bool getParity(uint16_t number)
 {
-    bool parity = 0;
+    bool parity = false;
     while (number)
     {
         parity = !parity;
@@ -77,7 +77,7 @@ static bool getParity(uint16_t number)
     return parity;
 }
 
-#if QSERIALSOFT_USE_TRANSMITTER
+#if SERIALSOFT_USE_TRANSMITTER
 /**
  * @brief     qserialsoft bit transmission callback.
  * @note      Must be called from GPT's ISR.
@@ -112,9 +112,9 @@ static void qserialsoft_write_bit_cb(GPTDriver *gptd)
 
     chSysUnlockFromIsr();
 }
-#endif /* QSERIALSOFT_USE_TRANSMITTER */
+#endif /* SERIALSOFT_USE_TRANSMITTER */
 
-#if QSERIALSOFT_USE_RECEIVER
+#if SERIALSOFT_USE_RECEIVER
 /**
  * @brief     qserialsoft start bit callback.
  * @note      Must be called from EXT's ISR.
@@ -179,7 +179,7 @@ static void qserialsoft_read_bit_cb(GPTDriver *gptd)
             /* check parity */
             if ((getParity(QSERIALSOFTD1.ibyte) ^ bitstate) != (QSERIALSOFTD1.config->parity - 1))
             {
-                chnAddFlagsI(&QSERIALSOFTD1, QSERIALSOFT_PARITY_ERROR);
+                chnAddFlagsI(&QSERIALSOFTD1, SERIALSOFT_PARITY_ERROR);
             }
         }
         else
@@ -197,13 +197,13 @@ static void qserialsoft_read_bit_cb(GPTDriver *gptd)
                 }
                 if (chIQPutI(&QSERIALSOFTD1.iqueue, QSERIALSOFTD1.ibyte) == Q_FULL)
                 {
-                    chnAddFlagsI(&QSERIALSOFTD1, QSERIALSOFT_OVERRUN_ERROR);
+                    chnAddFlagsI(&QSERIALSOFTD1, SERIALSOFT_OVERRUN_ERROR);
                 }
             }
             else
             {
                 /* stop bit not ok */
-                chnAddFlagsI(&QSERIALSOFTD1, QSERIALSOFT_FRAMING_ERROR);
+                chnAddFlagsI(&QSERIALSOFTD1, SERIALSOFT_FRAMING_ERROR);
             }
 
             /* prepare for reception of next frame */
@@ -217,7 +217,7 @@ static void qserialsoft_read_bit_cb(GPTDriver *gptd)
     chSysUnlockFromIsr();
 }
 
-#endif /* QSERIALSOFT_USE_RECEIVER */
+#endif /* SERIALSOFT_USE_RECEIVER */
 
 /*
  * Interface implementation, the following functions just invoke the equivalent
@@ -225,8 +225,8 @@ static void qserialsoft_read_bit_cb(GPTDriver *gptd)
  */
 static msg_t putt(void* ip, uint8_t b, systime_t timeout)
 {
-#if QSERIALSOFT_USE_TRANSMITTER
-    qserialsoftDriver* qserialsoftdp = (qserialsoftDriver*) ip;
+#if SERIALSOFT_USE_TRANSMITTER
+    SerialSoftDriver* qserialsoftdp = (SerialSoftDriver*) ip;
     return chOQPutTimeout(&qserialsoftdp->oqueue, b, timeout);
 #else
     return Q_TIMEOUT;
@@ -235,8 +235,8 @@ static msg_t putt(void* ip, uint8_t b, systime_t timeout)
 
 static msg_t gett(void* ip, systime_t timeout)
 {
-#if QSERIALSOFT_USE_RECEIVER
-    qserialsoftDriver* qserialsoftdp = (qserialsoftDriver*) ip;
+#if SERIALSOFT_USE_RECEIVER
+    SerialSoftDriver* qserialsoftdp = (SerialSoftDriver*) ip;
     return chIQGetTimeout(&qserialsoftdp->iqueue, timeout);
 #else
     return Q_TIMEOUT;
@@ -245,8 +245,8 @@ static msg_t gett(void* ip, systime_t timeout)
 
 static size_t writet(void* ip, const uint8_t* bp, size_t n, systime_t timeout)
 {
-#if QSERIALSOFT_USE_TRANSMITTER
-    qserialsoftDriver* qserialsoftdp = (qserialsoftDriver*) ip;
+#if SERIALSOFT_USE_TRANSMITTER
+    SerialSoftDriver* qserialsoftdp = (SerialSoftDriver*) ip;
     size_t result = chOQWriteTimeout(&qserialsoftdp->oqueue, bp, n, TIME_INFINITE);
     return result;
 #else
@@ -256,8 +256,8 @@ static size_t writet(void* ip, const uint8_t* bp, size_t n, systime_t timeout)
 
 static size_t readt(void* ip, uint8_t* bp, size_t n, systime_t timeout)
 {
-#if QSERIALSOFT_USE_RECEIVER
-    qserialsoftDriver* qserialsoftdp = (qserialsoftDriver*) ip;
+#if SERIALSOFT_USE_RECEIVER
+    SerialSoftDriver* qserialsoftdp = (SerialSoftDriver*) ip;
     size_t result = chIQReadTimeout(&qserialsoftdp->iqueue, bp, n, timeout);
     return result;
 #else
@@ -285,7 +285,7 @@ static msg_t get(void* ip)
     return gett(ip, TIME_INFINITE);
 }
 
-static const struct QSerialSoftDriverVMT vmt =
+static const struct SerialSoftDriverVMT vmt =
 {
     write, read, put, get,
     putt, gett, writet, readt
@@ -296,28 +296,38 @@ static const struct QSerialSoftDriverVMT vmt =
 /*===========================================================================*/
 
 /**
- * @brief   Initializes @p qserialsoftDriver structure.
- *
- * @param[out] qsvip    pointer to the @p qserialsoftDriver object
+ * @brief   Initializes Driver.
  *
  * @init
  */
-void qserialsoftObjectInit(qserialsoftDriver *qsvip)
+void serialsoftInit(void)
 {
-    chDbgCheck(NULL != qsvip, "qserialsoftObjectInit");
+
+}
+
+/**
+ * @brief   Initializes @p SerialSoftDriver structure.
+ *
+ * @param[out] qsvip    pointer to the @p SerialSoftDriver object
+ *
+ * @init
+ */
+void serialsoftObjectInit(SerialSoftDriver *qsvip)
+{
+    chDbgCheck(NULL != qsvip, "serialsoftObjectInit");
 
     qsvip->vmt = &vmt;
     chEvtInit(&qsvip->event);
 
     qsvip->config = NULL;
-    qsvip->state = QSERIALSOFT_STOP;
+    qsvip->state = SERIALSOFT_STOP;
 
-#if QSERIALSOFT_USE_TRANSMITTER
+#if SERIALSOFT_USE_TRANSMITTER
     chOQInit(&qsvip->oqueue, qsvip->ob, sizeof(qsvip->ob), NULL, qsvip);
     qsvip->obit = 0;
 #endif
 
-#if QSERIALSOFT_USE_RECEIVER
+#if SERIALSOFT_USE_RECEIVER
     chIQInit(&qsvip->iqueue, qsvip->ib, sizeof(qsvip->ib), NULL, qsvip);
     qsvip->ibit = 0;
 #endif
@@ -326,35 +336,35 @@ void qserialsoftObjectInit(qserialsoftDriver *qsvip)
 /**
  * @brief   Configures and activates the qserialsoft driver.
  *
- * @param[in] qsvip     pointer to the @p qserialsoftDriver object
- * @param[in] config    pointer to the @p qserialsoftConfig object
+ * @param[in] qsvip     pointer to the @p SerialSoftDriver object
+ * @param[in] config    pointer to the @p SerialSoftConfig object
  *
  * @api
  */
-void qserialsoftStart(qserialsoftDriver *qsvip, qserialsoftConfig *config)
+void serialsoftStart(SerialSoftDriver *qsvip, SerialSoftConfig *config)
 {
-    chDbgCheck((NULL != qsvip) && (NULL != config), "qserialsoftStart");
+    chDbgCheck((NULL != qsvip) && (NULL != config), "serialsoftStart");
 
     chSysLock();
-    chDbgAssert((qsvip->state == QSERIALSOFT_STOP) || (qsvip->state == QSERIALSOFT_READY),
-            "qserialsoftStart(), #1",
+    chDbgAssert((qsvip->state == SERIALSOFT_STOP) || (qsvip->state == SERIALSOFT_READY),
+            "serialsoftStart(), #1",
             "invalid state");
 
     chDbgAssert(GPT_STOP == config->gptd->state,
-    "qserialsoftStart(), #2", "GPT will be started by qserialsoft driver internally.");
+    "serialsoftStart(), #2", "GPT will be started by qserialsoft driver internally.");
 
     qsvip->config = config;
 
-    qsvip->state = QSERIALSOFT_READY;
+    qsvip->state = SERIALSOFT_READY;
 
     chSysUnlock();
 
-#if QSERIALSOFT_USE_TRANSMITTER
+#if SERIALSOFT_USE_TRANSMITTER
     /* ToDo: Setup tx environment */
 
 #endif
 
-#if QSERIALSOFT_USE_RECEIVER
+#if SERIALSOFT_USE_RECEIVER
     /* start GPT driver to obtain gpt clock frequency */
     qsvip->config->gptcfg->frequency = 10000;
     qsvip->config->gptcfg->callback = qserialsoft_read_bit_cb;
@@ -379,41 +389,41 @@ void qserialsoftStart(qserialsoftDriver *qsvip, qserialsoftConfig *config)
 /**
  * @brief   Deactivates the qserialsoft driver.
  *
- * @param[in] qsvip     pointer to the @p qserialsoftDriver object
+ * @param[in] qsvip     pointer to the @p SerialSoftDriver object
  *
  * @api
  */
-void qserialsoftStop(qserialsoftDriver *qsvip)
+void serialsoftStop(SerialSoftDriver *qsvip)
 {
-    chDbgCheck(NULL != qsvip, "qserialsoftStop");
+    chDbgCheck(NULL != qsvip, "serialsoftStop");
 
-#if QSERIALSOFT_USE_TRANSMITTER
+#if SERIALSOFT_USE_TRANSMITTER
     /* ToDo: Stop tx environment */
 #endif
-#if QSERIALSOFT_USE_RECEIVER
+#if SERIALSOFT_USE_RECEIVER
     extChannelDisable(qsvip->config->extd, qsvip->config->rx_pad);
     gptStopTimer(qsvip->config->gptd);
     gptStop(qsvip->config->gptd);
 #endif
 
     chSysLock();
-    chDbgAssert((qsvip->state == QSERIALSOFT_STOP) || (qsvip->state == QSERIALSOFT_READY),
-            "qserialsoftStop(), #1",
+    chDbgAssert((qsvip->state == SERIALSOFT_STOP) || (qsvip->state == SERIALSOFT_READY),
+            "serialsoftStop(), #1",
             "invalid state");
-    qsvip->state = QSERIALSOFT_STOP;
+    qsvip->state = SERIALSOFT_STOP;
     qsvip->config = NULL;
 
-#if QSERIALSOFT_USE_RECEIVER
+#if SERIALSOFT_USE_RECEIVER
     chIQResetI(&qsvip->iqueue);
 #endif
 
-#if QSERIALSOFT_USE_TRANSMITTER
+#if SERIALSOFT_USE_TRANSMITTER
     chOQResetI(&qsvip->oqueue);
 #endif
 
     chSysUnlock();
 }
 
-#endif /* HAL_USE_QSERIALSOFT */
+#endif /* HAL_USE_SERIAL_SOFT */
 
 /** @} */
