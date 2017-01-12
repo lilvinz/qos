@@ -151,30 +151,17 @@ static void qserialsoft_read_bit_cb(GPTDriver *gptd)
     if (QSERIALSOFTD1.ibit == 0)
         gptStartContinuousI(QSERIALSOFTD1.config->gptd, QSERIALSOFTD1.timing_bit_interval);
 
-    bool bitstate = (palReadPad(QSERIALSOFTD1.config->rx_port, QSERIALSOFTD1.config->rx_pad) == PAL_HIGH);
+    bool bitstate = palReadPad(QSERIALSOFTD1.config->rx_port, QSERIALSOFTD1.config->rx_pad) == PAL_HIGH;
     bitstate ^= QSERIALSOFTD1.config->rx_invert;
 
-    ++QSERIALSOFTD1.ibit;
-
-    if (QSERIALSOFTD1.ibit <= QSERIALSOFTD1.config->databits)
+    if (QSERIALSOFTD1.ibit < QSERIALSOFTD1.config->databits)
     {
         /* buffer data bits */
-        QSERIALSOFTD1.ibyte |= bitstate << (QSERIALSOFTD1.ibit - 1);
+        QSERIALSOFTD1.ibyte |= bitstate << QSERIALSOFTD1.ibit;
     }
     else
     {
-        bool check_parity = false;
-
-        if (QSERIALSOFTD1.ibit == QSERIALSOFTD1.config->databits + 1)
-        {
-            /* 1st bit after data bits */
-            if (QSERIALSOFTD1.config->parity != 0)
-            {
-                check_parity = true;
-            }
-        }
-
-        if (check_parity == true)
+        if (QSERIALSOFTD1.ibit == QSERIALSOFTD1.config->databits && QSERIALSOFTD1.config->parity != 0)
         {
             /* check parity */
             if ((getParity(QSERIALSOFTD1.ibyte) ^ bitstate) != (QSERIALSOFTD1.config->parity - 1))
@@ -211,8 +198,13 @@ static void qserialsoft_read_bit_cb(GPTDriver *gptd)
             QSERIALSOFTD1.ibyte = 0;
 
             extChannelEnableI(QSERIALSOFTD1.config->extd, QSERIALSOFTD1.config->rx_pad);
+
+            chSysUnlockFromIsr();
+            return;
         }
     }
+
+    ++QSERIALSOFTD1.ibit;
 
     chSysUnlockFromIsr();
 }
