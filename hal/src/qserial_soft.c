@@ -130,7 +130,7 @@ static void qserialsoft_start_bit_cb(EXTDriver* extp, expchannel_t channel)
 
     chSysLockFromIsr();
     extChannelDisableI(QSERIALSOFTD1.config->extd, QSERIALSOFTD1.config->rx_pad);
-    gptStartOneShotI(QSERIALSOFTD1.config->gptd, (QSERIALSOFTD1.config->gptd->clock / QSERIALSOFTD1.config->speed) * 4 / 3);
+    gptStartOneShotI(QSERIALSOFTD1.config->gptd, QSERIALSOFTD1.timing_first_bit);
     chSysUnlockFromIsr();
 }
 
@@ -149,7 +149,7 @@ static void qserialsoft_read_bit_cb(GPTDriver *gptd)
     chSysLockFromIsr();
 
     if (QSERIALSOFTD1.ibit == 0)
-        gptStartContinuousI(QSERIALSOFTD1.config->gptd, QSERIALSOFTD1.config->gptd->clock / QSERIALSOFTD1.config->speed);
+        gptStartContinuousI(QSERIALSOFTD1.config->gptd, QSERIALSOFTD1.timing_bit_interval);
 
     bool bitstate = (palReadPad(QSERIALSOFTD1.config->rx_port, QSERIALSOFTD1.config->rx_pad) == PAL_HIGH);
     bitstate ^= QSERIALSOFTD1.config->rx_invert;
@@ -384,6 +384,12 @@ void serialsoftStart(SerialSoftDriver *qsvip, SerialSoftConfig *config)
     qsvip->config->extcfg->channels[qsvip->config->rx_pad].cb = qserialsoft_start_bit_cb;
     extChannelEnable(qsvip->config->extd, qsvip->config->rx_pad);
 #endif
+
+    /* pre-calculate timer value for bit interval */
+    qsvip->timing_bit_interval = QSERIALSOFTD1.config->gptd->clock / QSERIALSOFTD1.config->speed;
+
+    /* pre-calculate timer value for center of 1st data bit after leading edge of start bit */
+    qsvip->timing_first_bit = qsvip->timing_bit_interval * 4 / 3;
 }
 
 /**

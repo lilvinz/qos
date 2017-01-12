@@ -195,6 +195,10 @@ typedef struct
     SerialSoftConfig *config;
     /* Driver state */
     qserialsoft_state_t state;
+    /* Bit timing - data bit interval */
+    uint32_t timing_bit_interval;
+    /* Bit timing - center of 1st data bit */
+    uint32_t timing_first_bit;
 #if SERIALSOFT_USE_TRANSMITTER
     /* Output bit number */
     uint8_t obit;
