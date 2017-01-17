@@ -46,6 +46,10 @@
 #error "qserialsoft driver requires transmitter and/or receiver mode enabled."
 #endif
 
+#if SERIALSOFT_USE_TRANSMITTER
+#error "qserialsoft transmitter not implemented yet."
+#endif
+
 #if SERIALSOFT_USE_TRANSMITTER && !HAL_USE_GPT
 #error "qserialsoft driver TX requires HAL_USE_GPT."
 #endif
@@ -94,28 +98,7 @@ struct SerialSoftDriverVMT
 typedef struct
 {
 #if SERIALSOFT_USE_TRANSMITTER
-    /**
-     * @brief Pointer to @p PWM driver used for communication.
-     */
-    PWMDriver *pwmd;
-    /**
-     * @brief Pointer to configuration structure for underlying PWM driver.
-     * @note  It is NOT constant because driver needs to change them
-     *        during normal functioning.
-     */
-    PWMConfig *pwmcfg;
-    /**
-     * @brief   Active logic level for master channel.
-     * @details Just set it to @p PWM_OUTPUT_ACTIVE_HIGH when svinfo is
-     *          connected to direct (not complementary) output of the timer.
-     *          In opposite case you need to check documentation to choose
-     *          correct value.
-     */
-    pwmmode_t pwmmode;
-    /**
-     * @brief Number of PWM channel used as pulse generator.
-     */
-    pwmchannel_t pwmchannel;
+    /* ToDo: Implement transmitter config */
 #endif /* SERIALSOFT_USE_TRANSMITTER */
 
 #if SERIALSOFT_USE_RECEIVER
@@ -163,7 +146,7 @@ typedef struct
     uint32_t speed;
 
     /**
-     * @brief Count of data bits.
+     * @brief Count of data bits (7 or 8)
      */
     uint8_t databits;
 

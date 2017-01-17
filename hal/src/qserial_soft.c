@@ -342,21 +342,35 @@ void serialsoftStart(SerialSoftDriver *qsvip, SerialSoftConfig *config)
             "serialsoftStart(), #1",
             "invalid state");
 
-    chDbgAssert(GPT_STOP == config->gptd->state,
-    "serialsoftStart(), #2", "GPT will be started by qserialsoft driver internally.");
+    chDbgAssert(config->speed < 28800,
+            "serialsoftStart(), #2", "Selected speed is too high.");
+    chDbgAssert(config->speed > 300,
+            "serialsoftStart(), #2", "Selected speed is too low.");
+    chDbgAssert(config->databits == 7 || config->databits == 8,
+            "serialsoftStart(), #2", "Invalid data bit count.");
+    chDbgAssert(config->parity < 2,
+            "serialsoftStart(), #2", "Invalid parity mode.");
+    chDbgAssert(config->stopbits <= 2,
+            "serialsoftStart(), #2", "Invalid stop bit count.");
 
     qsvip->config = config;
-
-    qsvip->state = SERIALSOFT_READY;
 
     chSysUnlock();
 
 #if SERIALSOFT_USE_TRANSMITTER
     /* ToDo: Setup tx environment */
-
 #endif
 
 #if SERIALSOFT_USE_RECEIVER
+    chDbgAssert((config->extd != NULL) && (config->extcfg != NULL),
+            "serialsoftStart(), #3",
+            "ext driver and configuration missing");
+    chDbgAssert((config->gptd != NULL) && (config->gptcfg != NULL),
+            "serialsoftStart(), #3",
+            "gpt driver and configuration missing");
+    chDbgAssert(config->gptd->state == GPT_STOP,
+            "serialsoftStart(), #3", "GPT will be started by qserialsoft driver internally.");
+
     /* start GPT driver to obtain gpt clock frequency */
     qsvip->config->gptcfg->frequency = 10000;
     qsvip->config->gptcfg->callback = qserialsoft_read_bit_cb;
@@ -382,6 +396,8 @@ void serialsoftStart(SerialSoftDriver *qsvip, SerialSoftConfig *config)
 
     /* pre-calculate timer value for center of 1st data bit after leading edge of start bit */
     qsvip->timing_first_bit = qsvip->timing_bit_interval * 4 / 3;
+
+    qsvip->state = SERIALSOFT_READY;
 }
 
 /**
