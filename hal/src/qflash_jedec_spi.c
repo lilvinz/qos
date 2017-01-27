@@ -77,13 +77,9 @@ static const struct FlashJedecSPIDriverVMT flash_jedec_spi_vmt =
 
 static void flash_jedec_spi_reconfigure(FlashJedecSPIDriver* fjsp)
 {
-#if !FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION || !SPI_USE_MUTUAL_EXCLUSION
     /* Set slave specific bus configuration if defined. */
     if (fjsp->config->spi_cfgp)
         spiStart(fjsp->config->spip, fjsp->config->spi_cfgp);
-#else
-    (void)fjsp;
-#endif /* !FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION || !SPI_USE_MUTUAL_EXCLUSION */
 }
 
 static void flash_jedec_spi_write_enable(FlashJedecSPIDriver* fjsp)
@@ -832,12 +828,7 @@ void fjsAcquireBus(FlashJedecSPIDriver* fjsp)
 #if SPI_USE_MUTUAL_EXCLUSION
     /* Acquire the underlying device as well. */
     spiAcquireBus(fjsp->config->spip);
-
-    /* Set slave specific bus configuration if defined. */
-    if (fjsp->config->spi_cfgp)
-        spiStart(fjsp->config->spip, fjsp->config->spi_cfgp);
 #endif /* SPI_USE_MUTUAL_EXCLUSION */
-
 #endif /* FLASH_JEDEC_SPI_USE_MUTUAL_EXCLUSION */
 }
 
