@@ -137,7 +137,7 @@ typedef struct
     /**
      * @bried Invert serial polarity.
      */
-    bool rx_invert;
+    bool_t rx_invert;
 #endif
 
     /**

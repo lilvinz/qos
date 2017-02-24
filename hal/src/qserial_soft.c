@@ -9,7 +9,7 @@
  * @file    qserialsoft.c
  * @brief   QSerialSoft Driver code.
  *
- * @addtogroup SVINFO
+ * @addtogroup SERIAL_SOFT
  * @{
  */
 
@@ -62,10 +62,6 @@ SerialSoftDriver QSERIALSOFTD1;
  *
  * @notapi
  */
-
-/* Function to get parity of number n. It returns 1
-   if n has odd parity, and returns 0 if n has even
-   parity */
 static bool getParity(uint16_t number)
 {
     bool parity = false;
@@ -88,7 +84,7 @@ static bool getParity(uint16_t number)
  */
 static void qserialsoft_write_bit_cb(GPTDriver *gptd)
 {
-    chDbgCheck(pwmp != NULL, "qserialsoft_write_bit_cb");
+    chDbgCheck(gptd != NULL, "qserialsoft_write_bit_cb");
 
     chSysLockFromIsr();
     if (QSERIALSOFTD1.obit == 8)
@@ -342,10 +338,6 @@ void serialsoftStart(SerialSoftDriver *qsvip, SerialSoftConfig *config)
             "serialsoftStart(), #1",
             "invalid state");
 
-    chDbgAssert(config->speed < 28800,
-            "serialsoftStart(), #2", "Selected speed is too high.");
-    chDbgAssert(config->speed > 300,
-            "serialsoftStart(), #2", "Selected speed is too low.");
     chDbgAssert(config->databits == 7 || config->databits == 8,
             "serialsoftStart(), #2", "Invalid data bit count.");
     chDbgAssert(config->parity < 2,
@@ -377,6 +369,8 @@ void serialsoftStart(SerialSoftDriver *qsvip, SerialSoftConfig *config)
     gptStart(qsvip->config->gptd, qsvip->config->gptcfg);
     gptStop(qsvip->config->gptd);
 
+    /* ToDo: Check config->speed is possible with this gpt clock frequency */
+
     /* start GPT again with maximum clock speed */
     qsvip->config->gptcfg->frequency = qsvip->config->gptd->clock;
     gptStart(qsvip->config->gptd, qsvip->config->gptcfg);
@@ -392,7 +386,7 @@ void serialsoftStart(SerialSoftDriver *qsvip, SerialSoftConfig *config)
 #endif
 
     /* pre-calculate timer value for bit interval */
-    qsvip->timing_bit_interval = QSERIALSOFTD1.config->gptd->clock / QSERIALSOFTD1.config->speed;
+    qsvip->timing_bit_interval = qsvip->config->gptd->clock / qsvip->config->speed;
 
     /* pre-calculate timer value for center of 1st data bit after leading edge of start bit */
     qsvip->timing_first_bit = qsvip->timing_bit_interval * 4 / 3;
@@ -411,21 +405,20 @@ void serialsoftStop(SerialSoftDriver *qsvip)
 {
     chDbgCheck(NULL != qsvip, "serialsoftStop");
 
-#if SERIALSOFT_USE_TRANSMITTER
-    /* ToDo: Stop tx environment */
-#endif
-#if SERIALSOFT_USE_RECEIVER
-    extChannelDisable(qsvip->config->extd, qsvip->config->rx_pad);
-    gptStopTimer(qsvip->config->gptd);
-    gptStop(qsvip->config->gptd);
-#endif
-
     chSysLock();
     chDbgAssert((qsvip->state == SERIALSOFT_STOP) || (qsvip->state == SERIALSOFT_READY),
             "serialsoftStop(), #1",
             "invalid state");
     qsvip->state = SERIALSOFT_STOP;
     qsvip->config = NULL;
+
+#if SERIALSOFT_USE_TRANSMITTER
+    /* ToDo: Stop tx environment */
+#endif
+#if SERIALSOFT_USE_RECEIVER
+    extChannelDisableI(qsvip->config->extd, qsvip->config->rx_pad);
+    gptStopTimerI(qsvip->config->gptd);
+#endif
 
 #if SERIALSOFT_USE_RECEIVER
     chIQResetI(&qsvip->iqueue);
@@ -434,8 +427,11 @@ void serialsoftStop(SerialSoftDriver *qsvip)
 #if SERIALSOFT_USE_TRANSMITTER
     chOQResetI(&qsvip->oqueue);
 #endif
-
     chSysUnlock();
+
+#if SERIALSOFT_USE_RECEIVER
+    gptStop(qsvip->config->gptd);
+#endif
 }
 
 #endif /* HAL_USE_SERIAL_SOFT */
