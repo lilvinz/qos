@@ -21,6 +21,7 @@
 #include "qio_nvm.h"
 #include "qgd.h"
 #include "qserial_virtual.h"
+#include "qserial_soft.h"
 
 /* Shared headers.*/
 
