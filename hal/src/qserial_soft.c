@@ -376,10 +376,11 @@ void serialsoftStart(SerialSoftDriver *qsvip, SerialSoftConfig *config)
     gptStart(qsvip->config->gptd, qsvip->config->gptcfg);
 
     /* setup and enable start bit edge detection interrupt */
+    qsvip->config->extcfg->channels[qsvip->config->rx_pad].mode &= EXT_MODE_GPIO_MASK;
     if (qsvip->config->rx_invert == TRUE)
-        qsvip->config->extcfg->channels[qsvip->config->rx_pad].mode = qsvip->config->rx_pad | EXT_CH_MODE_RISING_EDGE;
+        qsvip->config->extcfg->channels[qsvip->config->rx_pad].mode |= EXT_CH_MODE_RISING_EDGE;
     else
-        qsvip->config->extcfg->channels[qsvip->config->rx_pad].mode = qsvip->config->rx_pad | EXT_CH_MODE_FALLING_EDGE;
+        qsvip->config->extcfg->channels[qsvip->config->rx_pad].mode |= EXT_CH_MODE_FALLING_EDGE;
 
     qsvip->config->extcfg->channels[qsvip->config->rx_pad].cb = qserialsoft_start_bit_cb;
     extChannelEnable(qsvip->config->extd, qsvip->config->rx_pad);
