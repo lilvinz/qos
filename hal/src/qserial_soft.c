@@ -410,7 +410,6 @@ void serialsoftStop(SerialSoftDriver *qsvip)
             "serialsoftStop(), #1",
             "invalid state");
     qsvip->state = SERIALSOFT_STOP;
-    qsvip->config = NULL;
 
 #if SERIALSOFT_USE_TRANSMITTER
     /* ToDo: Stop tx environment */
@@ -432,6 +431,8 @@ void serialsoftStop(SerialSoftDriver *qsvip)
 #if SERIALSOFT_USE_RECEIVER
     gptStop(qsvip->config->gptd);
 #endif
+
+    qsvip->config = NULL;
 }
 
 #endif /* HAL_USE_SERIAL_SOFT */
