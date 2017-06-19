@@ -120,13 +120,13 @@ static inline systime_t st_lld_get_counter(void) {
  * @note    Makes sure that no spurious alarms are triggered after
  *          this call.
  *
- * @param[in] time      the time to be set for the first alarm
+ * @param[in] alarm_time    the time to be set for the first alarm
  *
  * @notapi
  */
-static inline void st_lld_start_alarm(systime_t time) {
+static inline void st_lld_start_alarm(systime_t alarm_time) {
 
-  (void)time;
+  (void)alarm_time;
 }
 
 /**
@@ -141,13 +141,13 @@ static inline void st_lld_stop_alarm(void) {
 /**
  * @brief   Sets the alarm time.
  *
- * @param[in] time      the time to be set for the next alarm
+ * @param[in] alarm_time    the time to be set for the next alarm
  *
  * @notapi
  */
-static inline void st_lld_set_alarm(systime_t time) {
+static inline void st_lld_set_alarm(systime_t alarm_time) {
 
-  (void)time;
+  (void)alarm_time;
 }
 
 /**
