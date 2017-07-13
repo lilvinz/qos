@@ -74,6 +74,9 @@ void qhalInit(void)
 #if HAL_USE_NVM_FEE || defined(__DOXYGEN__)
     nvmfeeInit();
 #endif
+#if HAL_USE_NVM_IOBLOCK || defined(__DOXYGEN__)
+    nvmioblockInit();
+#endif
 #if HAL_USE_FLASH || defined(__DOXYGEN__)
     flashInit();
 #endif
