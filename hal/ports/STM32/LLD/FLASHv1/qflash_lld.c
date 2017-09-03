@@ -465,7 +465,7 @@ bool flash_lld_addr_to_sector(uint32_t addr, FLASHSectorInfo* sinfo)
         sinfo->sector = addr / FLASH_SECTOR_SIZE;
         sinfo->origin = sinfo->sector * FLASH_SECTOR_SIZE;
         sinfo->size = FLASH_SECTOR_SIZE;
-#if defined
+
         if (sinfo->sector >= 62)
             sinfo->wrp_bit = 31;
         else
