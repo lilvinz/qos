@@ -36,7 +36,7 @@
 #ifndef _QHAL_LLD_H_
 #define _QHAL_LLD_H_
 
-#include "stm32.h"
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Driver constants.                                                         */
