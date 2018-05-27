@@ -87,7 +87,7 @@ static void sfdxd_send(SerialFdxDriver* sfdxdp)
     osalSysUnlock();
 
     sfdxdp->sendbuffer[idx++] = SFDX_FRAME_END;
-    chSequentialStreamWrite(sfdxdp->configp->farp, sfdxdp->sendbuffer, idx);
+    streamWrite(sfdxdp->configp->farp, sfdxdp->sendbuffer, idx);
 
     osalSysLock();
     if ((sfdxdp->connected == TRUE) && (chSymQIsEmptyI(&sfdxdp->oqueue) == TRUE))
@@ -196,12 +196,12 @@ static void sfdxd_pump(void* parameters)
         {
             sfdxd_send(sfdxdp);
             receiveResult = sfdxd_receive(sfdxdp,
-                    OSAL_MS2ST(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
+                    TIME_MS2I(SFDX_MASTER_RECEIVE_TIMEOUT_MS));
         }
         else
         {
             receiveResult = sfdxd_receive(sfdxdp,
-                    OSAL_MS2ST(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
+                    TIME_MS2I(SFDX_SLAVE_RECEIVE_TIMEOUT_MS));
             if (receiveResult >= 0)
                 sfdxd_send(sfdxdp);
         }
