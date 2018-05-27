@@ -36,8 +36,6 @@
 #ifndef _QSYMQUEUES_H_
 #define _QSYMQUEUES_H_
 
-#if CH_CFG_USE_QUEUES || defined(__DOXYGEN__)
-
 /**
  * @brief   Type of a generic I/O queue structure.
  */
@@ -212,7 +210,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif /* CH_CFG_USE_QUEUES */
 
 #endif /* _QSYMQUEUES_H_ */
 

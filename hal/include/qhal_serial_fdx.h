@@ -131,8 +131,8 @@
 #error "Serial fdx requires ChibiOS RT"
 #endif
 
-#if !CH_CFG_USE_QUEUES || !CH_CFG_USE_EVENTS
-#error "Serial fdx requires CH_CFG_USE_QUEUES and CH_CFG_USE_EVENTS"
+#if !CH_CFG_USE_EVENTS
+#error "Serial fdx requires CH_CFG_USE_EVENTS"
 #endif
 
 #if SERIAL_FDX_MTU < 4

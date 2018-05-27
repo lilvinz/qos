@@ -31,15 +31,11 @@
  *
  * @addtogroup io_queues
  * @details Symmetric queues are to be used from threads only.
- * @pre     In order to use the symmetric queues the @p CH_CFG_USE_QUEUES option must
- *          be enabled in @p chconf.h.
  * @{
  */
 
 #include "qhal.h"
 #include "qsymqueue.h"
-
-#if CH_CFG_USE_QUEUES || defined(__DOXYGEN__)
 
 /**
  * @brief   Initializes a symmetric queue.
@@ -490,7 +486,5 @@ size_t chSymQWriteTimeout(symmetric_queue_t *sqp, const uint8_t *bp,
 
     return result;
 }
-
-#endif  /* CH_CFG_USE_QUEUES */
 
 /** @} */

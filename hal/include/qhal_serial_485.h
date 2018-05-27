@@ -73,8 +73,8 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
-#if !CH_CFG_USE_QUEUES && !CH_CFG_USE_EVENTS
-#error "Serial 485 Driver requires CH_CFG_USE_QUEUES and CH_CFG_USE_EVENTS"
+#if !CH_CFG_USE_EVENTS
+#error "Serial 485 Driver requires CH_CFG_USE_EVENTS"
 #endif
 
 /*===========================================================================*/
