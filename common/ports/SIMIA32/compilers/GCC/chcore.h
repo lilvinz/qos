@@ -177,7 +177,7 @@ struct port_intctx {
  * @details This structure usually contains just the saved stack pointer
  *          defined as a pointer to a @p port_intctx structure.
  */
-struct context {
+struct port_context {
   ucontext_t uc;
 };
 
@@ -190,13 +190,13 @@ struct context {
  * @details This code usually setup the context switching frame represented
  *          by an @p port_intctx structure.
  */
-#define PORT_SETUP_CONTEXT(tp, workspace, wsize, pf, arg) {                   \
-  if (getcontext(&tp->p_ctx.uc) < 0)                                          \
+#define PORT_SETUP_CONTEXT(tp, wbase, wtop, pf, arg) {                        \
+  if (getcontext(&tp->ctx.uc) < 0)                                            \
     chSysHalt("getcontext() failed");                                         \
-  tp->p_ctx.uc.uc_stack.ss_sp = workspace;                                    \
-  tp->p_ctx.uc.uc_stack.ss_size = wsize;                                      \
-  tp->p_ctx.uc.uc_stack.ss_flags = 0;                                         \
-  makecontext(&tp->p_ctx.uc, (void(*)(void))_port_thread_start, 2, pf, arg);  \
+  tp->ctx.uc.uc_stack.ss_sp = (void*)wbase;                                   \
+  tp->ctx.uc.uc_stack.ss_size = (size_t)((uint8_t*)wtop - (uint8_t*)wbase);   \
+  tp->ctx.uc.uc_stack.ss_flags = 0;                                           \
+  makecontext(&tp->ctx.uc, (void(*)(void))_port_thread_start, 2, pf, arg);    \
 }
 
 /**
@@ -266,7 +266,7 @@ struct context {
 #else
 #define port_switch(ntp, otp) {                                             \
   register struct port_intctx *sp asm ("%esp");                             \
-  if ((stkalign_t *)(sp - 1) < otp->p_stklimit)                               \
+  if ((stkalign_t *)(sp - 1) < otp->wabase)                                 \
     chSysHalt("stack overflow");                                            \
   _port_switch(ntp, otp);                                                   \
 }
