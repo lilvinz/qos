@@ -95,7 +95,7 @@ typedef enum {
  */
 typedef struct Serial485Driver Serial485Driver;
 
-#include "qserial_485_lld.h"
+#include "qhal_serial_485_lld.h"
 
 /**
  * @brief   @p Serial485Driver specific methods.

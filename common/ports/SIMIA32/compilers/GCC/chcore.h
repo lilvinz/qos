@@ -30,7 +30,7 @@
 #ifndef _CHCORE_H_
 #define _CHCORE_H_
 
-#include "st_lld.h"
+#include "hal_st_lld.h"
 
 #include <ucontext.h>
 
