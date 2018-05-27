@@ -346,6 +346,7 @@ extern Serial485Driver S485D7;
 #endif
 #if STM32_SERIAL_485_USE_UART8 && !defined(__DOXYGEN__)
 extern Serial485Driver S485D8;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
