@@ -113,6 +113,7 @@ typedef struct
  * @brief   @p BaseGDDevice specific methods.
  */
 #define _base_gd_device_methods                                               \
+    _base_object_methods                                                      \
     void (*pixel_set)(void *instance, coord_t x, coord_t y, color_t color);   \
     void (*stream_start)(void *instance, coord_t left, coord_t top,           \
             coord_t width, coord_t height);                                   \

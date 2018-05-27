@@ -47,6 +47,7 @@
  */
 static const struct FLASHDriverVMT flash_vmt =
 {
+    (size_t)0,
     .read = (bool (*)(void*, uint32_t, uint32_t, uint8_t*))flashRead,
     .write = (bool (*)(void*, uint32_t, uint32_t, const uint8_t*))flashWrite,
     .erase = (bool (*)(void*, uint32_t, uint32_t))flashErase,

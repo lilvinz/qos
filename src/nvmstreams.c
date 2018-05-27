@@ -121,6 +121,7 @@ static msg_t get(void *ip)
 
 static const struct NVMStreamVMT vmt =
 {
+    (size_t)0,
     writes,
     reads,
     put,

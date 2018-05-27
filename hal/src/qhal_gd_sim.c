@@ -46,6 +46,7 @@
  */
 static const struct GDSimDriverVMT gd_sim_vmt =
 {
+    (size_t)0,
     .pixel_set = (void (*)(void*, coord_t, coord_t, color_t))gdsimPixelSet,
     .stream_start = (void (*)(void*, coord_t, coord_t, coord_t, coord_t))
             gdsimStreamStart,

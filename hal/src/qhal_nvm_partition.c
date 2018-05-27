@@ -45,6 +45,7 @@
  */
 static const struct NVMPartitionDriverVMT nvm_partition_vmt =
 {
+    (size_t)0,
     .read = (bool (*)(void*, uint32_t, uint32_t, uint8_t*))nvmpartRead,
     .write = (bool (*)(void*, uint32_t, uint32_t, const uint8_t*))nvmpartWrite,
     .erase = (bool (*)(void*, uint32_t, uint32_t))nvmpartErase,

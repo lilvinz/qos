@@ -299,6 +299,7 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout)
 
 static const struct SerialVirtualDriverVMT vmt =
 {
+    (size_t)0,
     write, read, put, get,
     putt, gett, writet, readt
 };

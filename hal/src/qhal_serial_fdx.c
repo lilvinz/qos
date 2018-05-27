@@ -290,6 +290,7 @@ static msg_t get(void* ip)
 
 static const struct SerialFdxDriverVMT vmt =
 {
+    (size_t)0,
     write, read, put, get,
     putt, gett, writet, readt
 };

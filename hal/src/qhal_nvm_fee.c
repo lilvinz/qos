@@ -72,6 +72,7 @@ static const uint32_t nvm_fee_magic =
  */
 static const struct NVMFeeDriverVMT nvm_fee_vmt =
 {
+    (size_t)0,
     .read = (bool (*)(void*, uint32_t, uint32_t, uint8_t*))nvmfeeRead,
     .write = (bool (*)(void*, uint32_t, uint32_t, const uint8_t*))nvmfeeWrite,
     .erase = (bool (*)(void*, uint32_t, uint32_t))nvmfeeErase,

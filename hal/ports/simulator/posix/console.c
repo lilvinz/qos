@@ -146,6 +146,7 @@ static msg_t gett(void *ip, systime_t timeout) {
 }
 
 static const struct BaseChannelVMT vmt = {
+  (size_t)0,
   write, read, put, get,
   putt, gett, writet, readt
 };

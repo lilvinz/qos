@@ -41,6 +41,7 @@
  */
 static const struct NVMIOBlockDriverVMT nvm_memory_vmt =
 {
+    (size_t)0,
     .read = (bool (*)(void*, uint32_t, uint8_t*, uint32_t))nvmioblockRead,
     .write = (bool (*)(void*, uint32_t, const uint8_t*, uint32_t))nvmioblockWrite,
     .sync = (bool (*)(void*))nvmioblockSync,

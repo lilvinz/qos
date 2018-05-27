@@ -45,6 +45,7 @@
  */
 static const struct GDILI9341DriverVMT gd_sim_vmt =
 {
+    (size_t)0,
     .pixel_set = (void (*)(void*, coord_t, coord_t, color_t))gdili9341PixelSet,
     .stream_start = (void (*)(void*, coord_t, coord_t, coord_t, coord_t))
             gdili9341StreamStart,

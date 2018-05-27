@@ -48,6 +48,7 @@
  */
 static const struct NVMFileDriverVMT nvm_file_vmt =
 {
+    (size_t)0,
     .read = (bool (*)(void*, uint32_t, uint32_t, uint8_t*))nvmfileRead,
     .write = (bool (*)(void*, uint32_t, uint32_t, const uint8_t*))nvmfileWrite,
     .erase = (bool (*)(void*, uint32_t, uint32_t))nvmfileErase,

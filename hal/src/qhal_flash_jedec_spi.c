@@ -69,6 +69,7 @@
  */
 static const struct FlashJedecSPIDriverVMT flash_jedec_spi_vmt =
 {
+    (size_t)0,
     .read = (bool (*)(void*, uint32_t, uint32_t, uint8_t*))fjsRead,
     .write = (bool (*)(void*, uint32_t, uint32_t, const uint8_t*))fjsWrite,
     .erase = (bool (*)(void*, uint32_t, uint32_t))fjsErase,
