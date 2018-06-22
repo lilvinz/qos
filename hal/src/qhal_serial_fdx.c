@@ -340,13 +340,9 @@ void sfdxdObjectInit(SerialFdxDriver* sfdxdp)
        @p chThdCreateI() does not do it.*/
 #if CH_DBG_FILL_THREADS
     {
-        void *wsp = sfdxdp->wa_pump;
-        _thread_memfill((uint8_t *)wsp,
-                (uint8_t *)wsp + sizeof(thread_t),
-                CH_DBG_THREAD_FILL_VALUE);
-        _thread_memfill((uint8_t *)wsp + sizeof(thread_t),
-                (uint8_t *)wsp + sizeof(sfdxdp->wa_pump),
-                CH_DBG_STACK_FILL_VALUE);
+        _thread_memfill((uint8_t*)THD_WORKING_AREA_BASE(sfdxdp->wa_pump),
+            (uint8_t*)THD_WORKING_AREA_END(sfdxdp->wa_pump),
+            CH_DBG_STACK_FILL_VALUE);
     }
 #endif /* CH_DBG_FILL_THREADS */
 #endif /* defined(_CHIBIOS_RT_) */
@@ -376,9 +372,15 @@ void sfdxdStart(SerialFdxDriver* sfdxdp, const SerialFdxConfig *configp)
     /* Creates the data pump thread. Note, it is created only once.*/
     if (sfdxdp->tr == NULL)
     {
-        sfdxdp->tr = chThdCreateI(sfdxdp->wa_pump, sizeof sfdxdp->wa_pump,
-                SERIAL_FDX_THREAD_PRIO, sfdxd_pump, sfdxdp);
-        chThdStartI(sfdxdp->tr);
+        thread_descriptor_t pump_descriptor = {
+          "sfdxd_pump",
+          THD_WORKING_AREA_BASE(sfdxdp->wa_pump),
+          THD_WORKING_AREA_END(sfdxdp->wa_pump),
+          SERIAL_FDX_THREAD_PRIO,
+          sfdxd_pump,
+          (void*)sfdxdp
+        };
+        sfdxdp->tr = chThdCreateI(&pump_descriptor);
     }
     else if (sfdxdp->wait != NULL)
     {
