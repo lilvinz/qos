@@ -92,8 +92,8 @@ static msg_t get(void *ip) {
     return MSG_RESET;
 }
 
-static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout) {
-  systime_t start = chVTGetSystemTimeX();
+static size_t writet(void *ip, const uint8_t *bp, size_t n, sysinterval_t timeout) {
+  sysinterval_t start = chVTGetSystemTimeX();
   size_t ret;
 
   do
@@ -109,8 +109,8 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout) {
   return ret;
 }
 
-static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout) {
-  systime_t start = chVTGetSystemTimeX();
+static size_t readt(void *ip, uint8_t *bp, size_t n, sysinterval_t timeout) {
+  sysinterval_t start = chVTGetSystemTimeX();
   size_t ret;
 
   do
@@ -126,7 +126,7 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout) {
   return ret;
 }
 
-static msg_t putt(void *ip, uint8_t b, systime_t timeout) {
+static msg_t putt(void *ip, uint8_t b, sysinterval_t timeout) {
   (void)ip;
 
   if (writet(ip, &b, 1, timeout) == 1)
@@ -135,7 +135,7 @@ static msg_t putt(void *ip, uint8_t b, systime_t timeout) {
     return MSG_TIMEOUT;
 }
 
-static msg_t gett(void *ip, systime_t timeout) {
+static msg_t gett(void *ip, sysinterval_t timeout) {
   (void)ip;
 
   uint8_t b;
