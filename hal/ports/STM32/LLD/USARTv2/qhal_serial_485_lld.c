@@ -667,47 +667,47 @@ void s485d_lld_start(Serial485Driver *s485dp, const Serial485Config *config) {
   if (s485dp->state == S485D_STOP) {
 #if STM32_SERIAL_485_USE_USART1
     if (&S485D1 == s485dp) {
-      rccEnableUSART1(FALSE);
+      rccEnableUSART1(true);
     }
 #endif
 #if STM32_SERIAL_485_USE_USART2
     if (&S485D2 == s485dp) {
-      rccEnableUSART2(FALSE);
+      rccEnableUSART2(true);
     }
 #endif
 #if STM32_SERIAL_485_USE_USART3
     if (&S485D3 == s485dp) {
-      rccEnableUSART3(FALSE);
+      rccEnableUSART3(true);
     }
 #endif
 #if STM32_SERIAL_485_USE_UART4
     if (&S485D4 == s485dp) {
-      rccEnableUART4(FALSE);
+      rccEnableUART4(true);
     }
 #endif
 #if STM32_SERIAL_485_USE_UART5
     if (&S485D5 == s485dp) {
-      rccEnableUART5(FALSE);
+      rccEnableUART5(true);
     }
 #endif
 #if STM32_SERIAL_485_USE_USART6
     if (&S485D6 == s485dp) {
-      rccEnableUSART6(FALSE);
+      rccEnableUSART6(true);
     }
 #endif
 #if STM32_SERIAL_485_USE_UART7
     if (&S485D7 == s485dp) {
-      rccEnableUART7(FALSE);
+      rccEnableUART7(true);
     }
 #endif
 #if STM32_SERIAL_485_USE_UART8
     if (&S485D8 == s485dp) {
-      rccEnableUART8(FALSE);
+      rccEnableUART8(true);
     }
 #endif
 #if STM32_SERIAL_485_USE_LPUART1
     if (&LPS485D1 == s485dp) {
-      rccEnableLPUART1(FALSE);
+      rccEnableLPUART1(true);
     }
 #endif
   }
@@ -731,55 +731,55 @@ void s485d_lld_stop(Serial485Driver *s485dp) {
 
 #if STM32_SERIAL_485_USE_USART1
     if (&S485D1 == s485dp) {
-      rccDisableUSART1(FALSE);
+      rccDisableUSART1();
       return;
     }
 #endif
 #if STM32_SERIAL_485_USE_USART2
     if (&S485D2 == s485dp) {
-      rccDisableUSART2(FALSE);
+      rccDisableUSART2();
       return;
     }
 #endif
 #if STM32_SERIAL_485_USE_USART3
     if (&S485D3 == s485dp) {
-      rccDisableUSART3(FALSE);
+      rccDisableUSART3();
       return;
     }
 #endif
 #if STM32_SERIAL_485_USE_UART4
     if (&S485D4 == s485dp) {
-      rccDisableUART4(FALSE);
+      rccDisableUART4();
       return;
     }
 #endif
 #if STM32_SERIAL_485_USE_UART5
     if (&S485D5 == s485dp) {
-      rccDisableUART5(FALSE);
+      rccDisableUART5();
       return;
     }
 #endif
 #if STM32_SERIAL_485_USE_USART6
     if (&S485D6 == s485dp) {
-      rccDisableUSART6(FALSE);
+      rccDisableUSART6();
       return;
     }
 #endif
 #if STM32_SERIAL_485_USE_UART7
     if (&S485D7 == s485dp) {
-      rccDisableUART7(FALSE);
+      rccDisableUART7();
       return;
     }
 #endif
 #if STM32_SERIAL_485_USE_UART8
     if (&S485D8 == s485dp) {
-      rccDisableUART8(FALSE);
+      rccDisableUART8();
       return;
     }
 #endif
 #if STM32_SERIAL_485_USE_LPUART1
     if (&LPS485D1 == s485dp) {
-      rccDisableLPUART1(FALSE);
+      rccDisableLPUART1();
       return;
     }
 #endif
