@@ -144,13 +144,9 @@ void gdsim_lld_object_init(GDSimDriver* gdsimp)
        @p chThdCreateI() does not do it.*/
 #if CH_DBG_FILL_THREADS
     {
-        void *wsp = gdsimp->wa_pump;
-        _thread_memfill((uint8_t *)wsp,
-                (uint8_t *)wsp + sizeof(thread_t),
-                CH_DBG_THREAD_FILL_VALUE);
-        _thread_memfill((uint8_t *)wsp + sizeof(thread_t),
-                (uint8_t *)wsp + sizeof(gdsimp->wa_pump),
-                CH_DBG_STACK_FILL_VALUE);
+        _thread_memfill((uint8_t*)THD_WORKING_AREA_BASE(gdsimp->wa_pump),
+            (uint8_t*)THD_WORKING_AREA_END(gdsimp->wa_pump),
+            CH_DBG_STACK_FILL_VALUE);
     }
 #endif /* CH_DBG_FILL_THREADS */
 #endif /* defined(_CHIBIOS_RT_) */
@@ -250,9 +246,15 @@ void gdsim_lld_start(GDSimDriver* gdsimp)
         /* Creates the data pump thread. Note, it is created only once.*/
         if (gdsimp->tr == NULL)
         {
-            gdsimp->tr = chThdCreateI(gdsimp->wa_pump, sizeof gdsimp->wa_pump,
-                    GD_SIM_THREAD_PRIO, gdsim_lld_pump, gdsimp);
-            chThdStartI(gdsimp->tr);
+            thread_descriptor_t pump_descriptor = {
+              "gdsim_lld_pump",
+              THD_WORKING_AREA_BASE(gdsimp->wa_pump),
+              THD_WORKING_AREA_END(gdsimp->wa_pump),
+              GD_SIM_THREAD_PRIO,
+              gdsim_lld_pump,
+              (void*)gdsimp
+            };
+            gdsimp->tr = chThdCreateI(&pump_descriptor);
         }
         else if (gdsimp->wait != NULL)
         {
