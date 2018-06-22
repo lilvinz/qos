@@ -45,52 +45,76 @@
  * queue-level function or macro.
  */
 
-static size_t write(void *ip, const uint8_t *bp, size_t n) {
+static size_t _write(void *ip, const uint8_t *bp, size_t n) {
 
-  return chOQWriteTimeout(&((Serial485Driver *)ip)->oqueue, bp,
+  return oqWriteTimeout(&((Serial485Driver *)ip)->oqueue, bp,
                           n, TIME_INFINITE);
 }
 
-static size_t read(void *ip, uint8_t *bp, size_t n) {
+static size_t _read(void *ip, uint8_t *bp, size_t n) {
 
-  return chIQReadTimeout(&((Serial485Driver *)ip)->iqueue, bp,
+  return iqReadTimeout(&((Serial485Driver *)ip)->iqueue, bp,
                          n, TIME_INFINITE);
 }
 
-static msg_t put(void *ip, uint8_t b) {
+static msg_t _put(void *ip, uint8_t b) {
 
-  return chOQPutTimeout(&((Serial485Driver *)ip)->oqueue, b, TIME_INFINITE);
+  return oqPutTimeout(&((Serial485Driver *)ip)->oqueue, b, TIME_INFINITE);
 }
 
-static msg_t get(void *ip) {
+static msg_t _get(void *ip) {
 
-  return chIQGetTimeout(&((Serial485Driver *)ip)->iqueue, TIME_INFINITE);
+  return iqGetTimeout(&((Serial485Driver *)ip)->iqueue, TIME_INFINITE);
 }
 
-static msg_t putt(void *ip, uint8_t b, systime_t timeout) {
+static msg_t _putt(void *ip, uint8_t b, systime_t timeout) {
 
-  return chOQPutTimeout(&((Serial485Driver *)ip)->oqueue, b, timeout);
+  return oqPutTimeout(&((Serial485Driver *)ip)->oqueue, b, timeout);
 }
 
-static msg_t gett(void *ip, systime_t timeout) {
+static msg_t _gett(void *ip, systime_t timeout) {
 
-  return chIQGetTimeout(&((Serial485Driver *)ip)->iqueue, timeout);
+  return iqGetTimeout(&((Serial485Driver *)ip)->iqueue, timeout);
 }
 
-static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t time) {
+static size_t _writet(void *ip, const uint8_t *bp, size_t n, systime_t time) {
 
-  return chOQWriteTimeout(&((Serial485Driver *)ip)->oqueue, bp, n, time);
+  return oqWriteTimeout(&((Serial485Driver *)ip)->oqueue, bp, n, time);
 }
 
-static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
+static size_t _readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
 
-  return chIQReadTimeout(&((Serial485Driver *)ip)->iqueue, bp, n, time);
+  return iqReadTimeout(&((Serial485Driver *)ip)->iqueue, bp, n, time);
+}
+
+static msg_t _ctl(void *ip, unsigned int operation, void *arg) {
+  Serial485Driver *s485dp = (Serial485Driver *)ip;
+
+  osalDbgCheck(s485dp != NULL);
+
+  switch (operation) {
+  case CHN_CTL_NOP:
+    osalDbgCheck(arg == NULL);
+    break;
+  case CHN_CTL_INVALID:
+    osalDbgAssert(false, "invalid CTL operation");
+    break;
+  default:
+#if defined(SD_LLD_IMPLEMENTS_CTL)
+    /* Delegating to the LLD if supported.*/
+    return s485d_lld_control(s485dp, operation, arg);
+#else
+    break;
+#endif
+  }
+  return MSG_OK;
 }
 
 static const struct Serial485DriverVMT vmt = {
   (size_t)0,
-  write, read, put, get,
-  putt, gett, writet, readt
+  _write, _read, _put, _get,
+  _putt, _gett, _writet, _readt,
+  _ctl
 };
 
 /*===========================================================================*/
@@ -129,8 +153,8 @@ void s485dObjectInit(Serial485Driver *s485dp, qnotify_t inotify, qnotify_t onoti
   s485dp->vmt = &vmt;
   osalEventObjectInit(&s485dp->event);
   s485dp->state = S485D_STOP;
-  chIQObjectInit(&s485dp->iqueue, s485dp->ib, SERIAL_BUFFERS_SIZE, inotify, s485dp);
-  chOQObjectInit(&s485dp->oqueue, s485dp->ob, SERIAL_BUFFERS_SIZE, onotify, s485dp);
+  iqObjectInit(&s485dp->iqueue, s485dp->ib, SERIAL_BUFFERS_SIZE, inotify, s485dp);
+  oqObjectInit(&s485dp->oqueue, s485dp->ob, SERIAL_BUFFERS_SIZE, onotify, s485dp);
 }
 
 /**
@@ -177,8 +201,8 @@ void s485dStop(Serial485Driver *s485dp) {
   chnAddFlagsI(s485dp, CHN_DISCONNECTED);
   s485d_lld_stop(s485dp);
   s485dp->state = S485D_STOP;
-  chOQResetI(&s485dp->oqueue);
-  chIQResetI(&s485dp->iqueue);
+  oqResetI(&s485dp->oqueue);
+  iqResetI(&s485dp->iqueue);
   osalOsRescheduleS();
   osalSysUnlock();
 }
@@ -204,9 +228,9 @@ void s485dIncomingDataI(Serial485Driver *s485dp, uint8_t b) {
   osalDbgCheckClassI();
   osalDbgCheck(s485dp != NULL);
 
-  if (chIQIsEmptyI(&s485dp->iqueue))
+  if (iqIsEmptyI(&s485dp->iqueue))
     chnAddFlagsI(s485dp, CHN_INPUT_AVAILABLE);
-  if (chIQPutI(&s485dp->iqueue, b) < Q_OK)
+  if (iqPutI(&s485dp->iqueue, b) < Q_OK)
     chnAddFlagsI(s485dp, S485D_OVERRUN_ERROR);
 }
 
@@ -231,10 +255,79 @@ msg_t s485dRequestDataI(Serial485Driver *s485dp) {
   osalDbgCheckClassI();
   osalDbgCheck(s485dp != NULL);
 
-  b = chOQGetI(&s485dp->oqueue);
+  b = oqGetI(&s485dp->oqueue);
   if (b < Q_OK)
     chnAddFlagsI(s485dp, CHN_OUTPUT_EMPTY);
   return b;
+}
+
+/**
+ * @brief   Direct output check on a @p SerialDriver.
+ * @note    This function bypasses the indirect access to the channel and
+ *          checks directly the output queue. This is faster but cannot
+ *          be used to check different channels implementations.
+ *
+ * @param[in] s485dp    pointer to a @p Serial485Driver object
+ * @return              The queue status.
+ * @retval false        if the next write operation would not block.
+ * @retval true         if the next write operation would block.
+ *
+ * @deprecated
+ *
+ * @api
+ */
+bool sdPutWouldBlock(Serial485Driver *s485dp) {
+  bool b;
+
+  osalSysLock();
+  b = oqIsFullI(&s485dp->oqueue);
+  osalSysUnlock();
+
+  return b;
+}
+
+/**
+ * @brief   Direct input check on a @p SerialDriver.
+ * @note    This function bypasses the indirect access to the channel and
+ *          checks directly the input queue. This is faster but cannot
+ *          be used to check different channels implementations.
+ *
+ * @param[in] s485dp    pointer to a @p Serial485Driver object
+ * @return              The queue status.
+ * @retval false        if the next write operation would not block.
+ * @retval true         if the next write operation would block.
+ *
+ * @deprecated
+ *
+ * @api
+ */
+bool sdGetWouldBlock(Serial485Driver *s485dp) {
+  bool b;
+
+  osalSysLock();
+  b = iqIsEmptyI(&s485dp->iqueue);
+  osalSysUnlock();
+
+  return b;
+}
+
+/**
+ * @brief   Control operation on a serial port.
+ *
+ * @param[in] s485dp    pointer to a @p Serial485Driver object
+ * @param[in] operation control operation code
+ * @param[in,out] arg   operation argument
+ *
+ * @return              The control operation status.
+ * @retval MSG_OK       in case of success.
+ * @retval MSG_TIMEOUT  in case of operation timeout.
+ * @retval MSG_RESET    in case of operation reset.
+ *
+ * @api
+ */
+msg_t sdControl(Serial485Driver *s485dp, unsigned int operation, void *arg) {
+
+  return _ctl((void *)s485dp, operation, arg);
 }
 
 #endif /* HAL_USE_SERIAL_485 */
