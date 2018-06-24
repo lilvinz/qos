@@ -51,7 +51,7 @@
 /**
  * @brief   Suspends the invoking thread to match the specified time interval.
  *
- * @param[in] previous  pointer to the previous systime_t
+ * @param[in] previous  pointer to the previous sysinterval_t
  * @param[in] period    time period to match
  *                      - @a TIME_INFINITE the thread enters an infinite sleep
  *                        state.
@@ -59,11 +59,11 @@
  *
  * @api
  */
-void chThdSleepPeriod(systime_t *previous, systime_t period)
+void chThdSleepPeriod(systime_t *previous, sysinterval_t period)
 {
     chDbgCheck(period != TIME_INFINITE && previous != NULL);
 
-    systime_t future = *previous + period;
+    sysinterval_t future = *previous + period;
 
     chSysLock();
 
@@ -103,13 +103,13 @@ void chThdSleepPeriod(systime_t *previous, systime_t period)
  * @api
  */
 eventmask_t chEvtWaitAnyPeriod(eventmask_t events, systime_t *previous,
-        systime_t period)
+        sysinterval_t period)
 {
     chDbgCheck(period != TIME_INFINITE && previous != NULL);
 
     thread_t *ctp = currp;
     eventmask_t m;
-    systime_t future = *previous + period;
+    sysinterval_t future = *previous + period;
 
     chSysLock();
 
