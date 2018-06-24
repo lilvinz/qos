@@ -31,15 +31,11 @@
  *
  * @addtogroup io_queues
  * @details Symmetric queues are to be used from threads only.
- * @pre     In order to use the symmetric queues the @p CH_CFG_USE_QUEUES option must
- *          be enabled in @p chconf.h.
  * @{
  */
 
 #include "qhal.h"
 #include "qsymqueue.h"
-
-#if CH_CFG_USE_QUEUES || defined(__DOXYGEN__)
 
 /**
  * @brief   Initializes a symmetric queue.
@@ -133,7 +129,7 @@ msg_t chSymQGetI(symmetric_queue_t *sqp)
  *
  * @sclass
  */
-msg_t chSymQGetTimeoutS(symmetric_queue_t *sqp, systime_t timeout)
+msg_t chSymQGetTimeoutS(symmetric_queue_t *sqp, sysinterval_t timeout)
 {
     uint8_t b;
 
@@ -175,7 +171,7 @@ msg_t chSymQGetTimeoutS(symmetric_queue_t *sqp, systime_t timeout)
  *
  * @api
  */
-msg_t chSymQGetTimeout(symmetric_queue_t *sqp, systime_t timeout)
+msg_t chSymQGetTimeout(symmetric_queue_t *sqp, sysinterval_t timeout)
 {
     osalSysLock();
     msg_t result = chSymQGetTimeoutS(sqp, timeout);
@@ -208,7 +204,7 @@ msg_t chSymQGetTimeout(symmetric_queue_t *sqp, systime_t timeout)
  * @sclass
  */
 size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
-                       size_t n, systime_t timeout)
+                       size_t n, sysinterval_t timeout)
 {
     size_t r = 0;
 
@@ -216,13 +212,13 @@ size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
 
     osalDbgCheck(n > 0);
 
-    systime_t start = osalOsGetSystemTimeX();
+    sysinterval_t start = osalOsGetSystemTimeX();
 
     while (TRUE)
     {
         if (chSymQIsEmptyI(sqp))
         {
-            systime_t this_timeout = timeout;
+            sysinterval_t this_timeout = timeout;
             if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
             {
                 if (chVTTimeElapsedSinceX(start) >= timeout)
@@ -278,7 +274,7 @@ size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
  * @api
  */
 size_t chSymQReadTimeout(symmetric_queue_t *sqp, uint8_t *bp,
-                       size_t n, systime_t timeout)
+                       size_t n, sysinterval_t timeout)
 {
     osalSysLock();
     size_t result = chSymQReadTimeoutS(sqp, bp, n, timeout);
@@ -338,7 +334,7 @@ msg_t chSymQPutI(symmetric_queue_t *sqp, uint8_t b)
  *
  * @sclass
  */
-msg_t chSymQPutTimeoutS(symmetric_queue_t *sqp, uint8_t b, systime_t timeout)
+msg_t chSymQPutTimeoutS(symmetric_queue_t *sqp, uint8_t b, sysinterval_t timeout)
 {
     osalDbgCheckClassS();
 
@@ -380,7 +376,7 @@ msg_t chSymQPutTimeoutS(symmetric_queue_t *sqp, uint8_t b, systime_t timeout)
  *
  * @api
  */
-msg_t chSymQPutTimeout(symmetric_queue_t *sqp, uint8_t b, systime_t timeout)
+msg_t chSymQPutTimeout(symmetric_queue_t *sqp, uint8_t b, sysinterval_t timeout)
 {
     osalSysLock();
     msg_t result = chSymQPutTimeoutS(sqp, b, timeout);
@@ -413,7 +409,7 @@ msg_t chSymQPutTimeout(symmetric_queue_t *sqp, uint8_t b, systime_t timeout)
  * @sclass
  */
 size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
-                        size_t n, systime_t timeout)
+                        size_t n, sysinterval_t timeout)
 {
     size_t w = 0;
 
@@ -421,13 +417,13 @@ size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
 
     osalDbgCheck(n > 0);
 
-    systime_t start = osalOsGetSystemTimeX();
+    sysinterval_t start = osalOsGetSystemTimeX();
 
     while (TRUE)
     {
         if (chSymQIsFullI(sqp))
         {
-            systime_t this_timeout = timeout;
+            sysinterval_t this_timeout = timeout;
             if (timeout != TIME_IMMEDIATE && timeout != TIME_INFINITE)
             {
                 if (chVTTimeElapsedSinceX(start) >= timeout)
@@ -482,7 +478,7 @@ size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
  * @api
  */
 size_t chSymQWriteTimeout(symmetric_queue_t *sqp, const uint8_t *bp,
-                        size_t n, systime_t timeout)
+                        size_t n, sysinterval_t timeout)
 {
     osalSysLock();
     size_t result = chSymQWriteTimeoutS(sqp, bp, n, timeout);
@@ -490,7 +486,5 @@ size_t chSymQWriteTimeout(symmetric_queue_t *sqp, const uint8_t *bp,
 
     return result;
 }
-
-#endif  /* CH_CFG_USE_QUEUES */
 
 /** @} */

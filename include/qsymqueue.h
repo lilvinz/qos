@@ -36,8 +36,6 @@
 #ifndef _QSYMQUEUES_H_
 #define _QSYMQUEUES_H_
 
-#if CH_CFG_USE_QUEUES || defined(__DOXYGEN__)
-
 /**
  * @brief   Type of a generic I/O queue structure.
  */
@@ -196,23 +194,22 @@ extern "C" {
   void chSymQObjectInit(symmetric_queue_t *sqp, uint8_t *bp, size_t size);
   void chSymQResetI(symmetric_queue_t *sqp);
   msg_t chSymQGetI(symmetric_queue_t *sqp);
-  msg_t chSymQGetTimeoutS(symmetric_queue_t *sqp, systime_t timeout);
-  msg_t chSymQGetTimeout(symmetric_queue_t *sqp, systime_t timeout);
+  msg_t chSymQGetTimeoutS(symmetric_queue_t *sqp, sysinterval_t timeout);
+  msg_t chSymQGetTimeout(symmetric_queue_t *sqp, sysinterval_t timeout);
   size_t chSymQReadTimeoutS(symmetric_queue_t *sqp, uint8_t *bp,
-                         size_t n, systime_t timeout);
+                         size_t n, sysinterval_t timeout);
   size_t chSymQReadTimeout(symmetric_queue_t *sqp, uint8_t *bp,
-                         size_t n, systime_t timeout);
+                         size_t n, sysinterval_t timeout);
   msg_t chSymQPutI(symmetric_queue_t *sqp, uint8_t b);
-  msg_t chSymQPutTimeoutS(symmetric_queue_t *sqp, uint8_t b, systime_t timeout);
-  msg_t chSymQPutTimeout(symmetric_queue_t *sqp, uint8_t b, systime_t timeout);
+  msg_t chSymQPutTimeoutS(symmetric_queue_t *sqp, uint8_t b, sysinterval_t timeout);
+  msg_t chSymQPutTimeout(symmetric_queue_t *sqp, uint8_t b, sysinterval_t timeout);
   size_t chSymQWriteTimeoutS(symmetric_queue_t *sqp, const uint8_t *bp,
-                          size_t n, systime_t timeout);
+                          size_t n, sysinterval_t timeout);
   size_t chSymQWriteTimeout(symmetric_queue_t *sqp, const uint8_t *bp,
-                          size_t n, systime_t timeout);
+                          size_t n, sysinterval_t timeout);
 #ifdef __cplusplus
 }
 #endif
-#endif /* CH_CFG_USE_QUEUES */
 
 #endif /* _QSYMQUEUES_H_ */
 

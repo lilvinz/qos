@@ -31,31 +31,31 @@
 #include "qhal_lld.h"
 
 /* Abstract interfaces.*/
-#include "qio_nvm.h"
-#include "qgd.h"
-#include "qserial_virtual.h"
+#include "qhal_io_nvm.h"
+#include "qhal_gd.h"
+#include "qhal_serial_virtual.h"
 
 /* Shared headers.*/
 
 /* Layered drivers.*/
-#include "qflash.h"
-#include "qserial_485.h"
-#include "qgd_sim.h"
-#include "qrtc_lld.h"
+#include "qhal_flash.h"
+#include "qhal_serial_485.h"
+#include "qhal_gd_sim.h"
+#include "qhal_rtc_lld.h"
 
 /* Complex drivers.*/
-#include "qflash_jedec_spi.h"
-#include "qnvm_partition.h"
-#include "qnvm_file.h"
-#include "qnvm_memory.h"
-#include "qnvm_mirror.h"
-#include "qnvm_fee.h"
-#include "qnvm_ioblock.h"
-#include "qled.h"
-#include "qgd_ili9341.h"
-#include "qms5541.h"
-#include "qserial_fdx.h"
-#include "qms58xx.h"
+#include "qhal_flash_jedec_spi.h"
+#include "qhal_nvm_partition.h"
+#include "qhal_nvm_file.h"
+#include "qhal_nvm_memory.h"
+#include "qhal_nvm_mirror.h"
+#include "qhal_nvm_fee.h"
+#include "qhal_nvm_ioblock.h"
+#include "qhal_led.h"
+#include "qhal_gd_ili9341.h"
+#include "qhal_ms5541.h"
+#include "qhal_serial_fdx.h"
+#include "qhal_ms58xx.h"
 
 /*===========================================================================*/
 /* External declarations.                                                    */

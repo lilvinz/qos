@@ -1,4 +1,0 @@
-
-QOS_COMMON_PORTS_ARM_GCC_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
-
-LDFLAGS += -T$(QOS_COMMON_PORTS_ARM_GCC_DIR)/sections.ld

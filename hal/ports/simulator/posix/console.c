@@ -42,7 +42,7 @@ BaseChannel CD1;
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-static size_t write(void *ip, const uint8_t *bp, size_t n) {
+static size_t _write(void *ip, const uint8_t *bp, size_t n) {
   size_t ret;
   (void)ip;
 
@@ -58,7 +58,7 @@ static size_t write(void *ip, const uint8_t *bp, size_t n) {
   return ret;
 }
 
-static size_t read(void *ip, uint8_t *bp, size_t n) {
+static size_t _read(void *ip, uint8_t *bp, size_t n) {
   size_t ret;
   (void)ip;
 
@@ -73,26 +73,26 @@ static size_t read(void *ip, uint8_t *bp, size_t n) {
   return ret;
 }
 
-static msg_t put(void *ip, uint8_t b) {
+static msg_t _put(void *ip, uint8_t b) {
   (void)ip;
 
-  if (write(ip, &b, 1) == 1)
+  if (_write(ip, &b, 1) == 1)
     return MSG_OK;
   else
     return MSG_RESET;
 }
 
-static msg_t get(void *ip) {
+static msg_t _get(void *ip) {
   (void)ip;
 
   uint8_t b;
-  if (read(ip, &b, 1) == 1)
+  if (_read(ip, &b, 1) == 1)
     return MSG_OK;
   else
     return MSG_RESET;
 }
 
-static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout) {
+static size_t _writet(void *ip, const uint8_t *bp, size_t n, sysinterval_t timeout) {
   systime_t start = chVTGetSystemTimeX();
   size_t ret;
 
@@ -109,8 +109,8 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t timeout) {
   return ret;
 }
 
-static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout) {
-  systime_t start = chVTGetSystemTimeX();
+static size_t _readt(void *ip, uint8_t *bp, size_t n, sysinterval_t timeout) {
+    systime_t start = chVTGetSystemTimeX();
   size_t ret;
 
   do
@@ -126,28 +126,39 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t timeout) {
   return ret;
 }
 
-static msg_t putt(void *ip, uint8_t b, systime_t timeout) {
+static msg_t _putt(void *ip, uint8_t b, sysinterval_t timeout) {
   (void)ip;
 
-  if (writet(ip, &b, 1, timeout) == 1)
+  if (_writet(ip, &b, 1, timeout) == 1)
     return MSG_OK;
   else
     return MSG_TIMEOUT;
 }
 
-static msg_t gett(void *ip, systime_t timeout) {
+static msg_t _gett(void *ip, sysinterval_t timeout) {
   (void)ip;
 
   uint8_t b;
-  if (readt(ip, &b, 1, timeout) == 1)
+  if (_readt(ip, &b, 1, timeout) == 1)
     return b;
   else
     return MSG_TIMEOUT;
 }
 
+static msg_t _ctl(void *ip, unsigned int operation, void *arg) {
+
+  (void)ip;
+  (void)operation;
+  (void)arg;
+
+  return MSG_OK;
+}
+
 static const struct BaseChannelVMT vmt = {
-  write, read, put, get,
-  putt, gett, writet, readt
+  (size_t)0,
+  _write, _read, _put, _get,
+  _putt, _gett, _writet, _readt,
+  _ctl
 };
 
 /*===========================================================================*/

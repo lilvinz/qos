@@ -12,46 +12,60 @@
     limitations under the License.
 */
 
-#ifndef CH_TOOLS_H_
-#define CH_TOOLS_H_
+/**
+ * @file    STM32/RTCv2/qrtc_lld.h
+ * @brief   STM32L1xx/STM32F2xx/STM32F4xx RTC low level driver header.
+ *
+ * @addtogroup RTC
+ * @{
+ */
 
-#include "qhal.h"
+#ifndef _QRTC_LLD_H_
+#define _QRTC_LLD_H_
 
-/*===========================================================================*/
-/* Constants                                                                 */
-/*===========================================================================*/
+#if HAL_USE_RTC || defined(__DOXYGEN__)
 
-/*===========================================================================*/
-/* Pre-compile time settings                                                 */
-/*===========================================================================*/
+#include <hal_rtc_lld.h>
 
-/*===========================================================================*/
-/* Derived constants and error checks                                        */
-/*===========================================================================*/
-
-/*===========================================================================*/
-/* Data structures and types                                                 */
-/*===========================================================================*/
+#include <time.h>
 
 /*===========================================================================*/
-/* Macros                                                                    */
+/* Driver constants.                                                         */
 /*===========================================================================*/
 
 /*===========================================================================*/
-/* External declarations                                                     */
+/* Driver pre-compile time settings.                                         */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Derived constants and error checks.                                       */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver data structures and types.                                         */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver macros.                                                            */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* External declarations.                                                    */
 /*===========================================================================*/
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
-    void chThdSleepPeriod(systime_t *previous, sysinterval_t period);
-#if CH_CFG_USE_EVENTS || defined(__DOXYGEN__)
-    eventmask_t chEvtWaitAnyPeriod(eventmask_t mask, systime_t *previous,
-            sysinterval_t period);
-#endif /* CH_CFG_USE_EVENTS || defined(__DOXYGEN__) */
+#if STM32_RTC_HAS_PERIODIC_WAKEUPS
+  bool rtcGetPeriodicWakeupFlag_v2(RTCDriver *rtcp);
+  void rtcClearPeriodicWakeupFlag_v2(RTCDriver *rtcp);
+#endif /* STM32_RTC_HAS_PERIODIC_WAKEUPS */
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CH_TOOLS_H_ */
+#endif /* HAL_USE_RTC */
+
+#endif /* _QRTC_LLD_H_ */
+
+/** @} */
