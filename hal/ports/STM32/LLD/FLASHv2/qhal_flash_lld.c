@@ -728,6 +728,7 @@ void flash_lld_write(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
                 offset += 8;
                 break;
             }
+            /* fall through */
         case PSIZE_4:
             if (addr % 4 == 0 && (n - offset) >= 4)
             {
@@ -736,6 +737,7 @@ void flash_lld_write(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
                 offset += 4;
                 break;
             }
+            /* fall through */
         case PSIZE_2:
             if (addr % 2 == 0 && (n - offset) >= 2)
             {
@@ -744,6 +746,7 @@ void flash_lld_write(FLASHDriver* flashp, uint32_t startaddr, uint32_t n,
                 offset += 2;
                 break;
             }
+            /* fall through */
         case PSIZE_1:
             if ((n - offset) >= 1)
             {

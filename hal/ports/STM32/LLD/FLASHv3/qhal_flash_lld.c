@@ -43,7 +43,8 @@
         defined(STM32L475xx) ||             \
         defined(STM32L476xx) ||             \
         defined(STM32L485xx) ||             \
-        defined(STM32L486xx)
+        defined(STM32L486xx) ||             \
+        defined(STM32L496xx)
 #define FLASH_SIZE_REGISTER_ADDRESS ((uint32_t)0x1fff75e0)
 #endif
 
@@ -54,7 +55,8 @@
         defined(STM32L475xx) ||             \
         defined(STM32L476xx) ||             \
         defined(STM32L485xx) ||             \
-        defined(STM32L486xx)
+        defined(STM32L486xx) ||             \
+        defined(STM32L496xx)
 #define FLASH_SECTOR_SIZE 2048
 #endif
 

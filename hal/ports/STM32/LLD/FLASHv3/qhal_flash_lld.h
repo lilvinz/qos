@@ -128,7 +128,8 @@ typedef enum
         defined(STM32L475xx) ||             \
         defined(STM32L476xx) ||             \
         defined(STM32L485xx) ||             \
-        defined(STM32L486xx)
+        defined(STM32L486xx) ||             \
+        defined(STM32L496xx)
 #else
 #error "device unsupported by FLASHv3 driver"
 #endif
