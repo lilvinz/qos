@@ -86,7 +86,6 @@ typedef struct
     float remaining_capacity;
     float full_charge_capacity;
     float effective_current;
-    float average_power;
     float state_of_charge;
     float internal_temperature;
     float rem_capacity_unfiltered;
