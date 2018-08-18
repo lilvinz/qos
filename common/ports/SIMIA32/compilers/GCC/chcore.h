@@ -33,6 +33,7 @@
 #include "hal_st_lld.h"
 
 #include <ucontext.h>
+#include <signal.h>
 
 /*===========================================================================*/
 /* Module constants.                                                         */
