@@ -33,7 +33,7 @@ namespace qos {
 
         virtual void Shutdown()
         {
-            m_moduleThread.requestTerminate();
+            m_moduleThread.shouldTerminate();
         }
 
     protected:
