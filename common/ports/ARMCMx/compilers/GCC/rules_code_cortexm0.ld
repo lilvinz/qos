@@ -39,7 +39,7 @@ SECTIONS
         __fini_array_end = .;
     } > XTORS_FLASH AT > XTORS_FLASH_LMA
 
-    .initcall ALIGN(16)
+    .initcall : ALIGN(16)
     {
         __module_initcall_start = .;
         KEEP(*(SORT(.initcall.*)))
