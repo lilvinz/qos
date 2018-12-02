@@ -25,7 +25,7 @@ SECTIONS
         PROVIDE(__startup_start = .);
         KEEP(*(.vectors))
         PROVIDE(__startup_end = .);
-    } > VECTORS_FLASH AT > VECTORS_FLASH_LMA
+    } > VECTORS_RAM AT > VECTORS_FLASH_LMA
 
     .xtors : ALIGN(4)
     {
@@ -39,7 +39,7 @@ SECTIONS
         __fini_array_end = .;
     } > XTORS_FLASH AT > XTORS_FLASH_LMA
 
-    .initcall ALIGN(16)
+    .initcall : ALIGN(16)
     {
         __module_initcall_start = .;
         KEEP(*(SORT(.initcall.*)))
