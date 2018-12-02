@@ -25,7 +25,7 @@ SECTIONS
         PROVIDE(__startup_start = .);
         KEEP(*(.vectors))
         PROVIDE(__startup_end = .);
-    } > VECTORS_FLASH AT > VECTORS_FLASH_LMA
+    } > VECTORS_RAM AT > VECTORS_FLASH_LMA
 
     .xtors : ALIGN(4)
     {
