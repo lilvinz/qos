@@ -340,6 +340,9 @@ bool gdsim_lld_get_info(GDSimDriver* gdsimp, GDDeviceInfo* gddip)
 {
     gddip->size_x = gdsimp->config->size_x;
     gddip->size_y = gdsimp->config->size_y;
+    gddip->id[0] = 'S';
+    gddip->id[1] = 'I';
+    gddip->id[2] = 'M';
 
     return HAL_SUCCESS;
 }
