@@ -506,7 +506,7 @@ void flash_lld_erase_sector(FLASHDriver* flashp, uint32_t startaddr)
     flash_lld_cr_unlock(flashp);
 
     /* Set operation to perform. */
-    flashp->flash->CR &= ~(FLASH_CR_FSTPG | FLASH_CR_MER2 |
+    flashp->flash->CR &= ~(FLASH_CR_FSTPG | FLASH_CR_MER2 | FLASH_CR_BKER |
             FLASH_CR_PNB | FLASH_CR_MER1 | FLASH_CR_PER | FLASH_CR_PG);
     flashp->flash->CR |= ((startaddr / FLASH_SECTOR_SIZE) << 3) | FLASH_CR_PER;
 
